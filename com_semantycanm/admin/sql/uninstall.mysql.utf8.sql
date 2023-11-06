@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS `#__nm_mailing_list`;
