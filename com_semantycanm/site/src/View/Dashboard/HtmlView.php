@@ -11,5 +11,4 @@ class HtmlView extends BaseHtmlView
 	function display($tpl = null) {
 		parent::display($tpl);
 	}
-
 }

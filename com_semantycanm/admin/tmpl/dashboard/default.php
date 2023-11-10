@@ -1,8 +1,8 @@
 <?php
 
+use Joomla\CMS\HTML\HTMLHelper;
 
-defined('_JEXEC') or die('Restricted Access');
+HTMLHelper::_('form.csrf', '_csrf');
+
 ?>
-<h2>test 15</h2>
-
 

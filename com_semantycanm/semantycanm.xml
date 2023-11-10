@@ -14,6 +14,7 @@
 
     <files folder="site/">
         <folder>language</folder>
+        <folder>services</folder>
         <folder>src</folder>
         <folder>tmpl</folder>
     </files>
@@ -24,6 +25,10 @@
 
     <administration>
         <menu link="index.php?option=com_semantycanm">Semantyca dashboard</menu>
+        <submenu>
+            <menu>User groups</menu>
+            <menu>General settings</menu>
+        </submenu>
         <files folder="admin/">
             <folder>language</folder>
             <folder>services</folder>
