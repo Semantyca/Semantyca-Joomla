@@ -5,6 +5,9 @@ use Joomla\CMS\HTML\Helpers\Bootstrap;
 use Joomla\CMS\Log\Log;
 
 HTMLHelper::_('form.csrf', '_csrf');
+HTMLHelper::_('jquery.framework');
+$document = JFactory::getDocument();
+$document->addScript(JURI::root() . "media/com_semantycanm/js/Sortable.min.js");
 
 
 try
@@ -18,6 +21,8 @@ catch (Exception $e)
 
 $this->usergroups = $this->user_groups;
 $this->mailingLists = $this->mailing_lists;
+$this->newsLetters = $this->news_letters;
+$this->selectedLetters = [];
 
 ?>
 
@@ -45,13 +50,12 @@ $this->mailingLists = $this->mailing_lists;
     <div class="tab-content" id="nav-tabContent">
         <div class="tab-pane fade show active" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
 	        <?php echo $this->loadTemplate('lists_tab'); ?>
-
         </div>
         <div class="tab-pane fade" id="nav-composer" role="tabpanel" aria-labelledby="nav-composer-tab">
-            composer
+	        <?php echo $this->loadTemplate('fetch_articles_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-newsletters" role="tabpanel" aria-labelledby="nav-newsletters-tab">
-            newsletters
+	        <?php echo $this->loadTemplate('send_news_letter_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
             stats

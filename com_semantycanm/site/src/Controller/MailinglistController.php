@@ -12,6 +12,25 @@ use JText;
 
 class MailinglistController extends BaseController
 {
+	public function getList()
+	{
+		try
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query->select($db->quoteName(array('id', 'title')))
+				->from($db->quoteName('#__usergroups'));
+			$db->setQuery($query);
+
+			return $db->loadObjectList();
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+
+			return null;
+		}
+	}
 
 	public function addRecord()
 	{
@@ -20,7 +39,7 @@ class MailinglistController extends BaseController
 			error_log('addRecord method was triggered');
 			if (!JSession::checkToken())
 			{
-				throw new \Exception('Invalid token');
+				throw new \Exception(JText::_('JINVALID_TOKEN'));
 			}
 			$data = JFactory::getApplication()->input->post->getArray();
 			$this->getModel()->addRecord($data['name']);

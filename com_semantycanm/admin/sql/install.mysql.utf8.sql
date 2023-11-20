@@ -1,5 +1,8 @@
-DROP TABLE IF EXISTS `#__nm_mailing_list`;
+DROP TABLE IF EXISTS `#__nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__nm_subscribers`;
+DROP TABLE IF EXISTS `#__nm_newsletters`;
+DROP TABLE IF EXISTS `#__nm_mailing_list`;
+
 
 CREATE TABLE `#__nm_mailing_list`
 (
@@ -17,6 +20,25 @@ CREATE TABLE `#__nm_subscribers`
     PRIMARY KEY (id),
     FOREIGN KEY (mail_list_id) REFERENCES `#__nm_mailing_list` (id)
 ) ENGINE = InnoDB;
+
+CREATE TABLE `#__nm_newsletters`
+(
+    id              INT AUTO_INCREMENT,
+    subject         VARCHAR(255),
+    send_date       DATE,
+    message_content MEDIUMTEXT,
+    PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE `#__nm_newsletter_mailing_list`
+(
+    newsletter_id INT,
+    mailing_list_id INT,
+    PRIMARY KEY (newsletter_id, mailing_list_id),
+    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id),
+    FOREIGN KEY (mailing_list_id) REFERENCES `#__nm_mailing_list` (id)
+) ENGINE = InnoDB;
+
 
 INSERT INTO `#__nm_mailing_list` (`name`)
 VALUES ('Accounting Team'),

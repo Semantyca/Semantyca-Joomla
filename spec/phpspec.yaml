@@ -1,0 +1,5 @@
+suites:
+  default:
+    spec_prefix: Spec
+    src_path: com_semantycanm/site/src/Controller
+    spec_path: com_semantycanm/site/src/Controller/

@@ -1,0 +1,18 @@
+{
+  "assets": [
+    {
+      "name": "com_semantycanm.dashboard",
+      "type": "script",
+      "files": [
+        "/media/com_semantycanm/js/dashboard.js"
+      ]
+    },
+    {
+      "name": "com_semantycanm.sortable",
+      "type": "script",
+      "files": [
+        "/media/com_semantycanm/js/Sortable.min.js"
+      ]
+    }
+  ]
+}
