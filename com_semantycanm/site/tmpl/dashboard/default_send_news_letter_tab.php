@@ -40,11 +40,7 @@
             height: 200px !important;
             overflow-y: auto;
         }
-
-
     </style>
-
-
 </head>
 
 <div class="container">
@@ -96,7 +92,6 @@
                 <button type="submit" class="btn btn-primary" name="action" value="send">Send Newsletter</button>
                 <button type="button" class="btn btn-secondary" id="saveNewsletterBtn">Save Newsletter</button>
             </form>
-
         </div>
     </div>
     <div class="row justify-content-center mt-5">
@@ -145,7 +140,6 @@
 
     sortableAvailableLists.option("onEnd", function (evt) {
         let draggedElement = evt.item;
-        let selectedLists = document.getElementById('selectedLists');
         let duplicate = Array.from(selectedLists.children).some(li => {
             return li.dataset.id === draggedElement.id;
         });

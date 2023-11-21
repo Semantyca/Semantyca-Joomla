@@ -1,0 +1,39 @@
+#reset-button {
+    background-color: #152E52;
+    color: white;
+}
+
+#selected-articles {
+    min-height: 450px;
+    background-color: #f8f9fa;
+    border: 2px dashed #adb5bd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+}
+
+#selected-articles:empty {
+    border: 3px dashed #adb5bd;
+}
+
+#preview-button {
+    background-color: green;
+    color: white;
+}
+
+#articles-list .list-group-item {
+    cursor: grab; /* cursor will appear as an open hand when hovering over articles */
+}
+
+#articles-list .list-group-item:active {
+    cursor: grabbing; /* cursor will appear as a closed hand when an article is being dragged */
+}
+
+.btn-group .btn {
+    margin-right: 5px; /* Space between buttons */
+    height: 38px; /* Ensures that all buttons have the same height */
+}
+
+/* Remove the margin for the last button to ensure that there's no extra space on the far right */
+.btn-group .btn:last-child {
+    margin-right: 0;
+}

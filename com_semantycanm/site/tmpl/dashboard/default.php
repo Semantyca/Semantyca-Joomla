@@ -8,6 +8,8 @@ HTMLHelper::_('form.csrf', '_csrf');
 HTMLHelper::_('jquery.framework');
 $document = JFactory::getDocument();
 $document->addScript(JURI::root() . "media/com_semantycanm/js/Sortable.min.js");
+$document->addScript(JURI::root() . "media/com_semantycanm/js/trumbowyg.min.js");
+$document->addScript(JURI::root() . "media/com_semantycanm/js/templates.js");
 
 
 try
@@ -20,6 +22,7 @@ catch (Exception $e)
 }
 
 $this->usergroups = $this->user_groups;
+$this->articlesList = $this->articles;
 $this->mailingLists = $this->mailing_lists;
 $this->newsLetters = $this->news_letters;
 $this->selectedLetters = [];
