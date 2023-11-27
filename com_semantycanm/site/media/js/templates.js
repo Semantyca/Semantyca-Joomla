@@ -1,6 +1,3 @@
-// templates.js
-
-// Common spacer table attributes
 const spacerWidth = '100%'
 const spacerCellSpacing = '0'
 const spacerCellPadding = '0'
@@ -381,3 +378,31 @@ window.templates.placeholder = function() {
 
   `;
 };
+
+function getFullTemplate(content) {
+  return `
+<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<!--[if !mso]><!-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+	<!--<![endif]-->
+	<!--[if gte mso 9]>
+	<xml>
+		<o:OfficeDocumentSettings>
+			<o:AllowPNG/>
+			<o:PixelsPerInch>96</o:PixelsPerInch>
+		</o:OfficeDocumentSettings>
+	</xml>
+	<![endif]-->
+	<style type="text/css">
+        v\\:* { behavior: url(#default#VML); display: inline-block; }
+	</style>
+</head>
+<body style="font-family: Verdana, Arial, sans-serif; margin: 0; padding: 0;">
+${content}
+</body>
+</html>
+`;
+}

@@ -86,10 +86,9 @@
                 </div>
                 <div class="form-group" >
                     <label for="messageContent">Message Content (HTML):</label>
-                    <textarea class="form-control" id="messageContent" name="messageContent" rows="10"
-                              required><?= htmlspecialchars(newsLetters['messageContent'], ENT_QUOTES, 'UTF-8') ?></textarea>
+                    <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary" name="action" value="send">Send Newsletter</button>
+                <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send">Send Newsletter</button>
                 <button type="button" class="btn btn-secondary" id="saveNewsletterBtn">Save Newsletter</button>
             </form>
         </div>
@@ -123,6 +122,10 @@
 </div>
 
 <script>
+    $('#sendNewsletterBtn').click(function () {
+
+    }
+
     let availableLists = document.getElementById('availableListsUL');
     let selectedLists = document.getElementById('selectedLists');
     let sortableAvailableLists = Sortable.create(availableLists, {

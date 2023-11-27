@@ -1,22 +1,17 @@
 <?php
 defined('_JEXEC') or die;
 
-// Add the Typeahead.js library.
-$doc = JFactory::getDocument();
-$doc->addScript('/joomla/media/com_semantycanm/js/typeahead.bundle.js');
+//require_once __DIR__ . '/template_source_helper.php';
 
-// Add the Typeahead.js initialization code.
-$doc->addScriptDeclaration(
-	"jQuery(document).ready(function($) {
-       $('#article-search').typeahead({
-           source: function(query, process) {
-               return $.get('/articles/search', { searchTerms: query }, function(data) {
-                  return process(data);
-               });
-           }
-       });
-   });"
-);
+$imageUrl = JUri::root() . 'media/com_semantycanm/images/staff-newsletter-banner.jpg';
+
+$app = Joomla\CMS\Factory::getApplication();
+$doc = $app->getDocument();
+$doc->addScript('/joomla/media/com_semantycanm/js/typeahead.bundle.js');
+$doc->addScript('/joomla/media/com_semantycanm/js/bootstrap.min.js');
+$doc->addStyleSheet(JUri::root() . 'components/com_semantycanm/media/css/trumbowyg.min.css');
+$doc->addStyleSheet(JUri::root() . 'components/com_semantycanm/media/css/default.css');
+
 ?>
 
 <div class="container">
@@ -25,11 +20,12 @@ $doc->addScriptDeclaration(
             <h3>Available Articles</h3>
             <label for="article-search"></label>
             <input type="text" id="article-search" class="form-control mb-2" placeholder="Search articles...">
-            <ul id="articles-list" class="list-group"  style="height: 350px !important; overflow-y: auto;">
+            <ul id="articles-list" class="list-group" style="height: 350px !important; overflow-y: auto;">
 				<?php
 				foreach ($this->articlesList as $article): ?>
-                    <li class="list-group-item" <?php echo 'id="' . $article->id . '"'; ?>>
-						<?php echo $article->title; ?>
+                    <li class="list-group-item"
+                        <?php echo 'id="'.$article->id.'" title="'.$article->title.'"  url="'.$article->url.'" category="'.$article->category.'" intro="'.$article->introtext.'"'; ?>>
+                        <strong><?php echo $article->category?></strong><br><?php echo $article->title; ?>
                     </li>
 				<?php endforeach; ?>
             </ul>
@@ -44,10 +40,8 @@ $doc->addScriptDeclaration(
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="btn-group">
-                <!--<button id="generate-newsletter" class="btn btn-primary">Generate Newsletter</button>-->
-                <!-- <button id="toggle-editor" class="btn btn-secondary mb-2">Toggle Editor</button> -->
                 <button id="preview-button" class="btn mb-2">Preview</button>
-                <button id="reset-button" class="btn">Reset</button>
+                <button id="reset-button" class="btn" style="background-color: #152E52; color: white;">Reset</button>
                 <button id="copy-code-button" class="btn btn-info mb-2">Copy Code</button>
             </div>
             <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="10"></textarea>
@@ -55,7 +49,6 @@ $doc->addScriptDeclaration(
     </div>
 </div>
 
-<!-- Preview Modal -->
 <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel"
      aria-hidden="true">
     <div class="modal-dialog modal-lg" role="document">
@@ -77,18 +70,24 @@ $doc->addScriptDeclaration(
 <script>
     let outputHtml = $('#output-html')
 
-    $('#reset-button').click(function() {
+    $('#reset-button').click(function () {
         outputHtml.val('');
         outputHtml.trumbowyg('html', '')
         $('#selected-articles').empty()
     });
 
-    $('#preview-button').click(function() {
+    $('#preview-button').click(function () {
         $('#preview-content').html($('#output-html').val());
         $('#previewModal').modal('show');
     });
 
-    $('#copy-code-button').click(function() {
+    $('#article-search').on('input', function () {
+        const searchTerm = $(this).val().toLowerCase();
+        const filteredArticles = articlesData.filter(article => article.title.toLowerCase().includes(searchTerm));
+        renderArticles(filteredArticles);
+    });
+
+    $('#copy-code-button').click(function () {
         const completeHTML = getFullTemplate($('#output-html').val());
         const tempTextArea = $('<textarea>').val(completeHTML).appendTo('body').select();
         const successful = document.execCommand('copy');
@@ -99,6 +98,7 @@ $doc->addScriptDeclaration(
         }
         tempTextArea.remove();
     });
+
 
     let editedContentStore = {};
     let articlesList = document.getElementById('articles-list');
@@ -122,10 +122,15 @@ $doc->addScriptDeclaration(
             let newLiEntry = document.createElement('li');
             newLiEntry.textContent = draggedElement.textContent;
             newLiEntry.dataset.id = draggedElement.id;
+            newLiEntry.dataset.title = draggedElement.title;
+            newLiEntry.dataset.url = draggedElement.attributes.url.nodeValue;
+            newLiEntry.dataset.category = draggedElement.attributes.category.nodeValue;
+            newLiEntry.dataset.intro = draggedElement.attributes.intro.nodeValue;
             newLiEntry.className = "list-group-item";
             newLiEntry.addEventListener("click", function() {
-                this.parentNode.removeChild(this);
-            });
+					this.parentNode.removeChild(this);
+				});
+
             selectedArticles.appendChild(newLiEntry);
             updateNewsletterContent();
         }
@@ -139,7 +144,7 @@ $doc->addScriptDeclaration(
 
         outputHtml.val(content);
         outputHtml.trumbowyg('html', content);
-        outputHtml.each(function() {
+        outputHtml.each(function () {
             const $this = $(this);
             if (!$this.data('trumbowyg')) {
                 $this.trumbowyg({
@@ -152,7 +157,7 @@ $doc->addScriptDeclaration(
                     ],
                     removeformatPasted: false
                 })
-                    .on('tbwblur', function() {
+                    .on('tbwblur', function () {
                         const editedContent = $this.trumbowyg('html');
                         const articleId = $this.data('id');
                         editedContentStore[articleId] = editedContent;
@@ -202,7 +207,7 @@ $doc->addScriptDeclaration(
         let selectedArticlesLi = $('#selected-articles li')
         const totalArticles = selectedArticlesLi.length;
 
-        selectedArticlesLi.each(function(index, article) {
+        selectedArticlesLi.each(function (index, article) {
             const articleId = $(article).data('id');
             const title = $(article).data('title');
             const url = $(article).data('url');
@@ -216,7 +221,8 @@ $doc->addScriptDeclaration(
             }
         });
 
-        var contentTemplate = `
+
+        return `
       <table width="100%" cellspacing="0" cellpadding="0" border="0">
       <tr>
       <td width="10">
@@ -226,7 +232,7 @@ $doc->addScriptDeclaration(
       <!-- Image row -->
       <tr>
       <td>
-      <img width="100%" src="/media/com_semantycanm/images/staff-newsletter-banner.jpg" style="display:block; margin:0; padding:0;" alt="Newsletter Banner" />
+        <?php echo JHtml::_('image', $imageUrl, 'EMSA', ['alt' => 'EMSA Staff newsletter']); ?>
       </td>
       </tr>
       <tr>
@@ -256,35 +262,6 @@ $doc->addScriptDeclaration(
       </tr>
       </table>
       `;
-
-        return contentTemplate;
     }
 
-    function getFullTemplate(content) {
-        return `
-      <!DOCTYPE html>
-      <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
-      <head>
-      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-      <!--[if !mso]><!-->
-      <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-      <!--<![endif]-->
-      <!--[if gte mso 9]>
-      <xml>
-      <o:OfficeDocumentSettings>
-      <o:AllowPNG/>
-      <o:PixelsPerInch>96</o:PixelsPerInch>
-      </o:OfficeDocumentSettings>
-      </xml>
-      <![endif]-->
-      <style type="text/css">
-      v\\:* { behavior: url(#default#VML); display: inline-block; }
-      </style>
-      </head>
-      <body style="font-family: Verdana, Arial, sans-serif; margin: 0; padding: 0;">
-      ${content}
-      </body>
-      </html>
-      `;
-    }
 </script>
