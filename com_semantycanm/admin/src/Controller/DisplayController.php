@@ -1,6 +1,6 @@
 <?php
 
-namespace Semantyca\Component\SemantycaNM\Site\Controller;
+namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 

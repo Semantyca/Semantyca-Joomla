@@ -1,6 +1,6 @@
 <?php
 
-namespace spec\Semantyca\Component\SemantycaNM\Site\Controller;
+namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 use PhpSpec\ObjectBehavior;
 use Joomla\CMS\MVC\View\HtmlView;

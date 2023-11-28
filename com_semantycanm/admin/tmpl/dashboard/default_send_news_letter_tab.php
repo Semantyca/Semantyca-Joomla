@@ -122,9 +122,6 @@
 </div>
 
 <script>
-    $('#sendNewsletterBtn').click(function () {
-
-    }
 
     let availableLists = document.getElementById('availableListsUL');
     let selectedLists = document.getElementById('selectedLists');

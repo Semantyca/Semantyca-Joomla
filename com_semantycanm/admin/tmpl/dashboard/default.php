@@ -6,11 +6,16 @@ use Joomla\CMS\Log\Log;
 
 HTMLHelper::_('form.csrf', '_csrf');
 HTMLHelper::_('jquery.framework');
-$app = Joomla\CMS\Factory::getApplication();
-$doc = $app->getDocument();
-$doc->addScript(JURI::root() . "media/com_semantycanm/js/Sortable.min.js");
-$doc->addScript(JURI::root() . "media/com_semantycanm/js/trumbowyg.min.js");
-$doc->addScript('components/com_semantycanm/media/js/templates.js');
+$app   = Joomla\CMS\Factory::getApplication();
+$doc   = $app->getDocument();
+$media = "administrator/components/com_semantycanm/media/";
+$doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
+$doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
+$doc->addScript(JUri::root() . $media . "js/bootstrap.min.js");
+$doc->addScript(JURI::root() . $media . "js/templates.js");
+$doc->addScript(JUri::root() . $media . "js/typeahead.bundle.js");
+$doc->addStyleSheet(JUri::root() . $media . "css/trumbowyg.min.css");
+$doc->addStyleSheet(JUri::root() . $media . "css/default.css");
 
 try
 {
@@ -21,10 +26,10 @@ catch (Exception $e)
 	Log::add($e, Log::ERROR, 'com_semantycanm');
 }
 
-$this->usergroups = $this->user_groups;
-$this->articlesList = $this->articles;
-$this->mailingLists = $this->mailing_lists;
-$this->newsLetters = $this->news_letters;
+$this->usergroups      = $this->user_groups;
+$this->articlesList    = $this->articles;
+$this->mailingLists    = $this->mailing_lists;
+$this->newsLetters     = $this->news_letters;
 $this->selectedLetters = [];
 
 ?>
@@ -52,13 +57,13 @@ $this->selectedLetters = [];
     </nav>
     <div class="tab-content" id="nav-tabContent">
         <div class="tab-pane fade show active" id="nav-list" role="tabpanel" aria-labelledby="nav-list-tab">
-	        <?php echo $this->loadTemplate('lists_tab'); ?>
+			<?php echo $this->loadTemplate('lists_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-composer" role="tabpanel" aria-labelledby="nav-composer-tab">
-	        <?php echo $this->loadTemplate('fetch_articles_tab'); ?>
+			<?php echo $this->loadTemplate('fetch_articles_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-newsletters" role="tabpanel" aria-labelledby="nav-newsletters-tab">
-	        <?php echo $this->loadTemplate('send_news_letter_tab'); ?>
+			<?php echo $this->loadTemplate('send_news_letter_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
             stats

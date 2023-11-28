@@ -23,13 +23,10 @@
     </languages>
 
     <administration>
-        <menu link="index.php?option=com_semantycanm">Semantyca dashboard</menu>
-        <submenu>
-            <menu>User groups</menu>
-            <menu>General settings</menu>
-        </submenu>
+        <menu link="index.php?option=com_semantycanm">Semantyca</menu>
         <files folder="admin/">
             <folder>language</folder>
+            <folder>media</folder>
             <folder>services</folder>
             <folder>helpers</folder>
             <folder>sql</folder>

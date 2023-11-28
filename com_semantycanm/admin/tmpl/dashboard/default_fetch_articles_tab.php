@@ -7,10 +7,7 @@ $imageUrl = JUri::root() . 'media/com_semantycanm/images/staff-newsletter-banner
 
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
-$doc->addScript('/joomla/media/com_semantycanm/js/typeahead.bundle.js');
-$doc->addScript('/joomla/media/com_semantycanm/js/bootstrap.min.js');
-$doc->addStyleSheet(JUri::root() . 'components/com_semantycanm/media/css/trumbowyg.min.css');
-$doc->addStyleSheet(JUri::root() . 'components/com_semantycanm/media/css/default.css');
+
 
 ?>
 

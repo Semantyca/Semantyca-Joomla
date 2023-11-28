@@ -1,6 +1,6 @@
 <?php
 
-namespace Semantyca\Component\SemantycaNM\Site\View\Dashboard;
+namespace Semantyca\Component\SemantycaNM\Administrator\View\Dashboard;
 
 defined('_JEXEC') or die;
 
