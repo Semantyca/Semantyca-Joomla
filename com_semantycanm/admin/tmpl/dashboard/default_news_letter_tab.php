@@ -1,50 +1,5 @@
-<head>
-    <title></title>
-    <style>
-        #selected-articles {
-            min-height: 450px;
-            background-color: #f8f9fa;
-            border: 2px dashed #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-
-        #selected-articles:empty {
-            border: 3px dashed #adb5bd;
-        }
-
-        #preview-button {
-            background-color: green;
-            color: white;
-        }
-
-        .list-group-item {
-            cursor: grab;
-        }
-
-        #articles-list .list-group-item {
-            cursor: grab; /* cursor will appear as an open hand when hovering over articles */
-        }
-
-        #articles-list .list-group-item:active {
-            cursor: grabbing; /* cursor will appear as a closed hand when an article is being dragged */
-        }
-
-        .table-fixed thead {
-            position: sticky;
-            top: 0;
-            z-index: 1;
-        }
-
-        .availists, .selectlists {
-            height: 200px !important;
-            overflow-y: auto;
-        }
-    </style>
-</head>
 
 <div class="container">
-
     <div class="row">
         <div class="col-md-6 availists">
             <h3>Available Lists</h3>
@@ -122,6 +77,32 @@
 </div>
 
 <script>
+
+    $('#sendNewsletterBtn').click(function () {
+        const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
+        const subj = $('#subject').val()
+        const headers = new Headers();
+        headers.append("Content-Type", "text/html");
+        const body = new URLSearchParams();
+        body.append("body", $('#messageContent').val());
+        body.append("user_group", "justaidajam@gmail.com");
+
+        fetch(url, {
+            method: "POST",
+            headers: headers,
+            subject: subj,
+            body: body
+        })
+            .then(response => {
+                if(response.status === 200) {
+                    alert("Request was successful");
+                } else {
+                    console.error('Error:', response.status);
+                }
+            })
+            .catch((error) => console.error('Error:', error));
+    });
+
 
     let availableLists = document.getElementById('availableListsUL');
     let selectedLists = document.getElementById('selectedLists');

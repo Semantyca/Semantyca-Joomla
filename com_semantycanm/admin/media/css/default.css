@@ -15,11 +15,6 @@
     border: 3px dashed #adb5bd;
 }
 
-#preview-button {
-    background-color: green;
-    color: white;
-}
-
 #articles-list .list-group-item {
     cursor: grab; /* cursor will appear as an open hand when hovering over articles */
 }
@@ -36,4 +31,19 @@
 /* Remove the margin for the last button to ensure that there's no extra space on the far right */
 .btn-group .btn:last-child {
     margin-right: 0;
+}
+
+.list-group-item {
+    cursor: grab;
+}
+
+.table-fixed thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.availists, .selectlists {
+    height: 200px !important;
+    overflow-y: auto;
 }

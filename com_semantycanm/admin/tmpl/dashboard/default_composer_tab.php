@@ -1,9 +1,11 @@
 <?php
+
 defined('_JEXEC') or die;
 
 //require_once __DIR__ . '/template_source_helper.php';
 
-$imageUrl = JUri::root() . 'media/com_semantycanm/images/staff-newsletter-banner.jpg';
+global $media;
+$imageUrl = $media . "images/staff-newsletter-banner.jpg";
 
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
@@ -37,7 +39,6 @@ $doc = $app->getDocument();
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="btn-group">
-                <button id="preview-button" class="btn mb-2">Preview</button>
                 <button id="reset-button" class="btn" style="background-color: #152E52; color: white;">Reset</button>
                 <button id="copy-code-button" class="btn btn-info mb-2">Copy Code</button>
             </div>
@@ -52,7 +53,7 @@ $doc = $app->getDocument();
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="previewModalLabel">Newsletter Preview</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -71,11 +72,6 @@ $doc = $app->getDocument();
         outputHtml.val('');
         outputHtml.trumbowyg('html', '')
         $('#selected-articles').empty()
-    });
-
-    $('#preview-button').click(function () {
-        $('#preview-content').html($('#output-html').val());
-        $('#previewModal').modal('show');
     });
 
     $('#article-search').on('input', function () {
@@ -117,7 +113,8 @@ $doc = $app->getDocument();
         });
         if (!duplicate) {
             let newLiEntry = document.createElement('li');
-            newLiEntry.textContent = draggedElement.textContent;
+            newLiEntry.textContent = draggedElement.attributes.title.nodeValue;
+            //TODO it needs to be styled
             newLiEntry.dataset.id = draggedElement.id;
             newLiEntry.dataset.title = draggedElement.title;
             newLiEntry.dataset.url = draggedElement.attributes.url.nodeValue;
@@ -177,6 +174,7 @@ $doc = $app->getDocument();
             imgTags[i].setAttribute("width", "100%");
             imgTags[i].setAttribute("style", "margin-bottom: 2%;");
         }
+
 
         // Modify p tags with inline CSS styling
         var pTags = doc.getElementsByTagName("p");

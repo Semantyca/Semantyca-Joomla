@@ -5,9 +5,9 @@ use Joomla\CMS\HTML\Helpers\Bootstrap;
 use Joomla\CMS\Log\Log;
 
 HTMLHelper::_('form.csrf', '_csrf');
-HTMLHelper::_('jquery.framework');
 $app   = Joomla\CMS\Factory::getApplication();
 $doc   = $app->getDocument();
+global $media;
 $media = "administrator/components/com_semantycanm/media/";
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
 $doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
@@ -60,10 +60,10 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('lists_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-composer" role="tabpanel" aria-labelledby="nav-composer-tab">
-			<?php echo $this->loadTemplate('fetch_articles_tab'); ?>
+			<?php echo $this->loadTemplate('composer_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-newsletters" role="tabpanel" aria-labelledby="nav-newsletters-tab">
-			<?php echo $this->loadTemplate('send_news_letter_tab'); ?>
+			<?php echo $this->loadTemplate('news_letter_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
             stats
