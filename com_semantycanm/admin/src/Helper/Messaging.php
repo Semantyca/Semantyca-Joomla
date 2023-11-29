@@ -13,6 +13,7 @@ class Messaging
 		$mailer->setSubject($subject);
 		$mailer->setBody($body);
 		$mailer->addRecipient($user_group);
+		$mailer->isHtml(true);
 
 		try
 		{

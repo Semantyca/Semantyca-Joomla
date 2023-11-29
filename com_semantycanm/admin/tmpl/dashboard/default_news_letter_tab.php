@@ -82,15 +82,15 @@
         const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
         const subj = $('#subject').val()
         const headers = new Headers();
-        headers.append("Content-Type", "text/html");
+        headers.append("Content-Type", "application/x-www-form-urlencoded");
         const body = new URLSearchParams();
         body.append("body", $('#messageContent').val());
-        body.append("user_group", "justaidajam@gmail.com");
+        body.append("subject", subj);
+        body.append("user_group", "aidazimas@hotmail.com");
 
         fetch(url, {
             method: "POST",
             headers: headers,
-            subject: subj,
             body: body
         })
             .then(response => {

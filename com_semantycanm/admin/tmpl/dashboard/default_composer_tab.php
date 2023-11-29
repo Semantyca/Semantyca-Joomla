@@ -5,8 +5,7 @@ defined('_JEXEC') or die;
 //require_once __DIR__ . '/template_source_helper.php';
 
 global $media;
-$imageUrl = $media . "images/staff-newsletter-banner.jpg";
-
+$imageUrl = $media . "images/banners/staff-newsletter-banner.jpg";
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 
@@ -163,32 +162,23 @@ $doc = $app->getDocument();
     }
 
     function getStyledContent(index, title, url, intro, category) {
-        // Process img tags: Remove height and set width to 100%
-        var parser = new DOMParser();
-        var doc = parser.parseFromString(intro, "text/html");
-
-        // Modify img tags
-        var imgTags = doc.getElementsByTagName("img");
-        for (var i = 0; i < imgTags.length; i++) {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(intro, "text/html");
+        const imgTags = doc.getElementsByTagName("img");
+        for (let i = 0; i < imgTags.length; i++) {
             imgTags[i].removeAttribute("height");
             imgTags[i].setAttribute("width", "100%");
             imgTags[i].setAttribute("style", "margin-bottom: 2%;");
         }
-
-
-        // Modify p tags with inline CSS styling
-        var pTags = doc.getElementsByTagName("p");
+        const pTags = doc.getElementsByTagName("p");
         for (var i = 0; i < pTags.length; i++) {
             pTags[i].setAttribute("style", "font-size: 18px;");
         }
 
         intro = doc.body.innerHTML;
-
-        // Check if a specific template exists for the given index
         if (templates[index]) {
             return templates[index](title, url, intro, category);
         } else {
-            // Return the default template if no specific template exists for the index
             return templates.default(title, url, intro, category);
         }
     }
