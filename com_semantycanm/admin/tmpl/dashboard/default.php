@@ -30,6 +30,7 @@ $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
 $this->mailingLists    = $this->mailing_lists;
 $this->newsLetters     = $this->news_letters;
+$this->statistics     = $this->stats;
 $this->selectedLetters = [];
 
 ?>
@@ -66,7 +67,7 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('news_letter_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
-            stats
+	        <?php echo $this->loadTemplate('stats_tab'); ?>
         </div>
     </div>
 </div>

@@ -1,19 +1,22 @@
-DROP TABLE IF EXISTS `#__nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__nm_subscribers`;
+DROP TABLE IF EXISTS `#__nm_stats`;
+DROP TABLE IF EXISTS `#__nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__nm_newsletters`;
 DROP TABLE IF EXISTS `#__nm_mailing_list`;
 
 
 CREATE TABLE `#__nm_mailing_list`
 (
-    id   INT AUTO_INCREMENT,
-    name VARCHAR(255),
+    id       INT AUTO_INCREMENT,
+    reg_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    name     VARCHAR(255),
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE `#__nm_subscribers`
 (
     id           INT AUTO_INCREMENT,
+    reg_date     DATETIME DEFAULT CURRENT_TIMESTAMP,
     email        VARCHAR(255),
     name         VARCHAR(255),
     mail_list_id INT,
@@ -24,21 +27,36 @@ CREATE TABLE `#__nm_subscribers`
 CREATE TABLE `#__nm_newsletters`
 (
     id              INT AUTO_INCREMENT,
+    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
     subject         VARCHAR(255),
-    send_date       DATE,
     message_content MEDIUMTEXT,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE `#__nm_newsletter_mailing_list`
 (
-    newsletter_id INT,
+    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    newsletter_id   INT,
     mailing_list_id INT,
     PRIMARY KEY (newsletter_id, mailing_list_id),
     FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id),
     FOREIGN KEY (mailing_list_id) REFERENCES `#__nm_mailing_list` (id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE `#__nm_stats`
+(
+    id            INT AUTO_INCREMENT,
+    reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    newsletter_id INT,
+    subscriber_id INT,
+    recipient     VARCHAR(255),
+    status        INT,
+    sent_time     DATETIME,
+    reading_time  DATETIME,
+    PRIMARY KEY (id),
+    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id),
+    UNIQUE (newsletter_id, subscriber_id)
+) ENGINE = InnoDB;
 
 INSERT INTO `#__nm_mailing_list` (`name`)
 VALUES ('Accounting Team'),

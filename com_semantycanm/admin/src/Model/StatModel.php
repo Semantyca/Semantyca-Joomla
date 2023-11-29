@@ -4,10 +4,10 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Log\Log;
+use JLog;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
-class UserGroupModel extends BaseDatabaseModel
+class StatModel extends BaseDatabaseModel
 {
 	public function getList()
 	{
@@ -15,17 +15,17 @@ class UserGroupModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName(array('id', 'title')))
-				->from($db->quoteName('#__usergroups'));
+			$query->select($db->quoteName(array('id', 'recipient', 'status', 'sent_time','reading_time')))->from($db->quoteName('#__nm_stats'));
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
+			JLog::add($e->getMessage(), JLog::ERROR, 'com_semantycanm');
 
 			return null;
 		}
 	}
+
 }

@@ -28,7 +28,6 @@
             <folder>language</folder>
             <folder>media</folder>
             <folder>services</folder>
-            <folder>helpers</folder>
             <folder>sql</folder>
             <folder>src</folder>
             <folder>tmpl</folder>

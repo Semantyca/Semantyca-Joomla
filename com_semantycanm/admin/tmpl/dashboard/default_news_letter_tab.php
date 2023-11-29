@@ -1,16 +1,15 @@
-
 <div class="container">
     <div class="row">
         <div class="col-md-6 availists">
             <h3>Available Lists</h3>
             <ul class="list-group" id="availableListsUL">
-		        <?php
-		        $availableLists = $this->mailingLists;
-		        foreach ($availableLists as $listName): ?>
-                    <li class="list-group-item" <?php echo 'id="'.$listName->id.'"'; ?>>
-				        <?php echo $listName->name; ?>
+				<?php
+				$availableLists = $this->mailingLists;
+				foreach ($availableLists as $listName): ?>
+                    <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
+						<?php echo $listName->name; ?>
                     </li>
-		        <?php endforeach; ?>
+				<?php endforeach; ?>
             </ul>
 
         </div>
@@ -28,24 +27,26 @@
                 </div>
 			<?php endif; ?>
             <h2 class="mb-4">Send Newsletter</h2>
-            <form action="" method="POST">
-                <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
-                <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-                <div class="form-group">
-                    <label for="testEmails">Test (if left empty, the newsletter is sent to selected lists):</label>
-                    <input type="text" class="form-control" id="testEmails" name="testEmails">
-                </div>
-                <div class="form-group">
-                    <label for="subject">Subject:</label>
-                    <input type="text" class="form-control" id="subject" name="subject" required>
-                </div>
-                <div class="form-group" >
-                    <label for="messageContent">Message Content (HTML):</label>
-                    <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required></textarea>
-                </div>
-                <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send">Send Newsletter</button>
-                <button type="button" class="btn btn-secondary" id="saveNewsletterBtn">Save Newsletter</button>
-            </form>
+            <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
+            <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
+            <div class="form-group">
+                <label for="testEmails">Test (if left empty, the newsletter is sent to selected lists):</label>
+                <input type="text" class="form-control" id="testEmails" name="testEmails">
+            </div>
+            <div class="form-group">
+                <label for="subject">Subject:</label>
+                <input type="text" class="form-control" id="subject" name="subject" required>
+            </div>
+            <div class="form-group">
+                <label for="messageContent">Message Content (HTML):</label>
+                <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required readonly></textarea>
+            </div>
+            <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send">Send
+                Newsletter
+            </button>
+            <button type="button" class="btn btn-secondary" id="saveNewsletterBtn">Save Newsletter</button>
+            <button type="button" class="btn btn-secondary" id="toggleEditBtn">Edit</button>
+
         </div>
     </div>
     <div class="row justify-content-center mt-5">
@@ -56,7 +57,7 @@
                     <thead>
                     <tr>
                         <th>Subject</th>
-                        <th>Date Saved</th>
+                        <th>Registered</th>
                     </tr>
                     </thead>
                     <tbody id="savedNewslettersList">
@@ -65,7 +66,7 @@
 					foreach ($availableNewsLetters as $newsletter): ?>
                         <tr data-id="<?php echo $newsletter->id ?>">
                             <td><?php echo $newsletter->subject ?></td>
-                            <td><?php echo $newsletter->send_date ?></td>
+                            <td><?php echo $newsletter->reg_date ?></td>
                         </tr>
 					<?php endforeach; ?>
                     </tbody>
@@ -94,13 +95,25 @@
             body: body
         })
             .then(response => {
-                if(response.status === 200) {
+                if (response.status === 200) {
                     alert("Request was successful");
                 } else {
                     console.error('Error:', response.status);
                 }
             })
             .catch((error) => console.error('Error:', error));
+    });
+
+    $('#toggleEditBtn').click(function () {
+        var messageContent = document.getElementById('messageContent');
+        var toggleBtn = document.getElementById('toggleEditBtn');
+        if (messageContent.hasAttribute('readonly')) {
+            messageContent.removeAttribute('readonly');
+            toggleBtn.textContent = 'Read-Only';
+        } else {
+            messageContent.setAttribute('readonly', 'readonly');
+            toggleBtn.textContent = 'Edit';
+        }
     });
 
 
@@ -129,12 +142,12 @@
             newLiEntry.textContent = draggedElement.textContent;
             newLiEntry.dataset.id = draggedElement.id;
             newLiEntry.className = "list-group-item";
-            newLiEntry.addEventListener("click", function() {
+            newLiEntry.addEventListener("click", function () {
                 this.parentNode.removeChild(this);
             });
             selectedLists.appendChild(newLiEntry);
         } else {
-           // selectedLists.style.animation = "flash 1s infinite";
+            // selectedLists.style.animation = "flash 1s infinite";
         }
     });
 

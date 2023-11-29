@@ -4,8 +4,8 @@ defined('_JEXEC') or die;
 
 //require_once __DIR__ . '/template_source_helper.php';
 
-global $media;
-$imageUrl = $media . "images/banners/staff-newsletter-banner.jpg";
+//$imageUrl = "http://localhost/joomla/media/com_semantycanm/files/staff-newsletter-banner.jpg";
+$imageUrl = "https://dev.absolute.lv/emsa/intranet-0923/images/2020/staff-newsletter-banner.jpg";
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 
@@ -40,29 +40,12 @@ $doc = $app->getDocument();
             <div class="btn-group">
                 <button id="reset-button" class="btn" style="background-color: #152E52; color: white;">Reset</button>
                 <button id="copy-code-button" class="btn btn-info mb-2">Copy Code</button>
+                <button id="send-to-textarea-btn" class="btn btn-info mb-2">Send to Newsletter</button>
             </div>
             <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="10"></textarea>
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel"
-     aria-hidden="true">
-    <div class="modal-dialog modal-lg" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="previewModalLabel">Newsletter Preview</h5>
-                <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="preview-content"></div>
-            </div>
-        </div>
-    </div>
-</div>
-
 
 <script>
     let outputHtml = $('#output-html')
@@ -89,6 +72,13 @@ $doc = $app->getDocument();
             alert('Failed to copy. Please try again.');
         }
         tempTextArea.remove();
+    });
+
+    $('#send-to-textarea-btn').click(function () {
+        var outputHtml = document.getElementById('output-html').value;
+        var messageContent = document.getElementById('messageContent');
+        messageContent.value = outputHtml;
+        $('#nav-newsletters-tab').tab('show');
     });
 
 

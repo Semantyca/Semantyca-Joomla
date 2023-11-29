@@ -2,6 +2,7 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 
@@ -27,7 +28,7 @@ class Messaging
 				echo 'Mail sent!';
 			}
 		}
-		catch (\PHPMailer\PHPMailer\Exception $e)
+		catch (Exception $e)
 		{
 			echo 'Error sending email: ' . $e->getMessage();
 		}
