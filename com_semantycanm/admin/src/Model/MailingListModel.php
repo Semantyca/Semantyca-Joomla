@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class MailingListModel extends BaseDatabaseModel
 {
@@ -53,11 +54,11 @@ class MailingListModel extends BaseDatabaseModel
 	}
 
 
-	public function addRecord($name)
+	public function add($name)
 	{
 		try
 		{
-			Log::add('addRecord method was triggered', Log::INFO, 'com_semantycanm');
+			Log::add('addRecord method was triggered', Log::INFO, Constants::COMPONENT_NAME);
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
 
@@ -78,7 +79,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 	}
 
-	public function removeRecords($ids)
+	public function remove($ids)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);

@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class NewsLetterModel extends BaseDatabaseModel
 {
@@ -22,7 +23,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return null;
 		}

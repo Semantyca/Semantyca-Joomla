@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 
 
@@ -28,7 +29,7 @@ class ServiceController extends BaseController
 		(\Exception $e)
 		{
 			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
 	}
 

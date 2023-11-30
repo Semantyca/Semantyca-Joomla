@@ -3,10 +3,11 @@
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\HTML\Helpers\Bootstrap;
 use Joomla\CMS\Log\Log;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 HTMLHelper::_('form.csrf', '_csrf');
-$app   = Joomla\CMS\Factory::getApplication();
-$doc   = $app->getDocument();
+$app = Joomla\CMS\Factory::getApplication();
+$doc = $app->getDocument();
 global $media;
 $media = "administrator/components/com_semantycanm/media/";
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
@@ -23,14 +24,14 @@ try
 }
 catch (Exception $e)
 {
-	Log::add($e, Log::ERROR, 'com_semantycanm');
+	Log::add($e, Log::ERROR, Constants::COMPONENT_NAME);
 }
 
 $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
 $this->mailingLists    = $this->mailing_lists;
 $this->newsLetters     = $this->news_letters;
-$this->statistics     = $this->stats;
+$this->stats      = $this->stats_list;
 $this->selectedLetters = [];
 
 ?>
@@ -67,7 +68,7 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('news_letter_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
-	        <?php echo $this->loadTemplate('stats_tab'); ?>
+			<?php echo $this->loadTemplate('stats_tab'); ?>
         </div>
     </div>
 </div>
