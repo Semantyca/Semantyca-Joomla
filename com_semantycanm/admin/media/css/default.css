@@ -3,10 +3,10 @@
     color: white;
 }
 
-#selected-articles {
+.list-group {
     min-height: 450px;
     background-color: #f8f9fa;
-    border: 2px dashed #adb5bd;
+    border: 2px #adb5bd;
     border-radius: 5px;
     margin-bottom: 15px;
 }
@@ -16,19 +16,18 @@
 }
 
 #articles-list .list-group-item {
-    cursor: grab; /* cursor will appear as an open hand when hovering over articles */
+    cursor: grab;
 }
 
 #articles-list .list-group-item:active {
-    cursor: grabbing; /* cursor will appear as a closed hand when an article is being dragged */
+    cursor: grabbing;
 }
 
 .btn-group .btn {
-    margin-right: 5px; /* Space between buttons */
-    height: 38px; /* Ensures that all buttons have the same height */
+    margin-right: 5px;
+    height: 38px;
 }
 
-/* Remove the margin for the last button to ensure that there's no extra space on the far right */
 .btn-group .btn:last-child {
     margin-right: 0;
 }
@@ -47,3 +46,4 @@
     height: 200px !important;
     overflow-y: auto;
 }
+

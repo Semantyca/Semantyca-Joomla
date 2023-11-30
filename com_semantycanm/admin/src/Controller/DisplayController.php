@@ -7,6 +7,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class DisplayController extends BaseController
 {
@@ -27,13 +28,13 @@ class DisplayController extends BaseController
 			$view->set('mailing_lists',  $mailing_list_model->getList());
 			$view->set('articles',  $article_model->getList());
 			$view->set('news_letters', $news_letter_model->getList());
-			$view->set('stats', $stat_model->getList());
+			$view->set('stats_list', $stat_model->getList());
 			$view->display();
 		}
 		catch (\Exception $e)
 		{
 			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
 	}
 }

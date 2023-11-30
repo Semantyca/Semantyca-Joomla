@@ -12,11 +12,10 @@ $doc = $app->getDocument();
 
 ?>
 
-<div class="container">
+<div class="container mt-5">
     <div class="row">
         <div class="col-md-6">
             <h3>Available Articles</h3>
-            <label for="article-search"></label>
             <input type="text" id="article-search" class="form-control mb-2" placeholder="Search articles...">
             <ul id="articles-list" class="list-group" style="height: 350px !important; overflow-y: auto;">
 				<?php
@@ -58,8 +57,36 @@ $doc = $app->getDocument();
 
     $('#article-search').on('input', function () {
         const searchTerm = $(this).val().toLowerCase();
-        const filteredArticles = articlesData.filter(article => article.title.toLowerCase().includes(searchTerm));
-        renderArticles(filteredArticles);
+        if (searchTerm.length >= 3) {
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=article.search',
+                type: 'GET',
+                data: {
+                    q: searchTerm
+                },
+                dataType: 'json',
+                success: function (response) {
+                    console.log(response.data);
+                    $('#articles-list').empty();
+                    response.data.forEach(article => {
+                        $('#articles-list').append(`
+                  <li class="list-group-item"
+                      id="${article.id}"
+                      title="${article.title}"
+                      url="${article.url}"
+                      category="${article.category}"
+                      intro="${article.introtext}">
+                      <strong>${article.category}</strong><br>${article.title}
+                  </li>
+               `);
+                    });
+
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.error('Error: ' + textStatus + ' ' + errorThrown);
+                }
+            });
+        }
     });
 
     $('#copy-code-button').click(function () {

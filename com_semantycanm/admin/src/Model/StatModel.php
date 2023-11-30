@@ -4,9 +4,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-require_once '../Helper/Messaging.php';
-
-
 use Exception;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Log\Log;
@@ -22,14 +19,14 @@ class StatModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName(array('id', 'recipient', 'status', 'sent_time', 'reading_time')))->from($db->quoteName('#__nm_stats'));
+			$query->select($db->quoteName(array('id', 'recipient', 'newsletter_id','status', 'sent_time', 'reading_time')))->from($db->quoteName('#__nm_stats'));
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return null;
 		}
@@ -56,12 +53,10 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
-			return false;
+			return 0;
 		}
-
-		return true;
 	}
 
 	public function updateStatRecord($id, $status): bool
@@ -93,7 +88,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return false;
 		}

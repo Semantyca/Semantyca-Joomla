@@ -20,6 +20,7 @@
 
     <languages>
         <language tag="en-GB">site/language/en-GB/en-GB.com_semantycanm.ini</language>
+        <language tag="pt-PT">site/language/pt-PT/pt-PT.com_semantycanm.ini</language>
     </languages>
 
     <administration>
@@ -36,6 +37,8 @@
         <languages>
             <language tag="en-GB">admin/language/en-GB/en-GB.com_semantycanm.ini</language>
             <language tag="en-GB">admin/language/en-GB/en-GB.com_semantycanm.sys.ini</language>
+            <language tag="pt-PT">admin/language/pt-PT/pt-PT.com_semantycanm.ini</language>
+            <language tag="pt-PT">admin/language/pt-PT/pt-PT.com_semantycanm.sys.ini</language>
         </languages>
     </administration>
 

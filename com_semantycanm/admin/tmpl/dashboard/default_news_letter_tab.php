@@ -1,6 +1,6 @@
-<div class="container">
+<div class="container mt-5">
     <div class="row">
-        <div class="col-md-6 availists">
+        <div class="col-md-6 ">
             <h3>Available Lists</h3>
             <ul class="list-group" id="availableListsUL">
 				<?php
@@ -105,8 +105,8 @@
     });
 
     $('#toggleEditBtn').click(function () {
-        var messageContent = document.getElementById('messageContent');
-        var toggleBtn = document.getElementById('toggleEditBtn');
+        const messageContent = document.getElementById('messageContent');
+        const toggleBtn = document.getElementById('toggleEditBtn');
         if (messageContent.hasAttribute('readonly')) {
             messageContent.removeAttribute('readonly');
             toggleBtn.textContent = 'Read-Only';
