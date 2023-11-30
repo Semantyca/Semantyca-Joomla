@@ -4,7 +4,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use JLog;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class NewsLetterModel extends BaseDatabaseModel
@@ -22,7 +22,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			JLog::add($e->getMessage(), JLog::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
 
 			return null;
 		}

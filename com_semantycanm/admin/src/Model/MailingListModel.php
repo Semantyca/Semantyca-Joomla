@@ -30,6 +30,29 @@ class MailingListModel extends BaseDatabaseModel
 		}
 	}
 
+	public function getSubscribers($mailing_list_name)
+	{
+		try
+		{
+			$db   = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query->select(array($db->quoteName('#__nm_subscribers.email')))
+				->from($db->quoteName('#__nm_mailing_list'))
+				->join('LEFT',
+					$db->quoteName('#__nm_subscribers') . ' ON (' . $db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quoteName('#__nm_subscribers.mail_list_id') . ')')
+				->where($db->quoteName('#__nm_mailing_list.name') . ' = ' . $db->quote($mailing_list_name))
+				->group($db->quoteName('#__nm_mailing_list.id'));
+			$db->setQuery($query);
+			return $db->loadObjectList();
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			return null;
+		}
+	}
+
+
 	public function addRecord($name)
 	{
 		try

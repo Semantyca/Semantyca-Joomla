@@ -6,7 +6,7 @@ defined('_JEXEC') or die;
 
 use ContentHelperRoute;
 use JFactory;
-use JLog;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use JRoute;
 
@@ -44,7 +44,7 @@ class ArticleModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			JLog::add($e->getMessage(), JLog::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
 
 			return null;
 		}
@@ -65,7 +65,7 @@ class ArticleModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			JLog::add($e->getMessage(), JLog::ERROR, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
 
 			return null;
 		}

@@ -33,7 +33,7 @@ class DisplayController extends BaseController
 		catch (\Exception $e)
 		{
 			error_log($e);
-			Log::add('addRecord method was triggered', Log::INFO, 'com_semantycanm');
+			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
 		}
 	}
 }

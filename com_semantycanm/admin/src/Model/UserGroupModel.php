@@ -24,7 +24,7 @@ class UserGroupModel extends BaseDatabaseModel
 		catch (\Exception $e)
 		{
 			error_log($e->getMessage());
-
+			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
 			return null;
 		}
 	}
