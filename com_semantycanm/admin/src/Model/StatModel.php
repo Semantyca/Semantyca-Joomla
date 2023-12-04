@@ -19,7 +19,7 @@ class StatModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName(array('id', 'recipient', 'newsletter_id','status', 'sent_time', 'reading_time')))->from($db->quoteName('#__nm_stats'));
+			$query->select($db->quoteName(array('id', 'recipient', 'newsletter_id', 'status', 'sent_time', 'reading_time')))->from($db->quoteName('#__nm_stats'));
 			$db->setQuery($query);
 
 			return $db->loadObjectList();

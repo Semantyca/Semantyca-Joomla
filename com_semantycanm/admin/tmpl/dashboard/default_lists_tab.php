@@ -1,44 +1,57 @@
-
 <div class="container mt-5">
     <div class="row">
-		<div class="col-md-6">
-			<h3>Available User Groups</h3>
-			<ul class="list-group" id="available-groups">
+        <div class="col-md-6">
+            <h3>Available User Groups</h3>
+            <ul class="list-group" id="available-groups">
 				<?php
-                foreach($this->usergroups as $group): ?>
-					<li class="list-group-item" <?php echo 'id="' . $group->id . '"'; ?>>
-                        <?php echo $group->title; ?></li>
+				foreach ($this->usergroups as $group): ?>
+                    <li class="list-group-item" <?php echo 'id="' . $group->id . '"'; ?>>
+						<?php echo $group->title; ?></li>
 				<?php endforeach; ?>
-			</ul>
-		</div>
+            </ul>
+        </div>
         <div class="col-md-6">
             <h3>Selected User Groups</h3>
             <ul id="selected-groups" class="list-group">
 
             </ul>
         </div>
-	</div>
+    </div>
 
-	<div class="row mt-4">
-		<div class="col-md-12">
-			<button class="btn btn-primary" id="createListBtn">Save Selected Groups</button>
-            <label for="mailingListName"></label><input type="text" class="form-control mt-3" id="mailingListName" placeholder="Mailing List Name" style="display:none;">
-		</div>
-	</div>
-	<div class="row mt-4">
-		<div class="col-md-12"  style="height: 400px !important; overflow-y: auto;">
-			<h3>Mailing Lists</h3>
-			<ul class="list-group" id="mailingLists">
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="row">
+                <div class="input-group gap-2">
+                    <div class="col-md-3">
+                        <input type="text" class="form-control" id="mailingListName" placeholder="Mailing List Name" required>
+                    </div>
+                    <div class="invalid-feedback">
+                        Please enter Mailing list name.
+                    </div>
+                    <div class="col-md-2">
+                        <button id="add-group" class="btn btn-primary">Save</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="row mt-4">
+        <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
+            <h3>Mailing Lists</h3>
+            <ul class="list-group" id="mailingLists">
 				<?php
-                    foreach($this->mailingLists as $listName): ?>
-					<li class="list-group-item">
-						<span class="list-name"><?php echo $listName->name; ?></span>
-                        <button class="btn btn-danger btn-sm btn-float-right removeListBtn" style="float: right;">Remove</button>
-					</li>
+				foreach ($this->mailingLists as $listName): ?>
+                    <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
+                        <span class="list-name"><?php echo $listName->name; ?></span>
+                        <button id="remove-group" class="btn btn-danger btn-sm btn-float-right removeListBtn"
+                                style="float: right;">Remove
+                        </button>
+                    </li>
 				<?php endforeach; ?>
-			</ul>
-		</div>
-	</div>
+            </ul>
+        </div>
+    </div>
 </div>
 
 
@@ -65,14 +78,59 @@
             newLiEntry.textContent = draggedElement.textContent;
             newLiEntry.dataset.id = draggedElement.id;
             //TODO it needs to be styled
-           // newLiEntry.dataset.id = draggedElement.id;
-           // newLiEntry.dataset.title = draggedElement.title;
+            // newLiEntry.dataset.id = draggedElement.id;
+            // newLiEntry.dataset.title = draggedElement.title;
             newLiEntry.className = "list-group-item";
-            newLiEntry.addEventListener("click", function() {
+            newLiEntry.addEventListener("click", function () {
                 this.parentNode.removeChild(this);
             });
             selectedGroups.appendChild(newLiEntry);
 
         }
     });
+
+    $(document).ready(function() {
+        $('#add-group').click(function(e) {
+            e.preventDefault();
+
+            var mailingListName = $('#mailingListName').val();
+
+            if (mailingListName === '') {
+                $('#mailingListName').attr('has-validation', 'has-validation');
+                return;
+            }
+
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=mailinglist.save',
+                type: 'POST',
+                data: {
+                    'mailingListName': mailingListName
+                },
+                success: function(response) {
+                    console.log(response);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+    });
+
+    jQuery(document).ready(function ($) {
+        $('.removeListBtn').click(function () {
+            const id = $(this).closest('li').attr('id');
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+                type: 'DELETE',
+                success: function (response) {
+                    console.log(id + " " + response);
+                    $('#' + id).remove();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+    });
+
 </script>

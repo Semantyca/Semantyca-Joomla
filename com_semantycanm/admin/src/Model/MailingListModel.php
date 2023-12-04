@@ -72,10 +72,12 @@ class MailingListModel extends BaseDatabaseModel
 
 			$db->setQuery($query);
 			$db->execute();
+			return 1;
 		}
 		catch (\Exception $e)
 		{
 			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
 	}
 
@@ -85,13 +87,20 @@ class MailingListModel extends BaseDatabaseModel
 		$query = $db->getQuery(true);
 
 		$conditions = array(
-			$db->quoteName('id') . ' IN (' . implode(',', $ids) . ')'
+			$db->quoteName('id') . ' IN (' . $ids . ')'
 		);
 
 		$query->delete($db->quoteName('#__nm_mailing_list'));
 		$query->where($conditions);
 
 		$db->setQuery($query);
-		$db->execute();
+		$result = $db->execute();
+
+		if($result) {
+			return $db->getAffectedRows();
+		} else {
+			Log::add("The mail list deletion was failed", Log::WARNING, Constants::COMPONENT_NAME);
+			return 0;
+		}
 	}
 }

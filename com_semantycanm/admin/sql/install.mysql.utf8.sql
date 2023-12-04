@@ -21,7 +21,7 @@ CREATE TABLE `#__nm_subscribers`
     name         VARCHAR(255),
     mail_list_id INT,
     PRIMARY KEY (id),
-    FOREIGN KEY (mail_list_id) REFERENCES `#__nm_mailing_list` (id)
+    FOREIGN KEY (mail_list_id) REFERENCES `#__nm_mailing_list` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 CREATE TABLE `#__nm_newsletters`
