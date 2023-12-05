@@ -12,6 +12,36 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class MailingListController extends BaseController
 {
+	public function add()
+	{
+		try
+		{
+			$app   = Factory::getApplication();
+			$input = $app->input;
+
+			if ($input->getMethod() === 'POST')
+			{
+				$mailing_lst_name   = $this->input->getString('mailinglistname');
+				$mailing_lists      = $this->input->getString('mailinglists');
+				$mailing_list_model = $this->getModel('MailingList');
+				$user_group_model   = $this->getModel('UserGroup');
+				$results            = $mailing_list_model->add($user_group_model, $mailing_lst_name, $mailing_lists);
+				header('Content-Type: application/json; charset=UTF-8');
+				echo new JsonResponse($results);
+				Factory::getApplication()->close();
+			}
+			else
+			{
+				Log::add("Only POST request allowed", Log::WARNING, Constants::COMPONENT_NAME);
+			}
+		}
+		catch (\Exception $e)
+		{
+			error_log($e);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+	}
+
 	public function delete()
 	{
 		try

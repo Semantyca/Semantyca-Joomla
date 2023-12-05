@@ -20,20 +20,20 @@
 
     <div class="row mt-4">
         <div class="col-md-12">
-            <div class="row">
+            <form class="row needs-validation" novalidate>
                 <div class="input-group gap-2">
                     <div class="col-md-3">
-                        <input type="text" class="form-control" id="mailingListName" placeholder="Mailing List Name" required>
+                        <input type="text" class="form-control has-validation" id="mailingListName"
+                               placeholder="Mailing List Name" required>
                     </div>
                     <div class="invalid-feedback">
                         Please enter Mailing list name.
                     </div>
                     <div class="col-md-2">
-                        <button id="add-group" class="btn btn-primary">Save</button>
+                        <button id="add-group" class="btn btn-success btn">Save</button>
                     </div>
                 </div>
-            </div>
-
+            </form>
         </div>
     </div>
     <div class="row mt-4">
@@ -89,27 +89,38 @@
         }
     });
 
-    $(document).ready(function() {
-        $('#add-group').click(function(e) {
+    $(document).ready(function () {
+        $('#add-group').click(function (e) {
             e.preventDefault();
 
-            var mailingListName = $('#mailingListName').val();
+            const mailingListName = $('#mailingListName').val();
 
             if (mailingListName === '') {
-                $('#mailingListName').attr('has-validation', 'has-validation');
+                alert("Mailing list cannot be empty")
+                //TODO it needs boostrap validation
+                return;
+            }
+
+            const listItems = $('#selected-groups li').map(function () {
+                return $(this).text();
+            }).get();
+
+            if (listItems.length === 0) {
+                alert('The list is empty.');
                 return;
             }
 
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=mailinglist.save',
+                url: 'index.php?option=com_semantycanm&task=mailinglist.add',
                 type: 'POST',
                 data: {
-                    'mailingListName': mailingListName
+                    'mailinglistname': mailingListName,
+                    'mailinglists': listItems.join(',')
                 },
-                success: function(response) {
+                success: function (response) {
                     console.log(response);
                 },
-                error: function(jqXHR, textStatus, errorThrown) {
+                error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 }
             });

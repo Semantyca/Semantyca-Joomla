@@ -1,5 +1,5 @@
 {
     "require-dev": {
-        "phpspec/phpspec": "^7.4"
+        "phpunit/phpunit": "9.5"
     }
 }
