@@ -45,5 +45,12 @@
 .availists, .selectlists {
     height: 200px !important;
     overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
 }
+
+.availists::-webkit-scrollbar, .selectlists::-webkit-scrollbar {
+    display: none;
+}
+
 

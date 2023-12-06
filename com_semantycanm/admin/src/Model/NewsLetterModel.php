@@ -29,4 +29,62 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 	}
 
+	public function add($subject_value, $message_content)
+	{
+		try
+		{
+			if ($subject_value == "") {
+				$subject_value = "no subject";
+			}
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query
+				->insert($db->quoteName('#__nm_newsletters'))
+				->columns(array('subject', 'message_content'))
+				->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
+			error_log($query->dump());
+			$db->setQuery($query);
+			$db->execute();
+
+
+
+			return 1;
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+
+		return 0;
+	}
+
+
+	public function remove($ids)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$conditions = array(
+			$db->quoteName('id') . ' IN (' . $ids . ')'
+		);
+
+		$query->delete($db->quoteName('#__nm_newsletters'));
+		$query->where($conditions);
+
+		$db->setQuery($query);
+		$result = $db->execute();
+
+		if ($result)
+		{
+			return $db->getAffectedRows();
+		}
+		else
+		{
+			Log::add("The new letter deletion was failed", Log::WARNING, Constants::COMPONENT_NAME);
+
+			return 0;
+		}
+	}
+
 }

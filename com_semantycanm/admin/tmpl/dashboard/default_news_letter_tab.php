@@ -13,7 +13,7 @@
             </ul>
 
         </div>
-        <div class="col-md-6 selectlists">
+        <div class="col-md-6">
             <h3>Selected Lists</h3>
             <ul class="dropzone list-group" id="selectedLists"></ul>
         </div>
@@ -39,7 +39,8 @@
             </div>
             <div class="form-group">
                 <label for="messageContent">Message Content (HTML):</label>
-                <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required readonly></textarea>
+                <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required
+                          readonly></textarea>
             </div>
             <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send">Send
                 Newsletter
@@ -58,6 +59,7 @@
                     <tr>
                         <th>Subject</th>
                         <th>Registered</th>
+                        <th></th>
                     </tr>
                     </thead>
                     <tbody id="savedNewslettersList">
@@ -67,6 +69,11 @@
                         <tr data-id="<?php echo $newsletter->id ?>">
                             <td><?php echo $newsletter->subject ?></td>
                             <td><?php echo $newsletter->reg_date ?></td>
+                            <td>
+                                <button id="remove-group" class="btn btn-danger btn-sm btn-float-right removeListBtn"
+                                        style="float: right;">Remove
+                                </button>
+                            </td>
                         </tr>
 					<?php endforeach; ?>
                     </tbody>
@@ -79,43 +86,106 @@
 
 <script>
 
-    $('#sendNewsletterBtn').click(function () {
-        const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
-        const subj = $('#subject').val()
-        const headers = new Headers();
-        headers.append("Content-Type", "application/x-www-form-urlencoded");
-        const body = new URLSearchParams();
-        body.append("body", $('#messageContent').val());
-        body.append("subject", subj);
-        body.append("user_group", "aidazimas@hotmail.com");
+    $(document).ready(function () {
+        $('#sendNewsletterBtn').click(function () {
+            const listItems = $('#selectedLists li').map(function () {
+                return $(this).text();
+            }).get();
+            const testEmails = $('#testEmails').val().trim();
+            if (listItems.length === 0 || !testEmails) {
+                alert('The list is empty.');
+                return;
+            }
 
-        fetch(url, {
-            method: "POST",
-            headers: headers,
-            body: body
-        })
-            .then(response => {
-                if (response.status === 200) {
-                    alert("Request was successful");
-                } else {
-                    console.error('Error:', response.status);
-                }
+            if (testEmails) {
+                listItems.push(testEmails);
+            }
+
+            const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
+            const subj = $('#subject').val()
+            const headers = new Headers();
+            headers.append("Content-Type", "application/x-www-form-urlencoded");
+            const body = new URLSearchParams();
+            body.append("body", $('#messageContent').val());
+            body.append("subject", subj);
+            body.append("user_group", listItems);
+
+            fetch(url, {
+                method: "POST",
+                headers: headers,
+                body: body
             })
-            .catch((error) => console.error('Error:', error));
+                .then(response => {
+                    if (response.status === 200) {
+                        alert("Request was successful");
+                    } else {
+                        console.error('Error:', response.status);
+                    }
+                })
+                .catch((error) => console.error('Error:', error));
+        });
     });
 
-    $('#toggleEditBtn').click(function () {
-        const messageContent = document.getElementById('messageContent');
-        const toggleBtn = document.getElementById('toggleEditBtn');
-        if (messageContent.hasAttribute('readonly')) {
-            messageContent.removeAttribute('readonly');
-            toggleBtn.textContent = 'Read-Only';
-        } else {
-            messageContent.setAttribute('readonly', 'readonly');
-            toggleBtn.textContent = 'Edit';
-        }
+    $(document).ready(function () {
+        $('#saveNewsletterBtn').click(function (e) {
+            e.preventDefault();
+
+            const msgContent = $('#messageContent').val();
+            const subj = $('#subject').val();
+
+            if (msgContent === '') {
+                alert("Message content is empty. It cannot be saved")
+                //TODO it needs boostrap validation
+                return;
+            }
+
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=newsletter.add',
+                type: 'POST',
+                data: {
+                    'subject': subj,
+                    'msg': msgContent
+                },
+                success: function (response) {
+                    console.log(response);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
     });
 
+    $(document).ready(function () {
+        $('#toggleEditBtn').click(function () {
+            const messageContent = document.getElementById('messageContent');
+            const toggleBtn = document.getElementById('toggleEditBtn');
+            if (messageContent.hasAttribute('readonly')) {
+                messageContent.removeAttribute('readonly');
+                toggleBtn.textContent = 'Read-Only';
+            } else {
+                messageContent.setAttribute('readonly', 'readonly');
+                toggleBtn.textContent = 'Edit';
+            }
+        });
+    });
+
+    jQuery(document).ready(function ($) {
+        $('.removeListBtn').click(function () {
+            const id = $(this).closest('tr').attr('data-id');
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=newsletter.delete&ids=' + id,
+                type: 'DELETE',
+                success: function (response) {
+                    console.log(id + " " + response);
+                    $('#' + id).remove();
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+    });
 
     let availableLists = document.getElementById('availableListsUL');
     let selectedLists = document.getElementById('selectedLists');
