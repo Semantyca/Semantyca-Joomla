@@ -64,8 +64,7 @@
                     </thead>
                     <tbody id="savedNewslettersList">
 					<?php
-					$availableNewsLetters = $this->newsLetters;
-					foreach ($availableNewsLetters as $newsletter): ?>
+					foreach ($this->newsLetters as $newsletter): ?>
                         <tr data-id="<?php echo $newsletter->id ?>">
                             <td><?php echo $newsletter->subject ?></td>
                             <td><?php echo $newsletter->reg_date ?></td>
@@ -124,9 +123,7 @@
                 })
                 .catch((error) => console.error('Error:', error));
         });
-    });
 
-    $(document).ready(function () {
         $('#saveNewsletterBtn').click(function (e) {
             e.preventDefault();
 
@@ -144,7 +141,7 @@
                 type: 'POST',
                 data: {
                     'subject': subj,
-                    'msg': msgContent
+                    'msg': encodeURIComponent(msgContent),
                 },
                 success: function (response) {
                     console.log(response);
@@ -154,9 +151,7 @@
                 }
             });
         });
-    });
 
-    $(document).ready(function () {
         $('#toggleEditBtn').click(function () {
             const messageContent = document.getElementById('messageContent');
             const toggleBtn = document.getElementById('toggleEditBtn');
@@ -168,9 +163,27 @@
                 toggleBtn.textContent = 'Edit';
             }
         });
-    });
 
-    jQuery(document).ready(function ($) {
+        $('#savedNewslettersList').dblclick(function (event) {
+            const row = event.target.parentNode;
+            const id = row.getAttribute('data-id');
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=newsletter.find&id=' + id,
+                type: 'GET',
+                success: function (response) {
+                    console.log(response.data[0].message_content);
+                    const respData = response.data[0];
+                    const msgContent = $('#messageContent');
+                    msgContent.prop('readonly', false);
+                    msgContent.val(decodeURIComponent(respData.message_content));
+                    $('#subject').val(respData.subject);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+
         $('.removeListBtn').click(function () {
             const id = $(this).closest('tr').attr('data-id');
             $.ajax({

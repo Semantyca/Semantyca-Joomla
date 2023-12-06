@@ -16,7 +16,32 @@ class NewsLetterModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))->from($db->quoteName('#__nm_newsletters'));
+			$query
+				->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
+				->from($db->quoteName('#__nm_newsletters'));
+			$db->setQuery($query);
+
+			return $db->loadObjectList();
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+
+			return null;
+		}
+	}
+
+	public function find($id)
+	{
+		try
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query
+				->select($db->quoteName(array('id', 'subject', 'message_content')))
+				->from($db->quoteName('#__nm_newsletters'))
+				->where('id = ' . $db->quote($id));
+
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
@@ -33,7 +58,8 @@ class NewsLetterModel extends BaseDatabaseModel
 	{
 		try
 		{
-			if ($subject_value == "") {
+			if ($subject_value == "")
+			{
 				$subject_value = "no subject";
 			}
 			$db    = $this->getDatabase();
@@ -45,7 +71,6 @@ class NewsLetterModel extends BaseDatabaseModel
 			error_log($query->dump());
 			$db->setQuery($query);
 			$db->execute();
-
 
 
 			return 1;
