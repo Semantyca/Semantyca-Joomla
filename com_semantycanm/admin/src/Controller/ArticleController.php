@@ -12,6 +12,24 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class ArticleController extends BaseController
 {
+	public function find()
+	{
+		try
+		{
+			$id = $this->input->getString('id');
+			$model   = $this->getModel('Article');
+			$results = $model->find($id);
+			header('Content-Type: application/json; charset=UTF-8');
+			echo new JsonResponse($results);
+			Factory::getApplication()->close();
+
+		}
+		catch (\Exception $e)
+		{
+			error_log($e);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+	}
 	public function search()
 	{
 		try

@@ -47,12 +47,53 @@ $doc = $app->getDocument();
 </div>
 
 <script>
+    const COOKIES_LIFE_SPAN = 24 * 60 * 60 * 1000;
     let outputHtml = $('#output-html')
+    let editedContentStore = {};
+    let articlesList = document.getElementById('articles-list');
+    let selectedArticles = document.getElementById('selected-articles');
+    let sortableArticlesList = Sortable.create(articlesList, {
+        group: {
+            name: 'shared',
+            pull: 'clone',
+            nut: false
+        },
+        animation: 150,
+        sort: false
+    });
+
+    window.onload = function() {
+        let cookieVal = getCookie('selectedArticlesIds');
+        if (cookieVal !== "") {
+            let ids = JSON.parse(cookieVal);
+            ids.forEach(function (id) {
+                $.ajax({
+                    url: 'index.php?option=com_semantycanm&task=article.find&id=' + id,
+                    type: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                        const articleData = response.data;
+                        addNewArticle(articleData.id,
+                            articleData.title,
+                            articleData.introtext,
+                            articleData.url,
+                            articleData.category,
+                            articleData.intro);
+                        updateNewsletterContent();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log(textStatus, errorThrown);
+                    }
+                });
+            });
+        }
+    };
 
     $('#reset-button').click(function () {
         outputHtml.val('');
         outputHtml.trumbowyg('html', '')
         $('#selected-articles').empty()
+        setCookie('selectedArticlesIds', null, 7);
     });
 
     $('#article-search').on('input', function () {
@@ -66,7 +107,7 @@ $doc = $app->getDocument();
                 },
                 dataType: 'json',
                 success: function (response) {
-                    console.log(response.data);
+                    //console.log(response.data);
                     $('#articles-list').empty();
                     response.data.forEach(article => {
                         $('#articles-list').append(`
@@ -108,40 +149,21 @@ $doc = $app->getDocument();
         $('#nav-newsletters-tab').tab('show');
     });
 
-
-    let editedContentStore = {};
-    let articlesList = document.getElementById('articles-list');
-    let selectedArticles = document.getElementById('selected-articles');
-    let sortableArticlesList = Sortable.create(articlesList, {
-        group: {
-            name: 'shared',
-            pull: 'clone',
-            nut: false
-        },
-        animation: 150,
-        sort: false
-    });
-
     sortableArticlesList.option("onEnd", function (evt) {
         let draggedElement = evt.item;
         let duplicate = Array.from(selectedArticles.children).some(li => {
             return li.dataset.id === draggedElement.id;
         });
         if (!duplicate) {
-            let newLiEntry = document.createElement('li');
-            newLiEntry.textContent = draggedElement.attributes.title.nodeValue;
-            //TODO it needs to be styled
-            newLiEntry.dataset.id = draggedElement.id;
-            newLiEntry.dataset.title = draggedElement.title;
-            newLiEntry.dataset.url = draggedElement.attributes.url.nodeValue;
-            newLiEntry.dataset.category = draggedElement.attributes.category.nodeValue;
-            newLiEntry.dataset.intro = draggedElement.attributes.intro.nodeValue;
-            newLiEntry.className = "list-group-item";
-            newLiEntry.addEventListener("click", function() {
-					this.parentNode.removeChild(this);
-				});
+            addNewArticle(draggedElement.id,
+                draggedElement.title,
+                draggedElement.attributes.title.nodeValue,
+                draggedElement.attributes.url.nodeValue,
+                draggedElement.attributes.category.nodeValue,
+                draggedElement.attributes.intro.nodeValue);
+            let ids = Array.from(selectedArticles.children).map(li => li.dataset.id);
+           // setCookie('selectedArticlesIds', JSON.stringify(ids), 7);
 
-            selectedArticles.appendChild(newLiEntry);
             updateNewsletterContent();
         }
     });
@@ -264,6 +286,47 @@ $doc = $app->getDocument();
       </tr>
       </table>
       `;
+    }
+
+    function addNewArticle(id, title, textContent, url, category, intro) {
+        let newLiEntry = document.createElement('li');
+        newLiEntry.dataset.id = id;
+        newLiEntry.dataset.title = title;
+        newLiEntry.textContent = textContent;
+        newLiEntry.dataset.url = url;
+        newLiEntry.dataset.category = category;
+        newLiEntry.dataset.intro = intro;
+        newLiEntry.className = "list-group-item";
+        newLiEntry.addEventListener("click", function() {
+            this.parentNode.removeChild(this);
+        });
+
+        selectedArticles.appendChild(newLiEntry);
+    }
+
+    function setCookie(name, value, days) {
+        let expires = "";
+        if (days) {
+            const date = new Date();
+            date.setTime(date.getTime() + (days * COOKIES_LIFE_SPAN));
+            expires = "; expires=" + date.toUTCString();
+        }
+        document.cookie = name + "=" + (value === null ? "" : value) + expires + "; path=/";
+    }
+
+    function getCookie(name) {
+        const nameEQ = name + "=";
+        const ca = document.cookie.split(';');
+        for(let i=0; i < ca.length; i++) {
+            let c = ca[i];
+            while (c.charAt(0)===' ') {
+                c = c.substring(1, c.length);
+            }
+            if (c.indexOf(nameEQ) === 0) {
+                return c.substring(nameEQ.length,c.length);
+            }
+        }
+        return null;
     }
 
 </script>
