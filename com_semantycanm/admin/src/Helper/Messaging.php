@@ -13,6 +13,7 @@ class Messaging
 {
 	private MailingListModel $mailingListModel;
 	private StatModel $statModel;
+	private string $baseURL = "http://localhost/joomla";
 
 	public function __construct(MailingListModel $mailingListModel, StatModel $statModel)
 	{
@@ -20,50 +21,28 @@ class Messaging
 		$this->statModel        = $statModel;
 	}
 
-	public function sendEmail($body, $subject, $user_or_user_group)
+	public function sendEmail($body, $subject, $user_or_user_group): array
 	{
-		$mailer      = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();
+		$result = false;
+		$mailer = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();
 		$mailer->setSubject($subject);
-		$mailer->setBody($body);
 		$mailer->isHtml(true);
 
 		try
 		{
 			if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
 			{
-				$mailer->addRecipient($user_or_user_group);
-				$stat_rec_id = $this->statModel->addStatRecord($user_or_user_group, Constants::SENDING_ATTEMPT, 5, 6);
-				$send        = $mailer->send();
-				if ($send !== true)
-				{
-					Log::add('Error sending email to ' . $user_or_user_group, Log::WARNING, Constants::COMPONENT_NAME);
-					$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
-				}
-				else
-				{
-					Log::add('Mail sent to ' . $user_or_user_group, Log::INFO, Constants::COMPONENT_NAME);
-					$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
-				}
+				 $this->sendMessage($mailer, $user_or_user_group, $body);
 			}
 			else
 			{
+				$result = true;
 				$subscribers = $this->mailingListModel->getSubscribers($user_or_user_group);
 				foreach ($subscribers as $subscriber)
 				{
-					$mailer->addRecipient($subscriber->email);
-					$stat_rec_id = $this->statModel->addStatRecord($user_or_user_group, Constants::SENDING_ATTEMPT, 5, 6);
-					$send = $mailer->send();
-					if ($send !== true)
-					{
-						Log::add('Error sending email to ' . $subscriber->email, Log::WARNING, Constants::COMPONENT_NAME);
-						$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
-						//TODO it needs to add the error message
-					}
-					else
-					{
-						Log::add('Mail sent to ' . $subscriber->email, Log::INFO, Constants::COMPONENT_NAME);
-						$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
-					}
+					if (!$this->sendMessage($mailer, $subscriber, $body)) {
+						$result = false;
+					};
 				}
 			}
 		}
@@ -72,6 +51,40 @@ class Messaging
 			error_log($e);
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
+		if ($result) {
+			return ['status' => 'success', 'message' => 'Email sent successfully'];
+		} else {
+			return ['status' => 'error', 'message' => 'Failed to send email'];
+		}
+	}
+
+	function sendMessage($mailer, $recipient, $body): bool
+	{
+		$mailer->addRecipient($recipient);
+		$stat_rec_id = $this->statModel->addStat($recipient, Constants::SENDING_ATTEMPT, 5, 6);
+		if ($stat_rec_id != 0)
+		{
+			$body .= '<img src="' . $this->baseURL . '/administrator/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
+			$mailer->setBody($body);
+			$send = $mailer->send();
+			if ($send === true)
+			{
+				Log::add('Mail sent to ' . $recipient, Log::INFO, Constants::COMPONENT_NAME);
+				$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
+				return true;
+			}
+			else
+			{
+				Log::add('Error sending email to ' . $recipient, Log::WARNING, Constants::COMPONENT_NAME);
+				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+			}
+		}
+		else
+		{
+			Log::add('Error sending email to ' . $recipient . '. The stat has not not initiated correctly', Log::WARNING, Constants::COMPONENT_NAME);
+			$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+		}
+		return false;
 	}
 }
 

@@ -30,7 +30,7 @@
             <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
             <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
             <div class="form-group">
-                <label for="testEmails">Test (if left empty, the newsletter is sent to selected lists):</label>
+                <label for="testEmails">Test (if it is not empty It will ignore the selected lists):</label>
                 <input type="text" class="form-control" id="testEmails" name="testEmails">
             </div>
             <div class="form-group">
@@ -87,17 +87,17 @@
 
     $(document).ready(function () {
         $('#sendNewsletterBtn').click(function () {
-            const listItems = $('#selectedLists li').map(function () {
+            let listItems = $('#selectedLists li').map(function () {
                 return $(this).text();
             }).get();
             const testEmails = $('#testEmails').val().trim();
-            if (listItems.length === 0 || !testEmails) {
+            if (listItems.length === 0 && testEmails === "") {
                 alert('The list is empty.');
                 return;
             }
 
-            if (testEmails) {
-                listItems.push(testEmails);
+            if (testEmails !== "") {
+                listItems = [testEmails];
             }
 
             const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
@@ -116,7 +116,7 @@
             })
                 .then(response => {
                     if (response.status === 200) {
-                        alert("Request was successful");
+                        alert(response.data.message);
                     } else {
                         console.error('Error:', response.status);
                     }

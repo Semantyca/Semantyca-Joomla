@@ -6,8 +6,8 @@ defined('_JEXEC') or die;
 
 //$imageUrl = "http://localhost/joomla/media/com_semantycanm/files/staff-newsletter-banner.jpg";
 $imageUrl = "https://dev.absolute.lv/emsa/intranet-0923/images/2020/staff-newsletter-banner.jpg";
-$app = Joomla\CMS\Factory::getApplication();
-$doc = $app->getDocument();
+$app      = Joomla\CMS\Factory::getApplication();
+$doc      = $app->getDocument();
 
 
 ?>
@@ -21,8 +21,8 @@ $doc = $app->getDocument();
 				<?php
 				foreach ($this->articlesList as $article): ?>
                     <li class="list-group-item"
-                        <?php echo 'id="'.$article->id.'" title="'.$article->title.'"  url="'.$article->url.'" category="'.$article->category.'" intro="'.$article->introtext.'"'; ?>>
-                        <strong><?php echo $article->category?></strong><br><?php echo $article->title; ?>
+						<?php echo 'id="' . $article->id . '" title="' . $article->title . '"  url="' . $article->url . '" category="' . $article->category . '" intro="' . $article->introtext . '"'; ?>>
+                        <strong><?php echo $article->category ?></strong><br><?php echo $article->title; ?>
                     </li>
 				<?php endforeach; ?>
             </ul>
@@ -62,7 +62,7 @@ $doc = $app->getDocument();
         sort: false
     });
 
-    window.onload = function() {
+    window.onload = function () {
         let cookieVal = getCookie('selectedArticlesIds');
         if (cookieVal !== "") {
             let ids = JSON.parse(cookieVal);
@@ -162,7 +162,7 @@ $doc = $app->getDocument();
                 draggedElement.attributes.category.nodeValue,
                 draggedElement.attributes.intro.nodeValue);
             let ids = Array.from(selectedArticles.children).map(li => li.dataset.id);
-           // setCookie('selectedArticlesIds', JSON.stringify(ids), 7);
+            // setCookie('selectedArticlesIds', JSON.stringify(ids), 7);
 
             updateNewsletterContent();
         }
@@ -223,7 +223,7 @@ $doc = $app->getDocument();
     }
 
     function generateContent(currentDateFormatted, currentYear) {
-        const selectedArticles = $('#selected-articles .list-group-item').map(function () {
+        $('#selected-articles .list-group-item').map(function () {
             return $(this).html();
         }).get();
 
@@ -239,7 +239,6 @@ $doc = $app->getDocument();
             const category = $(article).data('category');
             articlesContent += getStyledContent(index, title, url, intro, category);
 
-            // Insert the placeholder after the fifth article if there are more articles to come
             if (index === 4 && index < totalArticles - 1) {
                 articlesContent += window.templates.placeholder();
             }
@@ -297,7 +296,7 @@ $doc = $app->getDocument();
         newLiEntry.dataset.category = category;
         newLiEntry.dataset.intro = intro;
         newLiEntry.className = "list-group-item";
-        newLiEntry.addEventListener("click", function() {
+        newLiEntry.addEventListener("click", function () {
             this.parentNode.removeChild(this);
         });
 
@@ -317,13 +316,13 @@ $doc = $app->getDocument();
     function getCookie(name) {
         const nameEQ = name + "=";
         const ca = document.cookie.split(';');
-        for(let i=0; i < ca.length; i++) {
+        for (let i = 0; i < ca.length; i++) {
             let c = ca[i];
-            while (c.charAt(0)===' ') {
+            while (c.charAt(0) === ' ') {
                 c = c.substring(1, c.length);
             }
             if (c.indexOf(nameEQ) === 0) {
-                return c.substring(nameEQ.length,c.length);
+                return c.substring(nameEQ.length, c.length);
             }
         }
         return null;

@@ -32,7 +32,7 @@ class StatModel extends BaseDatabaseModel
 		}
 	}
 
-	public function addStatRecord($recipient, $status, $newsletter_id, $subscriber_id): bool
+	public function addStat($recipient, $status, $newsletter_id, $subscriber_id): int
 	{
 		try
 		{
