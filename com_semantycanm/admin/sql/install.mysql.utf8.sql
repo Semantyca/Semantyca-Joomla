@@ -30,8 +30,10 @@ CREATE TABLE `#__nm_newsletters`
     reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
     subject         VARCHAR(255),
     message_content MEDIUMTEXT,
+    hash            CHAR(64) AS (SHA2(CONCAT(subject, message_content), 256)) STORED,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
+
 
 CREATE TABLE `#__nm_newsletter_mailing_list`
 (

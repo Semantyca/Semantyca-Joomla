@@ -7,6 +7,7 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
 {
@@ -54,13 +55,59 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 	}
 
-	public function add($subject_value, $message_content)
+	public function findByContent($subject, $content)
+	{
+		try
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query
+				->select($db->quoteName(array('id', 'subject', 'message_content')))
+				->from($db->quoteName('#__nm_newsletters'))
+				->where('message_content = ' . $db->quote($content))
+				->andWhere('subject = ' . $db->quote($subject));
+
+			$db->setQuery($query);
+
+			return $db->loadObjectList();
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+
+			return null;
+		}
+	}
+
+	public function upsert($subjectValue, $messageContent): int
+	{
+		try
+		{
+			$newsLetter = $this->findByContent($subjectValue, $messageContent);
+			if ($newsLetter == null) {
+				$id = $this->add($subjectValue, $messageContent);
+			} else {
+				//TODO should be update instead
+				$id = $newsLetter->id;
+			}
+			return $id;
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+
+		return 0;
+	}
+
+	public function add($subject_value, $message_content): int
 	{
 		try
 		{
 			if ($subject_value == "")
 			{
-				$subject_value = "no subject";
+				$subject_value = Util::generateSubject();
 			}
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
@@ -68,12 +115,11 @@ class NewsLetterModel extends BaseDatabaseModel
 				->insert($db->quoteName('#__nm_newsletters'))
 				->columns(array('subject', 'message_content'))
 				->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
-			error_log($query->dump());
+			//error_log($query->dump());
 			$db->setQuery($query);
 			$db->execute();
 
-
-			return 1;
+			return $db->insertid();
 		}
 		catch (\Exception $e)
 		{
@@ -85,7 +131,7 @@ class NewsLetterModel extends BaseDatabaseModel
 	}
 
 
-	public function remove($ids)
+	public function remove($ids): int
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);

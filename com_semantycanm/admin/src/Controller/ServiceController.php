@@ -4,10 +4,13 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\ValidationErrorDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 
@@ -18,24 +21,47 @@ class ServiceController extends BaseController
 	{
 		try
 		{
-			$request    = $this->input->post->get('body', '', 'RAW');
-			$subject    = $this->input->post->get('subject', '', 'RAW');
-			$user_group = $this->input->post->get('user_group', '', 'RAW');
+			$subject     = $this->input->post->get('subject', '', 'RAW');
+			$user_group  = $this->input->post->get('user_group', '', 'RAW');
+			$encodedBody = $this->input->post->get('encoded_body', '', 'RAW');
+
+			$errors = [];
+
+			if (empty($user_group)) {
+				$errors[] = 'User group is required';
+			}
+
+			if (empty($encodedBody)) {
+				$errors[] = 'Encoded body is required';
+			}
+
+			if (!empty($errors)) {
+				throw new ValidationErrorDTO($errors);
+			}
 
 			$mailingListModel = $this->getModel('MailingList');
 			$statModel        = $this->getModel('Stat');
+			$newLetterModel   = $this->getModel('NewsLetter');
 
-			$result = (new Messaging($mailingListModel, $statModel))->sendEmail($request, $subject, $user_group);
-			header('Content-Type: application/json; charset=UTF-8');
-			echo new JsonResponse($result);
-			Factory::getApplication()->close();
+			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
+
+			$messagingHelper = new Messaging($mailingListModel, $statModel);
+			$result          = $messagingHelper->sendEmail(urldecode($encodedBody), $subject, $user_group, $newsLetterUpsertResults);
+			$responseDTO     = new ResponseDTO(['savingNewsLetter' => $result, 'sendEmail' => $result]);
+
 		}
-		catch
-		(\Exception $e)
+		catch (ValidationErrorDTO $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
+
 		}
+		catch (\Exception $e)
+		{
+			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
+		}
+		header('Content-Type: application/json; charset=UTF-8');
+		echo new JsonResponse($responseDTO->toArray());
+		Factory::getApplication()->close();
 	}
 
 	public function postStat()

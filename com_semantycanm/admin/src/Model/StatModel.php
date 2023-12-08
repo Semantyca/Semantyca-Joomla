@@ -26,6 +26,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
+			error_log($e->getMessage());
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return null;
@@ -45,7 +46,7 @@ class StatModel extends BaseDatabaseModel
 			$query->insert($db->quoteName('#__nm_stats'))
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
-
+			error_log($query->__toString());
 			$db->setQuery($query);
 			$db->execute();
 
@@ -53,6 +54,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
+			error_log($e->getMessage());
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return 0;
@@ -88,6 +90,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
+			error_log($e->getMessage());
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 
 			return false;

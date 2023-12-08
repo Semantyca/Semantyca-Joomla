@@ -57,7 +57,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 	}
 
-	public function add($user_group_model, $mailing_list_name, $mailing_lists)
+	public function add($user_group_model, $mailing_list_name, $mailing_lists): int
 	{
 		try
 		{
@@ -111,12 +111,81 @@ class MailingListModel extends BaseDatabaseModel
 		return 0;
 	}
 
+	public function findByEmail($email)
+	{
+		try
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query
+				->select($db->quoteName(array('id')))
+				->from($db->quoteName('#__nm_subscribers'))
+				->where('email = ' . $db->quote($email));
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return $db->insertid();
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+
+		return 0;
+	}
+	public function upsertSubscriber($user_name, $email): int
+	{
+		try
+		{
+			$doc = $this->findByEmail($email);
+			if ($doc == null) {
+				$id = $this->addSubscriber($user_name, $email);
+			} else {
+				//TODO should be update instead
+				$id = $doc->id;
+			}
+			return $id;
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+
+		return 0;
+	}
+
+	public function addSubscriber($user_name, $email): int
+	{
+		try
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query
+				->insert($db->quoteName('#__nm_subscribers'))
+				->columns(array('name', 'email', 'mail_list_id'))
+				->values($db->quote($user_name) . ', ' . $db->quote($email) . ', NULL');
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return $db->insertid();
+		}
+		catch (\Exception $e)
+		{
+			error_log($e->getMessage());
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+
+		return 0;
+	}
 
 	public function remove($ids)
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-
+		$db         = $this->getDatabase();
+		$query      = $db->getQuery(true);
 		$conditions = array(
 			$db->quoteName('id') . ' IN (' . $ids . ')'
 		);
@@ -149,6 +218,4 @@ class MailingListModel extends BaseDatabaseModel
 
 		return array_values(array_intersect_key($subscribers, $unique_emails));
 	}
-
-
 }

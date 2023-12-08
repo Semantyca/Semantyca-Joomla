@@ -101,22 +101,22 @@
             }
 
             const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
-            const subj = $('#subject').val()
+            const bodyContent = $('#messageContent').val();
             const headers = new Headers();
             headers.append("Content-Type", "application/x-www-form-urlencoded");
-            const body = new URLSearchParams();
-            body.append("body", $('#messageContent').val());
-            body.append("subject", subj);
-            body.append("user_group", listItems);
+            const data = new URLSearchParams();
+            data.append('encoded_body', encodeURIComponent(bodyContent));
+            data.append('subject', $('#subject').val());
+            data.append('user_group', listItems);
 
             fetch(url, {
                 method: "POST",
                 headers: headers,
-                body: body
+                body: data
             })
                 .then(response => {
                     if (response.status === 200) {
-                        alert(response.data.message);
+                        alert(response.data);
                     } else {
                         console.error('Error:', response.status);
                     }

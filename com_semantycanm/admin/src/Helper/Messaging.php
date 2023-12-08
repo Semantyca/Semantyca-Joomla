@@ -21,9 +21,8 @@ class Messaging
 		$this->statModel        = $statModel;
 	}
 
-	public function sendEmail($body, $subject, $user_or_user_group): array
+	public function sendEmail($body, $subject, $user_or_user_group, $newsletter_id): bool
 	{
-		$result = false;
 		$mailer = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();
 		$mailer->setSubject($subject);
 		$mailer->isHtml(true);
@@ -32,36 +31,35 @@ class Messaging
 		{
 			if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
 			{
-				 $this->sendMessage($mailer, $user_or_user_group, $body);
+				$independentSubscriberId = $this->mailingListModel->upsertSubscriber($user_or_user_group, $user_or_user_group);
+				return $this->sendMessage($mailer, $user_or_user_group, $body, $newsletter_id, $independentSubscriberId);
 			}
 			else
 			{
-				$result = true;
+				$result      = true;
 				$subscribers = $this->mailingListModel->getSubscribers($user_or_user_group);
 				foreach ($subscribers as $subscriber)
 				{
-					if (!$this->sendMessage($mailer, $subscriber, $body)) {
+					if (!$this->sendMessage($mailer, $subscriber, $body, $newsletter_id, $subscriber->id))
+					{
 						$result = false;
 					};
 				}
 			}
+			return $result;
 		}
 		catch (Exception $e)
 		{
 			error_log($e);
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
-		if ($result) {
-			return ['status' => 'success', 'message' => 'Email sent successfully'];
-		} else {
-			return ['status' => 'error', 'message' => 'Failed to send email'];
-		}
+		return false;
 	}
 
-	function sendMessage($mailer, $recipient, $body): bool
+	function sendMessage($mailer, $recipient, $body, $newsletter_id, $subscriber_id): bool
 	{
 		$mailer->addRecipient($recipient);
-		$stat_rec_id = $this->statModel->addStat($recipient, Constants::SENDING_ATTEMPT, 5, 6);
+		$stat_rec_id = $this->statModel->addStat($recipient, Constants::SENDING_ATTEMPT, $newsletter_id, $subscriber_id);
 		if ($stat_rec_id != 0)
 		{
 			$body .= '<img src="' . $this->baseURL . '/administrator/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
@@ -84,6 +82,7 @@ class Messaging
 			Log::add('Error sending email to ' . $recipient . '. The stat has not not initiated correctly', Log::WARNING, Constants::COMPONENT_NAME);
 			$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
 		}
+
 		return false;
 	}
 }

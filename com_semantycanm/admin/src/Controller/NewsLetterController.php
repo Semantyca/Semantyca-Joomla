@@ -8,6 +8,8 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\ValidationErrorDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class NewsLetterController extends BaseController
@@ -42,22 +44,34 @@ class NewsLetterController extends BaseController
 			{
 				$subj    = $this->input->getString('subject');
 				$msg     = $this->input->getString('msg');
+
+				if (empty($msg)) {
+					throw new ValidationErrorDTO(['Message body is required']);
+				}
+
 				$model   = $this->getModel('NewsLetter');
-				$results = $model->add($subj, $msg);
-				header('Content-Type: application/json; charset=UTF-8');
-				echo new JsonResponse($results);
-				Factory::getApplication()->close();
+				$results = $model->upsert($subj, $msg);
+				$responseDTO     = new ResponseDTO(['savingNewsLetter' => $results]);
 			}
 			else
 			{
-				Log::add("Only POST request allowed", Log::WARNING, Constants::COMPONENT_NAME);
+				throw new ValidationErrorDTO(['Only POST request is allowed']);
 			}
+		}
+		catch (ValidationErrorDTO $e)
+		{
+			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
 		}
 		catch (\Exception $e)
 		{
 			error_log($e);
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			//TODO should be replaced by generic message
+			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
 		}
+		header('Content-Type: application/json; charset=UTF-8');
+		echo new JsonResponse($responseDTO->toArray());
+		Factory::getApplication()->close();
 	}
 
 	public function delete()

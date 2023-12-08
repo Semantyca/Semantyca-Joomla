@@ -39,7 +39,7 @@ $doc      = $app->getDocument();
             <div class="btn-group">
                 <button id="reset-button" class="btn" style="background-color: #152E52; color: white;">Reset</button>
                 <button id="copy-code-button" class="btn btn-info mb-2">Copy Code</button>
-                <button id="send-to-textarea-btn" class="btn btn-info mb-2">Send to Newsletter</button>
+                <button id="send-to-textarea-btn" class="btn btn-info mb-2">Open in Newsletter</button>
             </div>
             <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="10"></textarea>
         </div>
@@ -143,8 +143,8 @@ $doc      = $app->getDocument();
     });
 
     $('#send-to-textarea-btn').click(function () {
-        var outputHtml = document.getElementById('output-html').value;
-        var messageContent = document.getElementById('messageContent');
+        const outputHtml = document.getElementById('output-html').value;
+        const messageContent = document.getElementById('messageContent');
         messageContent.value = outputHtml;
         $('#nav-newsletters-tab').tab('show');
     });
