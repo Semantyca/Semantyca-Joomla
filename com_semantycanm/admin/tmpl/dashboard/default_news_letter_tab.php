@@ -1,7 +1,9 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-6 ">
-            <h3>Available Lists</h3>
+            <div class="header-container">
+                <h3>Available Lists</h3>
+            </div>
             <ul class="list-group" id="availableListsUL">
 				<?php
 				$availableLists = $this->mailingLists;
@@ -34,8 +36,12 @@
                 <input type="text" class="form-control" id="testEmails" name="testEmails">
             </div>
             <div class="form-group">
-                <label for="subject">Subject:</label>
-                <input type="text" class="form-control" id="subject" name="subject" required>
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="subject" name="subject" required placeholder="Subject"
+                           aria-label="Subject" aria-describedby="button-addon2">
+                    <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn" style="margin: 5px;">guess ...
+                    </button>
+                </div>
             </div>
             <div class="form-group">
                 <label for="messageContent">Message Content (HTML):</label>
@@ -52,29 +58,27 @@
     </div>
     <div class="row justify-content-center mt-5">
         <div class="col-md-12">
-            <h2 class="mb-4">Saved Newsletters</h2>
+            <div class="header-container">
+                <h3 class="mb-4">Saved Newsletters</h3>
+                <div class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
             <div class="table-responsive" style="height: 200px;">
                 <table class="table table-fixed">
                     <thead>
                     <tr>
+                        <th class="col-1">
+                            <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshNewsLettersButton">
+                                <img src="/joomla/administrator/components/com_semantycanm/media/images/refresh.png"
+                                     alt="Refresh" class="refresh-icon">
+                            </button>
+                        </th>
                         <th>Subject</th>
                         <th>Registered</th>
-                        <th></th>
                     </tr>
                     </thead>
-                    <tbody id="savedNewslettersList">
-					<?php
-					foreach ($this->newsLetters as $newsletter): ?>
-                        <tr data-id="<?php echo $newsletter->id ?>">
-                            <td><?php echo $newsletter->subject ?></td>
-                            <td><?php echo $newsletter->reg_date ?></td>
-                            <td>
-                                <button id="remove-group" class="btn btn-danger btn-sm btn-float-right removeListBtn"
-                                        style="float: right;">Remove
-                                </button>
-                            </td>
-                        </tr>
-					<?php endforeach; ?>
+                    <tbody id="newsLettersList">
                     </tbody>
                 </table>
             </div>
@@ -86,7 +90,31 @@
 <script>
 
     $(document).ready(function () {
+        $('#nav-newsletters-tab').on('shown.bs.tab', function() {
+            refreshNewsletters();
+        });
+
+        $('#refreshNewsLettersButton').click(function () {
+            refreshNewsletters();
+        });
+
+        $('#addSubjectBtn').click(function () {
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=service.getSubject&type=random',
+                type: 'GET',
+                success: function (response) {
+                    console.log(response.data.subject);
+                    $('#subject').val(response.data.subject);
+                },
+                error: function (jqXHR, textStatus, errorThrown) {
+                    console.log(textStatus, errorThrown);
+                }
+            });
+        });
+
         $('#sendNewsletterBtn').click(function () {
+            const msgContent = $('#messageContent').val();
+            let subj = $('#subject').val();
             let listItems = $('#selectedLists li').map(function () {
                 return $(this).text();
             }).get();
@@ -100,13 +128,22 @@
                 listItems = [testEmails];
             }
 
+            if (msgContent === '') {
+                alert("Message content is empty. It cannot be saved")
+                return;
+            }
+            if (subj === '') {
+                alert("Subject cannot be empty")
+                //TODO it needs boostrap validation
+                return;
+            }
+
             const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
-            const bodyContent = $('#messageContent').val();
             const headers = new Headers();
             headers.append("Content-Type", "application/x-www-form-urlencoded");
             const data = new URLSearchParams();
-            data.append('encoded_body', encodeURIComponent(bodyContent));
-            data.append('subject', $('#subject').val());
+            data.append('encoded_body', encodeURIComponent(msgContent));
+            data.append('subject', subj);
             data.append('user_group', listItems);
 
             fetch(url, {
@@ -116,7 +153,8 @@
             })
                 .then(response => {
                     if (response.status === 200) {
-                        alert(response.data);
+                        console.log(JSON.stringify(response.data));
+                        refreshNewsletters();
                     } else {
                         console.error('Error:', response.status);
                     }
@@ -125,13 +163,16 @@
         });
 
         $('#saveNewsletterBtn').click(function (e) {
-            e.preventDefault();
-
             const msgContent = $('#messageContent').val();
-            const subj = $('#subject').val();
+            let subj = $('#subject').val();
 
             if (msgContent === '') {
                 alert("Message content is empty. It cannot be saved")
+                //TODO it needs boostrap validation
+                return;
+            }
+            if (subj === '') {
+                alert("Subject cannot be empty")
                 //TODO it needs boostrap validation
                 return;
             }
@@ -144,7 +185,8 @@
                     'msg': encodeURIComponent(msgContent),
                 },
                 success: function (response) {
-                    console.log(response);
+                    console.log(JSON.stringify(response.data));
+                    refreshNewsletters();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
@@ -171,7 +213,7 @@
                 url: 'index.php?option=com_semantycanm&task=newsletter.find&id=' + id,
                 type: 'GET',
                 success: function (response) {
-                    console.log(response.data[0].message_content);
+                    console.log(JSON.stringify(response.data));
                     const respData = response.data[0];
                     const msgContent = $('#messageContent');
                     msgContent.prop('readonly', false);
@@ -233,5 +275,37 @@
             // selectedLists.style.animation = "flash 1s infinite";
         }
     });
+
+    function refreshNewsletters() {
+        showSpinner();
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=newsletter.findAll',
+            type: 'GET',
+            success: function(response) {
+                console.log(response);
+                if (response.success && response.data) {
+                    $('#newsLettersList').html(composeNewsLettersContent(response.data));
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error:', textStatus, errorThrown);
+            },
+            complete: function() {
+                hideSpinner();
+            }
+        });
+    }
+
+    function composeNewsLettersContent(data) {
+        let html = '';
+        data.forEach(function (newsletter) {
+            html += '<tr data-id="' + newsletter.id + '">';
+            html += '<td class="col-1"><input type="checkbox" value="' + newsletter.id + '"></td>';
+            html += '<td>' + newsletter.subject + '</td>';
+            html += '<td>' + newsletter.reg_date + '</td>';
+            html += '</tr>';
+        });
+        return html;
+    }
 
 </script>

@@ -13,6 +13,7 @@ use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\ValidationErrorDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 
 class ServiceController extends BaseController
@@ -27,15 +28,18 @@ class ServiceController extends BaseController
 
 			$errors = [];
 
-			if (empty($user_group)) {
+			if (empty($user_group))
+			{
 				$errors[] = 'User group is required';
 			}
 
-			if (empty($encodedBody)) {
+			if (empty($encodedBody))
+			{
 				$errors[] = 'Encoded body is required';
 			}
 
-			if (!empty($errors)) {
+			if (!empty($errors))
+			{
 				throw new ValidationErrorDTO($errors);
 			}
 
@@ -85,4 +89,28 @@ class ServiceController extends BaseController
 		}
 	}
 
+	public function getSubject()
+	{
+		try
+		{
+			$type = $this->input->get->get('type', '', 'RAW');
+			if ($type == 'random')
+			{
+				$util        = new Util();
+				$result      = $util->generateSubject();
+			} else {
+				$result = 'no subject';
+			}
+			$responseDTO = new ResponseDTO(['subject' => $result]);
+		}
+		catch
+		(\Exception $e)
+		{
+			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
+		}
+
+		header('Content-Type: application/json; charset=UTF-8');
+		echo new JsonResponse($responseDTO->toArray());
+		Factory::getApplication()->close();
+	}
 }

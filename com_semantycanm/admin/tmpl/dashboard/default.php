@@ -30,8 +30,6 @@ catch (Exception $e)
 $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
 $this->mailingLists    = $this->mailing_lists;
-$this->newsLetters     = $this->news_letters;
-$this->stats      = $this->stats_list;
 $this->selectedLetters = [];
 
 ?>
@@ -72,4 +70,15 @@ $this->selectedLetters = [];
         </div>
     </div>
 </div>
+
+<script>
+    function showSpinner() {
+        $('.spinner-border').show();
+    }
+
+    function hideSpinner() {
+        $('.spinner-border').hide();
+    }
+</script>
+
 

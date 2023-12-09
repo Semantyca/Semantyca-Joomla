@@ -14,12 +14,29 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class NewsLetterController extends BaseController
 {
+	public function findAll()
+	{
+		try
+		{
+			$model   = $this->getModel();
+			$results = $model->getList();
+			header('Content-Type: application/json; charset=UTF-8');
+			echo new JsonResponse($results);
+			Factory::getApplication()->close();
+
+		}
+		catch (\Exception $e)
+		{
+			error_log($e);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+	}
 	public function find()
 	{
 		try
 		{
-			$id = $this->input->getString('id');
-			$model   = $this->getModel('NewsLetter');
+			$id      = $this->input->getString('id');
+			$model   = $this->getModel();
 			$results = $model->find($id);
 			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
@@ -42,16 +59,17 @@ class NewsLetterController extends BaseController
 
 			if ($input->getMethod() === 'POST')
 			{
-				$subj    = $this->input->getString('subject');
-				$msg     = $this->input->getString('msg');
+				$subj = $this->input->getString('subject');
+				$msg  = $this->input->getString('msg');
 
-				if (empty($msg)) {
+				if (empty($msg))
+				{
 					throw new ValidationErrorDTO(['Message body is required']);
 				}
 
-				$model   = $this->getModel('NewsLetter');
-				$results = $model->upsert($subj, $msg);
-				$responseDTO     = new ResponseDTO(['savingNewsLetter' => $results]);
+				$model       = $this->getModel('NewsLetter');
+				$results     = $model->upsert($subj, $msg);
+				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
 			}
 			else
 			{

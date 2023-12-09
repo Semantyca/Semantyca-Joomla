@@ -4,6 +4,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
+use DateTime;
 use Exception;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\Log\Log;
@@ -19,7 +20,12 @@ class StatModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select($db->quoteName(array('id', 'recipient', 'newsletter_id', 'status', 'sent_time', 'reading_time')))->from($db->quoteName('#__nm_stats'));
+			$query
+				->select($db
+					->quoteName(array('id', 'recipient', 'newsletter_id', 'status', 'sent_time', 'reading_time')))
+				->from($db
+					->quoteName('#__nm_stats'))
+				->order('reg_date desc');
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
@@ -65,17 +71,19 @@ class StatModel extends BaseDatabaseModel
 	{
 		try
 		{
-			$db             = $this->getDatabase();
-			$record         = new stdClass();
-			$record->id     = $id;
-			$record->status = $status;
+			$db                   = $this->getDatabase();
+			$record               = new stdClass();
+			$record->id           = $id;
+			$record->status       = $status;
+			$record->sent_time    = null;
+			$record->reading_time = null;
 			if ($status == Constants::HAS_BEEN_SENT)
 			{
-				$record->sent_time = new Date();
+				$record->sent_time = (new DateTime())->format('Y-m-d H:i:s');
 			}
 			elseif ($status == Constants::HAS_BEEN_READ)
 			{
-				$record->reading_time = new Date();
+				$record->reading_time = (new DateTime())->format('Y-m-d H:i:s');
 			}
 
 

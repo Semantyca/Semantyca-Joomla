@@ -57,5 +57,33 @@
     cursor: pointer;
 }
 
+.refresh-button {
+    padding: 0;
+    border: none;
+    background: none;
+}
+
+.refresh-button img {
+    width: 20px;
+    height: auto;
+    display: block;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+}
+
+.header-container h3 {
+    margin-right: 10px;
+}
+
+.progress-spinner {
+    margin-bottom: -2px;
+}
+
+
+
+
 
 

@@ -19,7 +19,8 @@ class NewsLetterModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query
 				->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
-				->from($db->quoteName('#__nm_newsletters'));
+				->from($db->quoteName('#__nm_newsletters'))
+				->order('reg_date desc');
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
@@ -55,7 +56,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 	}
 
-	public function findByContent($subject, $content)
+	public function findByContent($subject, $messageContent): ?object
 	{
 		try
 		{
@@ -64,12 +65,11 @@ class NewsLetterModel extends BaseDatabaseModel
 			$query
 				->select($db->quoteName(array('id', 'subject', 'message_content')))
 				->from($db->quoteName('#__nm_newsletters'))
-				->where('message_content = ' . $db->quote($content))
-				->andWhere('subject = ' . $db->quote($subject));
+				->where('hash = ' . $db->quote(hash('sha256', $subject . $messageContent)));
 
 			$db->setQuery($query);
 
-			return $db->loadObjectList();
+			return $db->loadObject();
 		}
 		catch (\Exception $e)
 		{
@@ -87,7 +87,6 @@ class NewsLetterModel extends BaseDatabaseModel
 			if ($newsLetter == null) {
 				$id = $this->add($subjectValue, $messageContent);
 			} else {
-				//TODO should be update instead
 				$id = $newsLetter->id;
 			}
 			return $id;
@@ -97,7 +96,6 @@ class NewsLetterModel extends BaseDatabaseModel
 			error_log($e->getMessage());
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
-
 		return 0;
 	}
 
