@@ -13,8 +13,8 @@ class MailingListModelTest extends TestCase
 	public function testAdd()
 	{
 		$mailingListModel = new MailingListModel();
-		$mailingListModel->add('test@example.com');
+		$mailingListModel->add('test@semantyca.com');
 
-		$this->assertTrue($mailingListModel->contains('test@example.com'));
+		$this->assertTrue($mailingListModel->contains('test@semantyca.com'));
 	}
 }

@@ -1,8 +1,10 @@
 DROP TABLE IF EXISTS `#__nm_subscribers`;
+DROP TABLE IF EXISTS `#__nm_events`;
 DROP TABLE IF EXISTS `#__nm_stats`;
 DROP TABLE IF EXISTS `#__nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__nm_newsletters`;
 DROP TABLE IF EXISTS `#__nm_mailing_list`;
+
 
 
 CREATE TABLE `#__nm_mailing_list`
@@ -60,6 +62,20 @@ CREATE TABLE `#__nm_stats`
     UNIQUE (newsletter_id, subscriber_id)
 ) ENGINE = InnoDB;
 
+
+CREATE TABLE `#__nm_events`
+(
+    id INT AUTO_INCREMENT,
+    event_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    event_type VARCHAR(255),
+    event_source VARCHAR(255),
+    stats_id INT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (stats_id) REFERENCES `#__nm_stats` (id)
+) ENGINE = InnoDB;
+
+
+
 INSERT INTO `#__nm_mailing_list` (`name`)
 VALUES ('Accounting Team'),
        ('Marketing Group'),
@@ -69,24 +85,24 @@ VALUES ('Accounting Team'),
 
 
 INSERT INTO `#__nm_subscribers` (`name`, `email`, `mail_list_id`)
-VALUES ('John Doe', 'johndoe@example.com', 1),
-       ('Jane Smith', 'janesmith@example.com', 1),
-       ('Bob Johnson', 'bobjohnson@example.com', 1),
-       ('Jim Davis', 'jimdavis@example.com', 1),
-       ('Jill Wilson', 'jillwilson@example.com', 1),
-       ('Tom Brown', 'tombrown@example.com', 2),
-       ('Emily Taylor', 'emilytaylor@example.com', 2),
-       ('Mike Anderson', 'mikeanderson@example.com', 2),
-       ('Sarah Martin', 'sarahmartin@example.com', 2),
-       ('Joe Miller', 'joemiller@example.com', 2),
-       ('Emma White', 'emmawhite@example.com', 3),
-       ('David Moore', 'davidmoore@example.com', 3),
-       ('Olivia Jackson', 'oliviajackson@example.com', 3),
-       ('Liam Harris', 'liamharris@example.com', 3),
-       ('Sophia Thompson', 'sophithompson@example.com', 3),
-       ('Mason Turner', 'masonturner@example.com', 4),
-       ('Ava Harris', 'avaharris@example.com', 4),
-       ('Noah Martinez', 'noahmartinez@example.com', 4),
-       ('Ava Martin', 'avamartin@example.com', 4),
-       ('Ethan White', 'ethanwhite@example.com', 4);
+VALUES ('John Doe', 'johndoe@semantyca.com', 1),
+       ('Jane Smith', 'janesmith@semantyca.com', 1),
+       ('Bob Johnson', 'bobjohnson@semantyca.com', 1),
+       ('Jim Davis', 'jimdavis@semantyca.com', 1),
+       ('Jill Wilson', 'jillwilson@semantyca.com', 1),
+       ('Tom Brown', 'tombrown@semantyca.com', 2),
+       ('Emily Taylor', 'emilytaylor@semantyca.com', 2),
+       ('Mike Anderson', 'mikeanderson@semantyca.com', 2),
+       ('Sarah Martin', 'sarahmartin@semantyca.com', 2),
+       ('Joe Miller', 'joemiller@semantyca.com', 2),
+       ('Emma White', 'emmawhite@semantyca.com', 3),
+       ('David Moore', 'davidmoore@semantyca.com', 3),
+       ('Olivia Jackson', 'oliviajackson@semantyca.com', 3),
+       ('Liam Harris', 'liamharris@semantyca.com', 3),
+       ('Sophia Thompson', 'sophithompson@semantyca.com', 3),
+       ('Mason Turner', 'masonturner@semantyca.com', 4),
+       ('Ava Harris', 'avaharris@semantyca.com', 4),
+       ('Noah Martinez', 'noahmartinez@semantyca.com', 4),
+       ('Ava Martin', 'avamartin@semantyca.com', 4),
+       ('Ethan White', 'ethanwhite@semantyca.com', 4);
 

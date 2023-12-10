@@ -154,6 +154,7 @@
                 .then(response => {
                     if (response.status === 200) {
                         console.log(JSON.stringify(response.data));
+                        alert(JSON.stringify(response.data))
                         refreshNewsletters();
                     } else {
                         console.error('Error:', response.status);
@@ -186,6 +187,7 @@
                 },
                 success: function (response) {
                     console.log(JSON.stringify(response.data));
+                    alert(JSON.stringify(response.data))
                     refreshNewsletters();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {

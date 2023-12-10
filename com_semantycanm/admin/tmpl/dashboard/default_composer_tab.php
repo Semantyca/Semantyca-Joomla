@@ -298,6 +298,7 @@ $doc      = $app->getDocument();
         newLiEntry.className = "list-group-item";
         newLiEntry.addEventListener("click", function () {
             this.parentNode.removeChild(this);
+            updateNewsletterContent();
         });
 
         selectedArticles.appendChild(newLiEntry);
