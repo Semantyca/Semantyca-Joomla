@@ -27,12 +27,17 @@
         <menu link="index.php?option=com_semantycanm">Semantyca</menu>
         <files folder="admin/">
             <folder>language</folder>
-            <folder>media</folder>
+            <folder>assets</folder>
             <folder>services</folder>
             <folder>sql</folder>
             <folder>src</folder>
             <folder>tmpl</folder>
+            <filename>assets/images/refresh.png</filename>
         </files>
+
+        <media destination="com_semantycanm" folder="media">
+            <filename>assets/images/refresh.png</filename>
+        </media>
 
         <languages>
             <language tag="en-GB">admin/language/en-GB/en-GB.com_semantycanm.ini</language>

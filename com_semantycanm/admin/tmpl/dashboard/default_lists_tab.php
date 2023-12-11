@@ -30,7 +30,7 @@
                         Please enter Mailing list name.
                     </div>
                     <div class="col-md-2">
-                        <button id="add-group" class="btn btn-success btn">Save</button>
+                        <button id="add-group" class="btn btn-success btn"><?php echo JText::_('SAVE'); ?></button>
                     </div>
                 </div>
             </form>
@@ -38,7 +38,12 @@
     </div>
     <div class="row mt-4">
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
-            <h3>Mailing Lists</h3>
+            <div class="header-container">
+                <h3>Mailing Lists</h3>
+                <div id="listSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
             <ul class="list-group" id="mailingLists">
 				<?php
 				foreach ($this->mailingLists as $listName): ?>
@@ -56,38 +61,6 @@
 
 
 <script>
-    let allGroups = document.getElementById('available-groups');
-    let selectedGroups = document.getElementById('selected-groups');
-    let sortableGroupsList = Sortable.create(allGroups, {
-        group: {
-            name: 'shared',
-            pull: 'clone',
-            nut: false
-        },
-        animation: 150,
-        sort: false
-    });
-
-    sortableGroupsList.option("onEnd", function (evt) {
-        let draggedElement = evt.item;
-        let duplicate = Array.from(selectedGroups.children).some(li => {
-            return li.dataset.id === draggedElement.id;
-        });
-        if (!duplicate) {
-            let newLiEntry = document.createElement('li');
-            newLiEntry.textContent = draggedElement.textContent;
-            newLiEntry.dataset.id = draggedElement.id;
-            //TODO it needs to be styled
-            // newLiEntry.dataset.id = draggedElement.id;
-            // newLiEntry.dataset.title = draggedElement.title;
-            newLiEntry.className = "list-group-item";
-            newLiEntry.addEventListener("click", function () {
-                this.parentNode.removeChild(this);
-            });
-            selectedGroups.appendChild(newLiEntry);
-
-        }
-    });
 
     $(document).ready(function () {
         $('#add-group').click(function (e) {
@@ -109,7 +82,7 @@
                 alert('The list is empty.');
                 return;
             }
-
+            showSpinner('listSpinner');
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=mailinglist.add',
                 type: 'POST',
@@ -122,14 +95,15 @@
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
+                },
+                complete: function() {
+                    hideSpinner('listSpinner');
                 }
             });
         });
-    });
-
-    jQuery(document).ready(function ($) {
         $('.removeListBtn').click(function () {
             const id = $(this).closest('li').attr('id');
+            showSpinner('listSpinner');
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
                 type: 'DELETE',
@@ -139,9 +113,27 @@
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
+                },
+                complete: function() {
+                    hideSpinner('listSpinner');
                 }
             });
         });
     });
+
+    function createNewListItem(draggedElement, targetGroup) {
+        let newLiEntry = document.createElement('li');
+        newLiEntry.textContent = draggedElement.textContent;
+        newLiEntry.dataset.id = draggedElement.dataset.id;
+        newLiEntry.className = "list-group-item";
+        newLiEntry.addEventListener("click", function () {
+            this.parentNode.removeChild(this);
+        });
+        targetGroup.appendChild(newLiEntry);
+        return newLiEntry;
+    }
+
+    dragAndDropSet($('#available-groups')[0], $('#selected-groups')[0], createNewListItem);
+
 
 </script>

@@ -16,11 +16,17 @@ class MailingListModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select(array($db->quoteName('#__nm_mailing_list.name'), $db->quoteName('#__nm_mailing_list.id')))
+			$query->select(
+					array(
+						$db->quoteName('#__nm_mailing_list.name'),
+						$db->quoteName('#__nm_mailing_list.id'),
+						$db->quoteName('#__nm_mailing_list.reg_date')))
 				->from($db->quoteName('#__nm_mailing_list'))
 				->join('LEFT',
 					$db->quoteName('#__nm_subscribers') . ' ON (' . $db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quoteName('#__nm_subscribers.mail_list_id') . ')')
-				->group($db->quoteName('#__nm_mailing_list.id'));
+				->group($db->quoteName('#__nm_mailing_list.id'))
+				->order('reg_date DESC'); // Add this line for ordering
+
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
@@ -32,6 +38,7 @@ class MailingListModel extends BaseDatabaseModel
 			return null;
 		}
 	}
+
 
 	public function getSubscribers($mailing_list_name)
 	{

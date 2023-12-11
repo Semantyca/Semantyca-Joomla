@@ -1,10 +1,9 @@
 <div class="container mt-5">
-    <div id="progressBar"></div>
     <div class="row">
         <div class="col-md-5">
             <div class="header-container">
                 <h3>Statistics</h3>
-                <div class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
@@ -14,7 +13,7 @@
                 <tr class="d-flex">
                     <th class="col-1">
                         <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshStatsButton">
-                            <img src="/joomla/administrator/components/com_semantycanm/media/images/refresh.png"
+                            <img src="/joomla/administrator/components/com_semantycanm/assets/images/refresh.png"
                                  alt="Refresh" class="refresh-icon">
                         </button>
                     </th>
@@ -47,7 +46,7 @@
     });
 
     function refreshStats() {
-        showSpinner();
+        showSpinner('statSpinner');
 
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=stat.findAll',
@@ -62,7 +61,7 @@
                 console.log('Error:', textStatus, errorThrown);
             },
             complete: function() {
-                hideSpinner();
+                hideSpinner('statSpinner');
             }
         });
     }
@@ -97,6 +96,4 @@
                 return '<span class="badge bg-secondary">unknown</span>'
         }
     }
-
-
 </script>

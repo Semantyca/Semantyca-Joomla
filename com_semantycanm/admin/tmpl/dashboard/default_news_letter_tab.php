@@ -60,7 +60,7 @@
         <div class="col-md-12">
             <div class="header-container">
                 <h3 class="mb-4">Saved Newsletters</h3>
-                <div class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                <div id="newsletterSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
@@ -70,7 +70,7 @@
                     <tr>
                         <th class="col-1">
                             <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshNewsLettersButton">
-                                <img src="/joomla/administrator/components/com_semantycanm/media/images/refresh.png"
+                                <img src="/joomla/administrator/components/com_semantycanm/assets/images/refresh.png"
                                      alt="Refresh" class="refresh-icon">
                             </button>
                         </th>
@@ -279,7 +279,7 @@
     });
 
     function refreshNewsletters() {
-        showSpinner();
+        showSpinner('newsletterSpinner');
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=newsletter.findAll',
             type: 'GET',
@@ -293,7 +293,7 @@
                 console.log('Error:', textStatus, errorThrown);
             },
             complete: function() {
-                hideSpinner();
+                hideSpinner('newsletterSpinner');
             }
         });
     }

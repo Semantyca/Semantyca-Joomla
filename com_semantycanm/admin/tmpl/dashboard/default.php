@@ -9,14 +9,17 @@ HTMLHelper::_('form.csrf', '_csrf');
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 global $media;
-$media = "administrator/components/com_semantycanm/media/";
+$media = "administrator/components/com_semantycanm/assets/";
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
 $doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
 $doc->addScript(JUri::root() . $media . "js/bootstrap.min.js");
 $doc->addScript(JURI::root() . $media . "js/templates.js");
 $doc->addScript(JUri::root() . $media . "js/typeahead.bundle.js");
+$doc->addScript(JUri::root() . $media . "js/common.js");
+$doc->addScript(JUri::root() . $media . "js/dragdrop.js");
 $doc->addStyleSheet(JUri::root() . $media . "css/trumbowyg.min.css");
 $doc->addStyleSheet(JUri::root() . $media . "css/default.css");
+$doc->addStyleSheet(JUri::root() . $media . "css/dragdrop.css");
 
 try
 {
@@ -70,15 +73,5 @@ $this->selectedLetters = [];
         </div>
     </div>
 </div>
-
-<script>
-    function showSpinner() {
-        $('.spinner-border').show();
-    }
-
-    function hideSpinner() {
-        $('.spinner-border').hide();
-    }
-</script>
 
 

@@ -15,7 +15,12 @@ $doc      = $app->getDocument();
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-6">
-            <h3>Available Articles</h3>
+            <div class="header-container">
+                <h3>Available Articles</h3>
+                <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
             <input type="text" id="article-search" class="form-control mb-2" placeholder="Search articles...">
             <ul id="articles-list" class="list-group" style="height: 350px !important; overflow-y: auto;">
 				<?php
@@ -37,9 +42,9 @@ $doc      = $app->getDocument();
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="btn-group">
-                <button id="reset-button" class="btn" style="background-color: #152E52; color: white;">Reset</button>
-                <button id="copy-code-button" class="btn btn-info mb-2">Copy Code</button>
-                <button id="send-to-textarea-btn" class="btn btn-info mb-2">Open in Newsletter</button>
+                <button id="reset-button" class="btn" style="background-color: #152E52; color: white;"><?php echo JText::_('RESET'); ?></button>
+                <button id="copy-code-button" class="btn btn-info mb-2"><?php echo JText::_('COPY_CODE'); ?></button>
+                <button id="send-to-textarea-btn" class="btn btn-info mb-2"><?php echo JText::_('NEXT'); ?></button>
             </div>
             <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="10"></textarea>
         </div>
@@ -99,6 +104,7 @@ $doc      = $app->getDocument();
     $('#article-search').on('input', function () {
         const searchTerm = $(this).val().toLowerCase();
         if (searchTerm.length >= 3) {
+            showSpinner('composerSpinner');
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=article.search',
                 type: 'GET',
@@ -125,6 +131,9 @@ $doc      = $app->getDocument();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.error('Error: ' + textStatus + ' ' + errorThrown);
+                },
+                complete: function() {
+                    hideSpinner('composerSpinner');
                 }
             });
         }
