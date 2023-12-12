@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-6">
             <h3>Available User Groups</h3>
-            <ul class="list-group" id="available-groups">
+            <ul class="list-group" id="availableGroups">
 				<?php
 				foreach ($this->usergroups as $group): ?>
                     <li class="list-group-item" <?php echo 'id="' . $group->id . '"'; ?>>
@@ -12,7 +12,7 @@
         </div>
         <div class="col-md-6">
             <h3>Selected User Groups</h3>
-            <ul id="selected-groups" class="list-group">
+            <ul id="selectedGroups" class="list-group">
 
             </ul>
         </div>
@@ -30,7 +30,7 @@
                         Please enter Mailing list name.
                     </div>
                     <div class="col-md-2">
-                        <button id="add-group" class="btn btn-success btn"><?php echo JText::_('SAVE'); ?></button>
+                        <button id="addGroup" class="btn btn-success btn"><?php echo JText::_('SAVE'); ?></button>
                     </div>
                 </div>
             </form>
@@ -63,7 +63,7 @@
 <script>
 
     $(document).ready(function () {
-        $('#add-group').click(function (e) {
+        $('#addGroup').click(function (e) {
             e.preventDefault();
 
             const mailingListName = $('#mailingListName').val();
@@ -74,7 +74,7 @@
                 return;
             }
 
-            const listItems = $('#selected-groups li').map(function () {
+            const listItems = $('#selectedGroups li').map(function () {
                 return $(this).text();
             }).get();
 
@@ -121,19 +121,16 @@
         });
     });
 
-    function createNewListItem(draggedElement, targetGroup) {
+    const elementCreator = function(draggedElement) {
         let newLiEntry = document.createElement('li');
         newLiEntry.textContent = draggedElement.textContent;
         newLiEntry.dataset.id = draggedElement.dataset.id;
         newLiEntry.className = "list-group-item";
-        newLiEntry.addEventListener("click", function () {
-            this.parentNode.removeChild(this);
-        });
-        targetGroup.appendChild(newLiEntry);
         return newLiEntry;
-    }
+    };
 
-    dragAndDropSet($('#available-groups')[0], $('#selected-groups')[0], createNewListItem);
+    dragAndDropSet($('#availableGroups')[0], $('#selectedGroups')[0], elementCreator);
+
 
 
 </script>

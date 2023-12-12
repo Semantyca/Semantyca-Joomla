@@ -55,68 +55,31 @@ $doc      = $app->getDocument();
     const COOKIES_LIFE_SPAN = 24 * 60 * 60 * 1000;
     let outputHtml = $('#output-html')
     let editedContentStore = {};
-    let articlesList = document.getElementById('articles-list');
-    let selectedArticles = document.getElementById('selected-articles');
-    let sortableArticlesList = Sortable.create(articlesList, {
-        group: {
-            name: 'shared',
-            pull: 'clone',
-            nut: false
-        },
-        animation: 150,
-        sort: false
-    });
 
-    window.onload = function () {
-        let cookieVal = getCookie('selectedArticlesIds');
-        if (cookieVal !== "") {
-            let ids = JSON.parse(cookieVal);
-            ids.forEach(function (id) {
+    $(document).ready(function () {
+        $('#reset-button').click(function () {
+            outputHtml.val('');
+            outputHtml.trumbowyg('html', '')
+            $('#selected-articles').empty()
+            setCookie('selectedArticlesIds', null, 7);
+        });
+
+        $('#article-search').on('input', function () {
+            const searchTerm = $(this).val().toLowerCase();
+            if (searchTerm.length >= 3) {
+                showSpinner('composerSpinner');
                 $.ajax({
-                    url: 'index.php?option=com_semantycanm&task=article.find&id=' + id,
+                    url: 'index.php?option=com_semantycanm&task=article.search',
                     type: 'GET',
-                    success: function (response) {
-                        console.log(response);
-                        const articleData = response.data;
-                        addNewArticle(articleData.id,
-                            articleData.title,
-                            articleData.introtext,
-                            articleData.url,
-                            articleData.category,
-                            articleData.intro);
-                        updateNewsletterContent();
+                    data: {
+                        q: searchTerm
                     },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log(textStatus, errorThrown);
-                    }
-                });
-            });
-        }
-    };
-
-    $('#reset-button').click(function () {
-        outputHtml.val('');
-        outputHtml.trumbowyg('html', '')
-        $('#selected-articles').empty()
-        setCookie('selectedArticlesIds', null, 7);
-    });
-
-    $('#article-search').on('input', function () {
-        const searchTerm = $(this).val().toLowerCase();
-        if (searchTerm.length >= 3) {
-            showSpinner('composerSpinner');
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=article.search',
-                type: 'GET',
-                data: {
-                    q: searchTerm
-                },
-                dataType: 'json',
-                success: function (response) {
-                    //console.log(response.data);
-                    $('#articles-list').empty();
-                    response.data.forEach(article => {
-                        $('#articles-list').append(`
+                    dataType: 'json',
+                    success: function (response) {
+                        //console.log(response.data);
+                        $('#articles-list').empty();
+                        response.data.forEach(article => {
+                            $('#articles-list').append(`
                   <li class="list-group-item"
                       id="${article.id}"
                       title="${article.title}"
@@ -126,58 +89,42 @@ $doc      = $app->getDocument();
                       <strong>${article.category}</strong><br>${article.title}
                   </li>
                `);
-                    });
+                        });
 
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('Error: ' + textStatus + ' ' + errorThrown);
-                },
-                complete: function() {
-                    hideSpinner('composerSpinner');
-                }
-            });
-        }
-    });
-
-    $('#copy-code-button').click(function () {
-        const completeHTML = getFullTemplate($('#output-html').val());
-        const tempTextArea = $('<textarea>').val(completeHTML).appendTo('body').select();
-        const successful = document.execCommand('copy');
-        if (successful) {
-            alert('HTML code copied to clipboard!');
-        } else {
-            alert('Failed to copy. Please try again.');
-        }
-        tempTextArea.remove();
-    });
-
-    $('#send-to-textarea-btn').click(function () {
-        const outputHtml = document.getElementById('output-html').value;
-        const messageContent = document.getElementById('messageContent');
-        messageContent.value = outputHtml;
-        $('#nav-newsletters-tab').tab('show');
-    });
-
-    sortableArticlesList.option("onEnd", function (evt) {
-        let draggedElement = evt.item;
-        let duplicate = Array.from(selectedArticles.children).some(li => {
-            return li.dataset.id === draggedElement.id;
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error: ' + textStatus + ' ' + errorThrown);
+                    },
+                    complete: function () {
+                        hideSpinner('composerSpinner');
+                    }
+                });
+            }
         });
-        if (!duplicate) {
-            addNewArticle(draggedElement.id,
-                draggedElement.title,
-                draggedElement.attributes.title.nodeValue,
-                draggedElement.attributes.url.nodeValue,
-                draggedElement.attributes.category.nodeValue,
-                draggedElement.attributes.intro.nodeValue);
-            let ids = Array.from(selectedArticles.children).map(li => li.dataset.id);
-            // setCookie('selectedArticlesIds', JSON.stringify(ids), 7);
 
-            updateNewsletterContent();
-        }
+        $('#copy-code-button').click(function () {
+            const completeHTML = getFullTemplate($('#output-html').val());
+            const tempTextArea = $('<textarea>').val(completeHTML).appendTo('body').select();
+            const successful = document.execCommand('copy');
+            if (successful) {
+                alert('HTML code copied to clipboard!');
+            } else {
+                alert('Failed to copy. Please try again.');
+            }
+            tempTextArea.remove();
+        });
+
+        $('#send-to-textarea-btn').click(function () {
+            const outputHtml = document.getElementById('output-html').value;
+            const messageContent = document.getElementById('messageContent');
+            messageContent.value = outputHtml;
+            $('#nav-newsletters-tab').tab('show');
+        });
     });
 
-    function updateNewsletterContent() {
+
+
+    const postFunction = function updateNewsletterContent() {
         const currentYear = new Date().getFullYear()
         const currentMonth = new Date().toLocaleString('default', {month: 'long'}).toUpperCase()
         const currentDateFormatted = currentMonth + ' ' + currentYear
@@ -296,46 +243,17 @@ $doc      = $app->getDocument();
       `;
     }
 
-    function addNewArticle(id, title, textContent, url, category, intro) {
+    const articleElementCreator = function(draggedElement) {
         let newLiEntry = document.createElement('li');
-        newLiEntry.dataset.id = id;
-        newLiEntry.dataset.title = title;
-        newLiEntry.textContent = textContent;
-        newLiEntry.dataset.url = url;
-        newLiEntry.dataset.category = category;
-        newLiEntry.dataset.intro = intro;
+        newLiEntry.dataset.id = draggedElement.id;
+        newLiEntry.dataset.title =  draggedElement.title;
+        newLiEntry.textContent = draggedElement.attributes.title.nodeValue;
+        newLiEntry.dataset.url =  draggedElement.attributes.url.nodeValue;
+        newLiEntry.dataset.category = draggedElement.attributes.category.nodeValue;
+        newLiEntry.dataset.intro = draggedElement.attributes.intro.nodeValue;
         newLiEntry.className = "list-group-item";
-        newLiEntry.addEventListener("click", function () {
-            this.parentNode.removeChild(this);
-            updateNewsletterContent();
-        });
-
-        selectedArticles.appendChild(newLiEntry);
+        return newLiEntry;
     }
 
-    function setCookie(name, value, days) {
-        let expires = "";
-        if (days) {
-            const date = new Date();
-            date.setTime(date.getTime() + (days * COOKIES_LIFE_SPAN));
-            expires = "; expires=" + date.toUTCString();
-        }
-        document.cookie = name + "=" + (value === null ? "" : value) + expires + "; path=/";
-    }
-
-    function getCookie(name) {
-        const nameEQ = name + "=";
-        const ca = document.cookie.split(';');
-        for (let i = 0; i < ca.length; i++) {
-            let c = ca[i];
-            while (c.charAt(0) === ' ') {
-                c = c.substring(1, c.length);
-            }
-            if (c.indexOf(nameEQ) === 0) {
-                return c.substring(nameEQ.length, c.length);
-            }
-        }
-        return null;
-    }
-
+    dragAndDropSet($('#articles-list')[0], $('#selected-articles')[0], articleElementCreator, postFunction);
 </script>

@@ -8,7 +8,9 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class MailingListController extends BaseController
 {
@@ -26,9 +28,7 @@ class MailingListController extends BaseController
 				$mailing_list_model = $this->getModel('MailingList');
 				$user_group_model   = $this->getModel('UserGroup');
 				$results            = $mailing_list_model->add($user_group_model, $mailing_lst_name, $mailing_lists);
-				header('Content-Type: application/json; charset=UTF-8');
-				echo new JsonResponse($results);
-				Factory::getApplication()->close();
+				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
 			}
 			else
 			{
@@ -37,9 +37,11 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			$responseDTO = Util::getErrorDTO($e);
 		}
+		header('Content-Type: application/json; charset=UTF-8');
+		echo new JsonResponse($responseDTO->toArray());
+		Factory::getApplication()->close();
 	}
 
 	public function delete()
@@ -54,9 +56,7 @@ class MailingListController extends BaseController
 				$ids_to_delete      = $this->input->getString('ids');
 				$mailing_list_model = $this->getModel('MailingList');
 				$results            = $mailing_list_model->remove($ids_to_delete);
-				header('Content-Type: application/json; charset=UTF-8');
-				echo new JsonResponse($results);
-				Factory::getApplication()->close();
+				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
 			}
 			else
 			{
@@ -65,8 +65,10 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			$responseDTO = Util::getErrorDTO($e);
 		}
+		header('Content-Type: application/json; charset=UTF-8');
+		echo new JsonResponse($responseDTO->toArray());
+		Factory::getApplication()->close();
 	}
 }

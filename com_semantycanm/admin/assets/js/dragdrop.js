@@ -1,4 +1,4 @@
-function dragAndDropSet(sourceList, targetGroup) {
+function dragAndDropSet(sourceList, targetGroup, elementCreator, postFunction) {
     let body = document.body;
 
     function onStart(evt, target) {
@@ -19,16 +19,18 @@ function dragAndDropSet(sourceList, targetGroup) {
 
         if (!duplicate) {
             if (isSource) {
-                target.appendChild(draggedElement);
+                let newElement = elementCreator(draggedElement);
+                target.appendChild(newElement);
             } else {
                 let sourceDuplicate = Array.from(sourceList.children).some(li => {
                     return li.dataset.id === draggedElement.dataset.id;
                 });
                 if (!sourceDuplicate) {
-                    sourceList.appendChild(draggedElement);
+                    sourceList.appendChild(elementCreator(draggedElement));
                 }
             }
         }
+        if (!postFunction) postFunction();
     }
 
     Sortable.create(sourceList, {
