@@ -2,9 +2,9 @@
     <div class="row">
         <div class="col-md-5">
             <div class="header-container">
-                <h3>Statistics</h3>
+                <h3><?php echo JText::_('STATISTICS'); ?></h3>
                 <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
 
@@ -17,11 +17,11 @@
                                  alt="Refresh" class="refresh-icon">
                         </button>
                     </th>
-                    <th class="col-5">Recipient</th>
-                    <th class="col-2">Status</th>
-                    <th class="col-3">Send Time</th>
-                    <th class="col-3">Reading Time</th>
-                    <th class="col-3">Newsletter</th>
+                    <th class="col-5"><?php echo JText::_('RECIPIENT'); ?></th>
+                    <th class="col-2"><?php echo JText::_('STATUS'); ?></th>
+                    <th class="col-3"><?php echo JText::_('SEND_TIME'); ?></th>
+                    <th class="col-3"><?php echo JText::_('READING_TIME'); ?></th>
+                    <th class="col-3"><?php echo JText::_('NEWSLETTER'); ?></th>
                 </tr>
                 </thead>
                 <tbody id="statsList">
