@@ -7,7 +7,7 @@
     <authorUrl>https://absolute.lv</authorUrl>
     <copyright>Nzimas</copyright>
     <license>GPL v3</license>
-    <version>0.0.1</version>
+    <version>version </version>
     <description>A newsletter manager</description>
 
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>
