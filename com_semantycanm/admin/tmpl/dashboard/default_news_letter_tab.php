@@ -28,7 +28,7 @@
 					<?= htmlspecialchars($response, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
 			<?php endif; ?>
-            <h2 class="mb-4">Send Newsletter</h2>
+            <h2 class="mb-4"><?php echo JText::_('SEND_NEWSLETTER'); ?></h2>
             <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
             <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
             <div class="form-group">

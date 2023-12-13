@@ -25,12 +25,15 @@ function dragAndDropSet(sourceList, targetGroup, elementCreator, postFunction) {
                 let sourceDuplicate = Array.from(sourceList.children).some(li => {
                     return li.dataset.id === draggedElement.dataset.id;
                 });
+                debugger
                 if (!sourceDuplicate) {
                     sourceList.appendChild(elementCreator(draggedElement));
                 }
             }
         }
-        if (!postFunction) postFunction();
+        if (typeof postFunction === 'function') {
+            postFunction();
+        }
     }
 
     Sortable.create(sourceList, {
