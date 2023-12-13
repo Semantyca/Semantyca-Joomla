@@ -17,6 +17,7 @@ $doc->addScript(JURI::root() . $media . "js/templates.js");
 $doc->addScript(JUri::root() . $media . "js/typeahead.bundle.js");
 $doc->addScript(JUri::root() . $media . "js/common.js");
 $doc->addScript(JUri::root() . $media . "js/dragdrop.js");
+$doc->addScript(JUri::root() . $media . "js/newsletter-builder.js");
 $doc->addStyleSheet(JUri::root() . $media . "css/trumbowyg.min.css");
 $doc->addStyleSheet(JUri::root() . $media . "css/default.css");
 $doc->addStyleSheet(JUri::root() . $media . "css/dragdrop.css");

@@ -1,7 +1,7 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-6">
-            <h3>Available User Groups</h3>
+            <h3><?php echo JText::_('AVAILABLE_USER_GROUPS'); ?></h3>
             <ul class="list-group" id="availableGroups">
 				<?php
 				foreach ($this->usergroups as $group): ?>
@@ -11,7 +11,7 @@
             </ul>
         </div>
         <div class="col-md-6">
-            <h3>Selected User Groups</h3>
+            <h3><?php echo JText::_('SELECTED_USER_GROUPS'); ?></h3>
             <ul id="selectedGroups" class="list-group">
 
             </ul>
@@ -39,9 +39,9 @@
     <div class="row mt-4">
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
             <div class="header-container">
-                <h3>Mailing Lists</h3>
+                <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
                 <div id="listSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
             <ul class="list-group" id="mailingLists">
@@ -50,7 +50,7 @@
                     <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
                         <span class="list-name"><?php echo $listName->name; ?></span>
                         <button id="remove-group" class="btn btn-danger btn-sm btn-float-right removeListBtn"
-                                style="float: right;">Remove
+                                style="float: right;"><?php echo JText::_('REMOVE'); ?>
                         </button>
                     </li>
 				<?php endforeach; ?>

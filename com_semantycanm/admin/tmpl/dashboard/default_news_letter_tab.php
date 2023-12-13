@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-md-6 ">
             <div class="header-container">
-                <h3>Available Lists</h3>
+                <h3><?php echo JText::_('AVAILABLE_LISTS'); ?></h3>
             </div>
             <ul class="list-group" id="availableListsUL">
 				<?php
@@ -16,7 +16,7 @@
 
         </div>
         <div class="col-md-6">
-            <h3>Selected Lists</h3>
+            <h3><?php echo JText::_('SELECTED_LISTS'); ?></h3>
             <ul class="dropzone list-group" id="selectedLists"></ul>
         </div>
     </div>
@@ -28,40 +28,39 @@
 					<?= htmlspecialchars($response, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
 			<?php endif; ?>
-            <h2 class="mb-4">Send Newsletter</h2>
+            <h2 class="mb-4"><?php echo JText::_('SEND_NEWSLETTER'); ?></h2>
             <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
             <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
             <div class="form-group">
-                <label for="testEmails">Test (if it is not empty It will ignore the selected lists):</label>
+                <label for="testEmails"><?php echo JText::_('TEST_ADDRESS'); ?></label>
                 <input type="text" class="form-control" id="testEmails" name="testEmails">
             </div>
             <div class="form-group">
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="subject" name="subject" required placeholder="Subject"
                            aria-label="Subject" aria-describedby="button-addon2">
-                    <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn" style="margin: 5px;">guess ...
+                    <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn" style="margin: 5px;"><?php echo JText::_('FETCH_SUBJECT'); ?>
                     </button>
                 </div>
             </div>
             <div class="form-group">
-                <label for="messageContent">Message Content (HTML):</label>
+                <label for="messageContent"><?php echo JText::_('MESSAGE_CONTENT'); ?></label>
                 <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required
                           readonly></textarea>
             </div>
-            <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send">Send
-                Newsletter
+            <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send"><?php echo JText::_('SEND_NEWSLETTER'); ?>
             </button>
-            <button type="button" class="btn btn-secondary" id="saveNewsletterBtn">Save Newsletter</button>
-            <button type="button" class="btn btn-secondary" id="toggleEditBtn">Edit</button>
+            <button type="button" class="btn btn-secondary" id="saveNewsletterBtn"><?php echo JText::_('SAVE_NEWSLETTER'); ?></button>
+            <button type="button" class="btn btn-secondary" id="toggleEditBtn"><?php echo JText::_('EDIT'); ?></button>
 
         </div>
     </div>
     <div class="row justify-content-center mt-5">
         <div class="col-md-12">
             <div class="header-container">
-                <h3 class="mb-4">Saved Newsletters</h3>
+                <h3 class="mb-4"><?php echo JText::_('NEWSLETTERS_LIST'); ?></h3>
                 <div id="newsletterSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
-                    <span class="visually-hidden">Loading...</span>
+                    <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
             <div class="table-responsive" style="height: 200px;">
@@ -74,8 +73,8 @@
                                      alt="Refresh" class="refresh-icon">
                             </button>
                         </th>
-                        <th>Subject</th>
-                        <th>Registered</th>
+                        <th><?php echo JText::_('SUBJECT'); ?></th>
+                        <th><?php echo JText::_('REGISTERED'); ?></th>
                     </tr>
                     </thead>
                     <tbody id="newsLettersList">
@@ -244,7 +243,7 @@
         });
     });
 
-    let availableLists = document.getElementById('availableListsUL');
+  /*  let availableLists = document.getElementById('availableListsUL');
     let selectedLists = document.getElementById('selectedLists');
     let sortableAvailableLists = Sortable.create(availableLists, {
         group: {
@@ -276,7 +275,17 @@
         } else {
             // selectedLists.style.animation = "flash 1s infinite";
         }
-    });
+    });*/
+
+    const receiverElementCreator = function(draggedElement) {
+        let newLiEntry = document.createElement('li');
+        newLiEntry.textContent = draggedElement.textContent;
+        newLiEntry.dataset.id = draggedElement.id;
+        newLiEntry.className = "list-group-item";
+        return newLiEntry;
+    }
+
+    dragAndDropSet($('#availableListsUL')[0], $('#selectedLists')[0], receiverElementCreator, null);
 
     function refreshNewsletters() {
         showSpinner('newsletterSpinner');
