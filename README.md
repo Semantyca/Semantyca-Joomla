@@ -3,3 +3,4 @@
 Semantyca Newsletter Manager as a full-fledged Joomla extension.
 xxxxxxxxx
 xxxxxxxxxxxxx
+xxxxxxxxxxxxxxxx
