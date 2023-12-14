@@ -13,8 +13,7 @@
                 <tr class="d-flex">
                     <th class="col-1">
                         <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshStatsButton">
-                            <img src="/joomla/administrator/components/com_semantycanm/assets/images/refresh.png"
-                                 alt="Refresh" class="refresh-icon">
+                            <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
                         </button>
                     </th>
                     <th class="col-5"><?php echo JText::_('RECIPIENT'); ?></th>

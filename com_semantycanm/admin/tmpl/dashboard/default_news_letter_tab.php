@@ -77,8 +77,7 @@
                         <th class="col-1">
                             <button class="btn btn-outline-secondary refresh-button" type="button"
                                     id="refreshNewsLettersButton">
-                                <img src="/joomla/administrator/components/com_semantycanm/assets/images/refresh.png"
-                                     alt="Refresh" class="refresh-icon">
+                                <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
                             </button>
                         </th>
                         <th><?php echo JText::_('SUBJECT'); ?></th>
