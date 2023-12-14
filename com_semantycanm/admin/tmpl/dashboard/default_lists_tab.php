@@ -2,19 +2,23 @@
     <div class="row">
         <div class="col-md-6">
             <h3><?php echo JText::_('AVAILABLE_USER_GROUPS'); ?></h3>
-            <ul class="list-group" id="availableGroups">
-				<?php
-				foreach ($this->usergroups as $group): ?>
-                    <li class="list-group-item" <?php echo 'id="' . $group->id . '"'; ?>>
-						<?php echo $group->title; ?></li>
-				<?php endforeach; ?>
-            </ul>
+            <div class="col-md-12 dragdrop-list">
+                <ul class="list-group" id="availableGroups">
+					<?php
+					foreach ($this->usergroups as $group): ?>
+                        <li class="list-group-item" <?php echo 'id="' . $group->id . '"'; ?>>
+							<?php echo $group->title; ?></li>
+					<?php endforeach; ?>
+                </ul>
+            </div>
         </div>
         <div class="col-md-6">
             <h3><?php echo JText::_('SELECTED_USER_GROUPS'); ?></h3>
-            <ul id="selectedGroups" class="list-group">
+            <div class="col-md-12 dragdrop-list">
+                <ul id="selectedGroups" class="list-group">
 
-            </ul>
+                </ul>
+            </div>
         </div>
     </div>
 
@@ -40,7 +44,8 @@
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
             <div class="header-container">
                 <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
-                <div id="listSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                <div id="listSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                     style="display: none;">
                     <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
@@ -96,7 +101,7 @@
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 },
-                complete: function() {
+                complete: function () {
                     hideSpinner('listSpinner');
                 }
             });
@@ -114,14 +119,14 @@
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 },
-                complete: function() {
+                complete: function () {
                     hideSpinner('listSpinner');
                 }
             });
         });
     });
 
-    const elementCreator = function(draggedElement) {
+    const elementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');
         newLiEntry.textContent = draggedElement.textContent;
         newLiEntry.dataset.id = draggedElement.dataset.id;
@@ -130,7 +135,6 @@
     };
 
     dragAndDropSet($('#availableGroups')[0], $('#selectedGroups')[0], elementCreator);
-
 
 
 </script>

@@ -6,10 +6,14 @@ use Joomla\CMS\Log\Log;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 HTMLHelper::_('form.csrf', '_csrf');
+HTMLHelper::_('jquery.framework');
+
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 global $media;
 $media = "administrator/components/com_semantycanm/assets/";
+
+//$doc->addScript(JURI::root() . $media . "js/jquery-3.7.1.min.js");
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
 $doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
 $doc->addScript(JUri::root() . $media . "js/bootstrap.min.js");

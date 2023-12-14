@@ -4,20 +4,23 @@
             <div class="header-container">
                 <h3><?php echo JText::_('AVAILABLE_LISTS'); ?></h3>
             </div>
-            <ul class="list-group" id="availableListsUL">
-				<?php
-				$availableLists = $this->mailingLists;
-				foreach ($availableLists as $listName): ?>
-                    <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
-						<?php echo $listName->name; ?>
-                    </li>
-				<?php endforeach; ?>
-            </ul>
-
+            <div class="col-md-12 dragdrop-list">
+                <ul class="list-group" id="availableListsUL">
+					<?php
+					$availableLists = $this->mailingLists;
+					foreach ($availableLists as $listName): ?>
+                        <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
+							<?php echo $listName->name; ?>
+                        </li>
+					<?php endforeach; ?>
+                </ul>
+            </div>
         </div>
         <div class="col-md-6">
             <h3><?php echo JText::_('SELECTED_LISTS'); ?></h3>
-            <ul class="dropzone list-group" id="selectedLists"></ul>
+            <div class="col-md-12 dragdrop-list">
+                <ul class="dropzone list-group" id="selectedLists"></ul>
+            </div>
         </div>
     </div>
 
@@ -39,7 +42,8 @@
                 <div class="input-group mb-3">
                     <input type="text" class="form-control" id="subject" name="subject" required placeholder="Subject"
                            aria-label="Subject" aria-describedby="button-addon2">
-                    <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn" style="margin: 5px;"><?php echo JText::_('FETCH_SUBJECT'); ?>
+                    <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn"
+                            style="margin: 5px;"><?php echo JText::_('FETCH_SUBJECT'); ?>
                     </button>
                 </div>
             </div>
@@ -48,9 +52,11 @@
                 <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required
                           readonly></textarea>
             </div>
-            <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action" value="send"><?php echo JText::_('SEND_NEWSLETTER'); ?>
+            <button type="button" class="btn btn-primary" id="sendNewsletterBtn" name="action"
+                    value="send"><?php echo JText::_('SEND_NEWSLETTER'); ?>
             </button>
-            <button type="button" class="btn btn-secondary" id="saveNewsletterBtn"><?php echo JText::_('SAVE_NEWSLETTER'); ?></button>
+            <button type="button" class="btn btn-secondary"
+                    id="saveNewsletterBtn"><?php echo JText::_('SAVE_NEWSLETTER'); ?></button>
             <button type="button" class="btn btn-secondary" id="toggleEditBtn"><?php echo JText::_('EDIT'); ?></button>
 
         </div>
@@ -59,7 +65,8 @@
         <div class="col-md-12">
             <div class="header-container">
                 <h3 class="mb-4"><?php echo JText::_('NEWSLETTERS_LIST'); ?></h3>
-                <div id="newsletterSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                <div id="newsletterSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                     style="display: none;">
                     <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
@@ -68,7 +75,8 @@
                     <thead>
                     <tr>
                         <th class="col-1">
-                            <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshNewsLettersButton">
+                            <button class="btn btn-outline-secondary refresh-button" type="button"
+                                    id="refreshNewsLettersButton">
                                 <img src="/joomla/administrator/components/com_semantycanm/assets/images/refresh.png"
                                      alt="Refresh" class="refresh-icon">
                             </button>
@@ -89,7 +97,7 @@
 <script>
 
     $(document).ready(function () {
-        $('#nav-newsletters-tab').on('shown.bs.tab', function() {
+        $('#nav-newsletters-tab').on('shown.bs.tab', function () {
             refreshNewsletters();
         });
 
@@ -243,41 +251,41 @@
         });
     });
 
-  /*  let availableLists = document.getElementById('availableListsUL');
-    let selectedLists = document.getElementById('selectedLists');
-    let sortableAvailableLists = Sortable.create(availableLists, {
-        group: {
-            name: 'shared',
-            pull: 'clone',
-            nut: false
-        },
-        animation: 150,
-        sort: false
-        //TODO it needs to be added
-        //swap: true,
-        //swapClass: 'highlight',
-    });
+    /*  let availableLists = document.getElementById('availableListsUL');
+	  let selectedLists = document.getElementById('selectedLists');
+	  let sortableAvailableLists = Sortable.create(availableLists, {
+		  group: {
+			  name: 'shared',
+			  pull: 'clone',
+			  nut: false
+		  },
+		  animation: 150,
+		  sort: false
+		  //TODO it needs to be added
+		  //swap: true,
+		  //swapClass: 'highlight',
+	  });
 
-    sortableAvailableLists.option("onEnd", function (evt) {
-        let draggedElement = evt.item;
-        let duplicate = Array.from(selectedLists.children).some(li => {
-            return li.dataset.id === draggedElement.id;
-        });
-        if (!duplicate) {
-            let newLiEntry = document.createElement('li');
-            newLiEntry.textContent = draggedElement.textContent;
-            newLiEntry.dataset.id = draggedElement.id;
-            newLiEntry.className = "list-group-item";
-            newLiEntry.addEventListener("click", function () {
-                this.parentNode.removeChild(this);
-            });
-            selectedLists.appendChild(newLiEntry);
-        } else {
-            // selectedLists.style.animation = "flash 1s infinite";
-        }
-    });*/
+	  sortableAvailableLists.option("onEnd", function (evt) {
+		  let draggedElement = evt.item;
+		  let duplicate = Array.from(selectedLists.children).some(li => {
+			  return li.dataset.id === draggedElement.id;
+		  });
+		  if (!duplicate) {
+			  let newLiEntry = document.createElement('li');
+			  newLiEntry.textContent = draggedElement.textContent;
+			  newLiEntry.dataset.id = draggedElement.id;
+			  newLiEntry.className = "list-group-item";
+			  newLiEntry.addEventListener("click", function () {
+				  this.parentNode.removeChild(this);
+			  });
+			  selectedLists.appendChild(newLiEntry);
+		  } else {
+			  // selectedLists.style.animation = "flash 1s infinite";
+		  }
+	  });*/
 
-    const receiverElementCreator = function(draggedElement) {
+    const receiverElementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');
         newLiEntry.textContent = draggedElement.textContent;
         newLiEntry.dataset.id = draggedElement.id;
@@ -292,16 +300,16 @@
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=newsletter.findAll',
             type: 'GET',
-            success: function(response) {
+            success: function (response) {
                 console.log(response);
                 if (response.success && response.data) {
                     $('#newsLettersList').html(composeNewsLettersContent(response.data));
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error:', textStatus, errorThrown);
             },
-            complete: function() {
+            complete: function () {
                 hideSpinner('newsletterSpinner');
             }
         });

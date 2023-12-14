@@ -2,8 +2,8 @@
 
 defined('_JEXEC') or die;
 //require_once __DIR__ . '/template_source_helper.php';
-$app      = Joomla\CMS\Factory::getApplication();
-$doc      = $app->getDocument();
+$app = Joomla\CMS\Factory::getApplication();
+$doc = $app->getDocument();
 
 
 ?>
@@ -13,12 +13,13 @@ $doc      = $app->getDocument();
         <div class="col-md-6">
             <div class="header-container">
                 <h3><?php echo JText::_('AVAILABLE_ARTICLES'); ?></h3>
-                <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                     style="display: none;">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
             <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles...">
-            <ul id="articlesList" class="list-group" style="height: 350px !important; overflow-y: auto;">
+            <ul id="articlesList" class="list-group dragdrop-list-short">
 				<?php
 				foreach ($this->articlesList as $article): ?>
                     <li class="list-group-item"
@@ -30,15 +31,18 @@ $doc      = $app->getDocument();
         </div>
         <div class="col-md-6">
             <h3><?php echo JText::_('SELECTED_ARTICLES'); ?></h3>
-            <ul id="selectedArticles" class="list-group">
+            <div class="col-md-12 dragdrop-list">
+                <ul id="selectedArticles" class="list-group">
 
-            </ul>
+                </ul>
+            </div>
         </div>
     </div>
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="btn-group">
-                <button id="resetBtn" class="btn" style="background-color: #152E52; color: white;"><?php echo JText::_('RESET'); ?></button>
+                <button id="resetBtn" class="btn"
+                        style="background-color: #152E52; color: white;"><?php echo JText::_('RESET'); ?></button>
                 <button id="copyCodeBtn" class="btn btn-info mb-2"><?php echo JText::_('COPY_CODE'); ?></button>
                 <button id="nextBtn" class="btn btn-info mb-2"><?php echo JText::_('NEXT'); ?></button>
             </div>
@@ -114,13 +118,13 @@ $doc      = $app->getDocument();
         });
     });
 
-    const articleElementCreator = function(draggedElement) {
+    const articleElementCreator = function (draggedElement) {
         debugger
         let newLiEntry = document.createElement('li');
         newLiEntry.dataset.id = draggedElement.id;
-        newLiEntry.dataset.title =  draggedElement.title;
+        newLiEntry.dataset.title = draggedElement.title;
         newLiEntry.textContent = draggedElement.attributes.title.nodeValue;
-        newLiEntry.dataset.url =  draggedElement.attributes.url.nodeValue;
+        newLiEntry.dataset.url = draggedElement.attributes.url.nodeValue;
         newLiEntry.dataset.category = draggedElement.attributes.category.nodeValue;
         newLiEntry.dataset.intro = draggedElement.attributes.intro.nodeValue;
         newLiEntry.className = "list-group-item";

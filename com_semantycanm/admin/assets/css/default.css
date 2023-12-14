@@ -78,6 +78,17 @@
     margin-right: 10px;
 }
 
+.dragdrop-list {
+    height: 400px;
+    overflow-y: auto;
+}
+
+.dragdrop-list-short {
+    height: 300px;
+    overflow-y: auto;
+}
+
+
 
 
 
