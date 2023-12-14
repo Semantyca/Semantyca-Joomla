@@ -1,6 +1,4 @@
 let editedContentStore = {};
-//const bannerUrl = 'https://dev.absolute.lv/emsa/intranet-0923/images/2020/staff-newsletter-banner.jpg';
-const bannerUrl = '/joomla/administrator/components/com_semantycanm/assets/images/test_banner.png';
 
 function updateNewsletterContent() {
     const currentYear = new Date().getFullYear()

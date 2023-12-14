@@ -11,7 +11,9 @@ HTMLHelper::_('jquery.framework');
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 global $media;
+
 $media = "administrator/components/com_semantycanm/assets/";
+$bannerImageUrl = JUri::root() . $media . "images/test_banner.png";
 
 //$doc->addScript(JURI::root() . $media . "js/jquery-3.7.1.min.js");
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
@@ -78,5 +80,9 @@ $this->selectedLetters = [];
         </div>
     </div>
 </div>
+
+<script>
+    bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
+</script>
 
 
