@@ -2,9 +2,6 @@
 
 defined('_JEXEC') or die;
 //require_once __DIR__ . '/template_source_helper.php';
-$app = Joomla\CMS\Factory::getApplication();
-$doc = $app->getDocument();
-
 
 ?>
 
@@ -23,8 +20,12 @@ $doc = $app->getDocument();
 				<?php
 				foreach ($this->articlesList as $article): ?>
                     <li class="list-group-item"
-						<?php echo 'id="' . $article->id . '" title="' . $article->title . '"  url="' . $article->url . '" category="' . $article->category . '" intro="' . $article->introtext . '"'; ?>>
-                        <strong><?php echo $article->category ?></strong><br><?php echo $article->title; ?>
+						<?php echo 'id="' . $article->id .
+                            '" title="' . $article->title .
+                            '"  data-url="' . $article->url .
+                            '" data-category="' . $article->category .
+                            '" data-intro="' . rawurlencode($article->introtext) . '"'; ?>>
+                        <strong><?php echo $article->category ?></strong><br>'<?php echo $article->title; ?>'
                     </li>
 				<?php endforeach; ?>
             </ul>
@@ -61,43 +62,36 @@ $doc = $app->getDocument();
             $('#selectedArticles').empty();
         });
 
-        $('#articleSearchInput').on('input', function () {
-            const searchTerm = $(this).val().toLowerCase();
-            if (searchTerm.length >= 3) {
+        document.getElementById('articleSearchInput').addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            if (searchTerm.length >= 2) {
                 showSpinner('composerSpinner');
-                $.ajax({
-                    url: 'index.php?option=com_semantycanm&task=article.search',
-                    type: 'GET',
-                    data: {
-                        q: searchTerm
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        //console.log(response.data);
-                        $('#articlesList').empty();
-                        response.data.forEach(article => {
-                            $('#articlesList').append(`
-                  <li class="list-group-item"
-                      id="${article.id}"
-                      title="${article.title}"
-                      data-url="${article.url}"
-                      data-category="${article.category}"
-                      data-intro="${article.introtext}">
-                      <strong>${article.category}</strong><br>${article.title}
-                  </li>
-               `);
+                fetch('index.php?option=com_semantycanm&task=article.search&q=' + encodeURIComponent(searchTerm))
+                    .then(response => response.json())
+                    .then(data => {
+                        const articlesList = document.getElementById('articlesList');
+                        articlesList.innerHTML = '';
+                        data.data.forEach(article => {
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item';
+                            li.setAttribute('id', article.id);
+                            li.setAttribute('title', article.title);
+                            li.setAttribute('data-url', article.url);
+                            li.setAttribute('data-category', article.category);
+                            li.setAttribute('data-intro', encodeURIComponent(article.introtext));
+                            li.innerHTML = `<strong>${article.category}</strong><br>${article.title}`;
+                            articlesList.appendChild(li);
                         });
-
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error('Error: ' + textStatus + ' ' + errorThrown);
-                    },
-                    complete: function () {
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    })
+                    .finally(() => {
                         hideSpinner('composerSpinner');
-                    }
-                });
+                    });
             }
         });
+
 
         $('#copyCodeBtn').click(function () {
             const completeHTML = getFullTemplate(outputHtml.val());

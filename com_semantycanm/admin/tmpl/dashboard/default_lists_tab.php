@@ -124,6 +124,17 @@
                 }
             });
         });
+
+       /* window.addEventListener('load', function () {
+            var list = document.getElementById('selectedGroups');
+            if (list.scrollHeight > list.clientHeight) {
+                list.parentNode.style.overflowY = 'scroll';
+            } else {
+                list.parentNode.style.overflowY = 'hidden';
+            }
+        });*/
+
+
     });
 
     const elementCreator = function (draggedElement) {

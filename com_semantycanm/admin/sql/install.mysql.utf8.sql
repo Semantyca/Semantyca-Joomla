@@ -1,3 +1,4 @@
+DROP TABLE IF EXISTS `#__subscriber_events`;
 DROP TABLE IF EXISTS `#__nm_subscribers`;
 DROP TABLE IF EXISTS `#__nm_events`;
 DROP TABLE IF EXISTS `#__nm_stats`;
@@ -26,6 +27,21 @@ CREATE TABLE `#__nm_subscribers`
     FOREIGN KEY (mail_list_id) REFERENCES `#__nm_mailing_list` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
+CREATE TABLE `#__subscriber_events`
+(
+    id            INT AUTO_INCREMENT,
+    reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
+    subscriber_id INT,
+    event_type    INT,
+    expected      BOOLEAN,
+    trigger_token VARCHAR(255),
+    event_date    DATETIME,
+
+    PRIMARY KEY (id),
+    FOREIGN KEY (subscriber_id) REFERENCES `#__nm_subscribers` (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
 CREATE TABLE `#__nm_newsletters`
 (
     id              INT AUTO_INCREMENT,
@@ -52,24 +68,24 @@ CREATE TABLE `#__nm_stats`
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
     newsletter_id INT,
-    subscriber_id INT,
-    recipient     VARCHAR(255),
+    recipients    JSON,
+    opens         INT,
+    clicks        INT,
+    unsubs        INT,
     status        INT,
     sent_time     DATETIME,
-    reading_time  DATETIME,
     PRIMARY KEY (id),
-    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id),
-    UNIQUE (newsletter_id, subscriber_id)
+    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id)
 ) ENGINE = InnoDB;
 
 
 CREATE TABLE `#__nm_events`
 (
-    id INT AUTO_INCREMENT,
-    event_time DATETIME DEFAULT CURRENT_TIMESTAMP,
-    event_type VARCHAR(255),
+    id           INT AUTO_INCREMENT,
+    event_time   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    event_type   VARCHAR(255),
     event_source VARCHAR(255),
-    stats_id INT,
+    stats_id     INT,
     PRIMARY KEY (id),
     FOREIGN KEY (stats_id) REFERENCES `#__nm_stats` (id)
 ) ENGINE = InnoDB;

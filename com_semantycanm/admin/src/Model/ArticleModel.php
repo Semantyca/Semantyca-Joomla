@@ -37,9 +37,11 @@ class ArticleModel extends BaseDatabaseModel
 			$db->setQuery($query);
 
 			$articles = $db->loadObjectList();
-			foreach ($articles as $article) {
+			foreach ($articles as $article)
+			{
 				$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id));
 			}
+
 			return $articles;
 		}
 		catch (\Exception $e)
@@ -76,9 +78,11 @@ class ArticleModel extends BaseDatabaseModel
 			$db->setQuery($query);
 
 			$articles = $db->loadObjectList();
-			foreach ($articles as $article) {
+			foreach ($articles as $article)
+			{
 				$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id));
 			}
+
 			return $articles;
 		}
 		catch (\Exception $e)
@@ -89,19 +93,37 @@ class ArticleModel extends BaseDatabaseModel
 		}
 	}
 
-
 	public function search($searchTerm)
 	{
 		try
 		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query->select('*')
-				->from('#__content')
-				->where('title LIKE ' . $db->quote('%' . $searchTerm . '%'));
-			$db->setQuery($query);
+			$db   = $this->getDatabase();
+			$date = JFactory::getDate();
+			$date->modify('-3 months');
+			$threeMonthsAgo = $db->quote($date->toSql());
+			$query          = $db->getQuery(true)
+				->select(array(
+					$db->quoteName('a.id'),
+					$db->quoteName('a.title'),
+					$db->quoteName('a.introtext'),
+					$db->quoteName('a.alias'),
+					$db->quoteName('c.title', 'category')
+				))
+				->from($db->quoteName('#__content', 'a'))
+				->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON (' . $db->quoteName('a.catid') . ' = ' . $db->quoteName('c.id') . ')')
+				->where($db->quoteName('a.state') . ' = 1')
+				->where($db->quoteName('a.created') . ' > ' . $threeMonthsAgo)
+				->where($db->quoteName('a.title') . ' LIKE ' . $db->quote('%' . $searchTerm . '%'))
+				->order('a.created DESC');
 
-			return $db->loadObjectList();
+			$db->setQuery($query);
+			$articles = $db->loadObjectList();
+			foreach ($articles as $article)
+			{
+				$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id));
+			}
+
+			return $articles;
 		}
 		catch (\Exception $e)
 		{
@@ -110,4 +132,5 @@ class ArticleModel extends BaseDatabaseModel
 			return null;
 		}
 	}
+
 }
