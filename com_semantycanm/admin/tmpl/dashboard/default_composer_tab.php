@@ -64,7 +64,7 @@ defined('_JEXEC') or die;
 
         document.getElementById('articleSearchInput').addEventListener('input', function () {
             const searchTerm = this.value.toLowerCase();
-            if (searchTerm.length >= 2) {
+            //if (searchTerm.length >= 2) {
                 showSpinner('composerSpinner');
                 fetch('index.php?option=com_semantycanm&task=article.search&q=' + encodeURIComponent(searchTerm))
                     .then(response => response.json())
@@ -89,7 +89,7 @@ defined('_JEXEC') or die;
                     .finally(() => {
                         hideSpinner('composerSpinner');
                     });
-            }
+            //}
         });
 
 
