@@ -46,12 +46,11 @@ function generateContent(currentDateFormatted, currentYear) {
     selectedArticlesLi.each(function (index, article) {
         const articleId = article.id;
         const title = article.title;
-        const url = $(article).attr('data-url');
+        const url = article.dataset.url;
         const intro = editedContentStore[articleId]
             ? editedContentStore[articleId]
-            : decodeURIComponent($(article).attr('intro'));
-       // const intro = decodeURIComponent($(article).data('intro'));
-        const category = $(article).attr('category');
+            : decodeURIComponent(article.dataset.intro);
+        const category = article.dataset.category;
 
         articlesContent += getStyledEntries(index, title, url, intro, category);
 

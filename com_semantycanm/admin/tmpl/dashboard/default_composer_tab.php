@@ -47,7 +47,7 @@ defined('_JEXEC') or die;
                 <button id="copyCodeBtn" class="btn btn-info mb-2"><?php echo JText::_('COPY_CODE'); ?></button>
                 <button id="nextBtn" class="btn btn-info mb-2"><?php echo JText::_('NEXT'); ?></button>
             </div>
-            <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="10"></textarea>
+            <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="20"></textarea>
         </div>
     </div>
 </div>
@@ -113,15 +113,14 @@ defined('_JEXEC') or die;
     });
 
     const articleElementCreator = function (draggedElement) {
-        debugger
         let newLiEntry = document.createElement('li');
         newLiEntry.dataset.id = draggedElement.id;
+        newLiEntry.textContent = draggedElement.title;
         newLiEntry.dataset.title = draggedElement.title;
-        newLiEntry.textContent = draggedElement.attributes.title.nodeValue;
-        newLiEntry.dataset.url = draggedElement.attributes.url.nodeValue;
-        newLiEntry.dataset.category = draggedElement.attributes.category.nodeValue;
-        newLiEntry.dataset.intro = draggedElement.attributes.intro.nodeValue;
-        newLiEntry.className = "list-group-item";
+        newLiEntry.dataset.url = draggedElement.dataset.url;
+        newLiEntry.dataset.category = draggedElement.dataset.category;
+        newLiEntry.dataset.intro = draggedElement.dataset.intro;
+        newLiEntry.className = "list-group-item4";
         return newLiEntry;
     }
 
