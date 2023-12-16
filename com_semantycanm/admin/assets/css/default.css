@@ -88,6 +88,10 @@
     overflow-y: auto;
 }
 
+/**for all tables**/
+.table td {
+    border-bottom: 1px solid #adb5bd;
+}
 
 
 

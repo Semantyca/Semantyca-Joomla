@@ -44,22 +44,26 @@
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
             <div class="header-container">
                 <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
-                <div id="listSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                <div id="mailingListSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
                      style="display: none;">
                     <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                 </div>
             </div>
-            <ul class="list-group" id="mailingLists">
-				<?php
-				foreach ($this->mailingLists as $listName): ?>
-                    <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
-                        <span class="list-name"><?php echo $listName->name; ?></span>
-                        <button id="remove-group" class="btn btn-danger btn-sm btn-float-right removeListBtn"
-                                style="float: right;"><?php echo JText::_('REMOVE'); ?>
+            <table class="table">
+                <thead>
+                <tr class="d-flex">
+                    <th class="col-1">
+                        <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshMailingListButton">
+                            <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
                         </button>
-                    </li>
-				<?php endforeach; ?>
-            </ul>
+                    </th>
+                    <th class="col-5"><?php echo JText::_('NAME'); ?></th>
+                    <th class="col-3"><?php echo JText::_('REG_DATE'); ?></th>
+                    <th class="col-3"></th>
+                </tr>
+                </thead>
+                <tbody id="mailingList">
+            </table>
         </div>
     </div>
 </div>
@@ -67,12 +71,24 @@
 
 <script>
 
-    $(document).ready(function () {
-        $('#addGroup').click(function (e) {
+    document.addEventListener('DOMContentLoaded', function() {
+        const mailingListTable = document.getElementById("mailingList");
+
+        if (initialMailingListData) {
+           mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
+        }
+
+        $('#nav-list-tab').on('shown.bs.tab', function () {
+            refreshMailingList();
+        });
+
+        $('#refreshMailingListButton').click(function () {
+            refreshMailingList();
+        });
+
+        document.getElementById('addGroup').addEventListener('click', function (e) {
             e.preventDefault();
-
-            const mailingListName = $('#mailingListName').val();
-
+            const mailingListName = document.getElementById('mailingListName').value;
             if (mailingListName === '') {
                 alert("Mailing list cannot be empty")
                 //TODO it needs boostrap validation
@@ -96,46 +112,171 @@
                     'mailinglists': listItems.join(',')
                 },
                 success: function (response) {
-                    console.log(response);
+                    //console.log(response.data);
+                    mailingListName.value = '';
+                    const newRow = createMailingListRow(response.data);
+                    const tableBody = document.getElementById('mailingList');
+                    tableBody.insertBefore(newRow, tableBody.firstChild);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     console.log(textStatus, errorThrown);
                 },
                 complete: function () {
-                    hideSpinner('listSpinner');
-                }
-            });
-        });
-        $('.removeListBtn').click(function () {
-            const id = $(this).closest('li').attr('id');
-            showSpinner('listSpinner');
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
-                type: 'DELETE',
-                success: function (response) {
-                    console.log(id + " " + response);
-                    $('#' + id).remove();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
-                },
-                complete: function () {
-                    hideSpinner('listSpinner');
+                    hideSpinner('mailingListSpinner');
                 }
             });
         });
 
-       /* window.addEventListener('load', function () {
-            var list = document.getElementById('selectedGroups');
-            if (list.scrollHeight > list.clientHeight) {
-                list.parentNode.style.overflowY = 'scroll';
-            } else {
-                list.parentNode.style.overflowY = 'hidden';
-            }
+     /*   document.querySelectorAll('.removeMailingListBtn').forEach(button => {
+            button.addEventListener('click', function () {
+                const row = this.closest('tr');
+                const id = row.getAttribute('data-id');
+                showSpinner('mailinListSpinner');
+
+                $.ajax({
+                    url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+                    type: 'DELETE',
+                    success: function (response.data) {
+                        if (row) {
+                            row.remove();
+                        }
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.error('Error:', textStatus, errorThrown);
+                    },
+                    complete: function () {
+                        hideSpinner('mailingListSpinner');
+                    }
+                });
+            });
         });*/
 
 
+
+        /*  window.addEventListener('load', function () {
+			  var list = document.getElementById('selectedGroups');
+			  console.log('Client Height:', list.clientHeight);
+			  console.log('Scroll Height:', list.scrollHeight);
+
+			  if (list.scrollHeight > list.clientHeight) {
+				  console.log('Enabling scroll');
+				  list.style.overflowY = 'scroll'; // Applying directly to the list
+			  } else {
+				  console.log('Hiding scroll');
+				  list.style.overflowY = 'hidden'; // Applying directly to the list
+			  }
+		  });*/
+
     });
+
+    function refreshMailingList() {
+        showSpinner('mailingListSpinner');
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=mailinglist.findall',
+            type: 'GET',
+            success: function (response) {
+                console.log(response);
+                if (response.success && response.data) {
+                    const mailingList = document.getElementById('mailingList');
+                    mailingList.replaceChildren(composeMailingListEntry(response.data));
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.log('Error:', textStatus, errorThrown);
+            },
+            complete: function() {
+                hideSpinner('mailingListSpinner');
+            }
+        });
+    }
+
+    function composeMailingListEntry(data) {
+        const fragment = document.createDocumentFragment();
+        data.forEach(entry => {
+            fragment.appendChild(createMailingListRow(entry));
+        });
+        return fragment;
+    }
+
+    function createMailingListRow(entry) {
+        const tr = document.createElement('tr');
+        tr.className = 'list-group-item d-flex';
+        tr.setAttribute('data-id', entry.id);
+        const tdCheckbox = document.createElement('td');
+        tdCheckbox.className = 'col-1';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.name = 'selectedItems[]';
+        checkbox.value = entry.id;
+        tdCheckbox.appendChild(checkbox);
+        const tdName = document.createElement('td');
+        tdName.className = 'col-5';
+        tdName.textContent = entry.name;
+
+        const tdRegDate = document.createElement('td');
+        tdRegDate.className = 'col-3';
+        tdRegDate.textContent = entry.reg_date;
+
+        const tdButton = document.createElement('td');
+        tdButton.className = 'col-3';
+        const button = document.createElement('button');
+        button.className = 'btn btn-danger btn-sm removeMailingListBtn';
+        button.textContent = removeButtonText;
+        button.addEventListener('click', deleteRowHandler);
+        tdButton.appendChild(button);
+        tr.appendChild(tdCheckbox);
+        tr.appendChild(tdName);
+        tr.appendChild(tdRegDate);
+        tr.appendChild(tdButton);
+        return tr;
+    }
+
+    function attachDeleteListenerToButton(button) {
+        button.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const id = row.getAttribute('data-id');
+            showSpinner('mailinListSpinner');
+
+            $.ajax({
+                url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+                type: 'DELETE',
+                success: function(response) {
+                    if (row) {
+                        row.remove();
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('Error:', textStatus, errorThrown);
+                },
+                complete: function() {
+                    hideSpinner('mailingListSpinner');
+                }
+            });
+        });
+    }
+
+    const deleteRowHandler = function () {
+        const row = this.closest('tr');
+        const id = row.getAttribute('data-id');
+        showSpinner('mailinListSpinner');
+
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+            type: 'DELETE',
+            success: function(response) {
+                if (row) {
+                    row.remove();
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error:', textStatus, errorThrown);
+            },
+            complete: function() {
+                hideSpinner('mailingListSpinner');
+            }
+        });
+    };
+
 
     const elementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');

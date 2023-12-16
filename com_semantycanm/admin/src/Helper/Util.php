@@ -2,7 +2,7 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 use Joomla\CMS\Log\Log;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
+use ComSemantycanm\Admin\DTO\ResponseDTO;
 
 class Util {
 

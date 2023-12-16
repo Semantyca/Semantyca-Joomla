@@ -1,12 +1,12 @@
 .dragging {
     opacity: 0.7;
-    border: 2px dashed #c245da;
+    border: 2px dashed #152E52;
     box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
 
 .drop-area-highlight {
-    border: 2px dashed #f39405;
-    background-color: #e0f2f1; /* Light background color */
+    border: 2px dashed #adb5bd;
+    background-color: #e0f2f1;
     transition: background-color 0.3s ease;
 }
 

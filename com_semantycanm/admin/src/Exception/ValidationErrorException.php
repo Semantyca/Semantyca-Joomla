@@ -1,10 +1,10 @@
 <?php
 
-namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
+namespace Semantyca\Component\SemantycaNM\Administrator\Exception;
 
 use Exception;
 
-class ValidationErrorDTO extends Exception
+class ValidationErrorException extends Exception
 {
 	private $errors;
 

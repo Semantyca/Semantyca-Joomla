@@ -82,7 +82,9 @@ $this->selectedLetters = [];
 </div>
 
 <script>
-    bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
+    const bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
+    const removeButtonText = "<?php echo JText::_('REMOVE'); ?>";
+    const initialMailingListData = <?php echo json_encode($this->mailingLists); ?>;
 </script>
 
 

@@ -8,8 +8,7 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ValidationErrorDTO;
+use ComSemantycanm\Admin\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class NewsLetterController extends BaseController
@@ -64,7 +63,7 @@ class NewsLetterController extends BaseController
 
 				if (empty($msg))
 				{
-					throw new ValidationErrorDTO(['Message body is required']);
+					throw new ValidationErrorException(['Message body is required']);
 				}
 
 				$model       = $this->getModel('NewsLetter');
@@ -73,10 +72,10 @@ class NewsLetterController extends BaseController
 			}
 			else
 			{
-				throw new ValidationErrorDTO(['Only POST request is allowed']);
+				throw new ValidationErrorException(['Only POST request is allowed']);
 			}
 		}
-		catch (ValidationErrorDTO $e)
+		catch (ValidationErrorException $e)
 		{
 			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
 		}

@@ -2750,3 +2750,4 @@
 /vendor/theseer/tokenizer/README.md
 /.phpunit.result.cache
 /com_semantycanm.zip
+/vendor/composer/platform_check.php

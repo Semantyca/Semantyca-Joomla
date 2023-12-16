@@ -8,17 +8,39 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
+use ComSemantycanm\Admin\DTO\ResponseDTO;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class MailingListController extends BaseController
 {
+	public function findAll()
+	{
+		try
+		{
+			Factory::getApplication();
+			header('Content-Type: application/json; charset=UTF-8');
+
+			$model   = $this->getModel();
+			$results = $model->getList();
+			echo new JsonResponse($results);
+
+		}
+		catch (\Exception $e)
+		{
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
+		}
+	}
+
 	public function add()
 	{
 		try
 		{
-			$app   = Factory::getApplication();
+			$app = Factory::getApplication();
+			header('Content-Type: application/json; charset=UTF-8');
 			$input = $app->input;
 
 			if ($input->getMethod() === 'POST')
@@ -28,47 +50,69 @@ class MailingListController extends BaseController
 				$mailing_list_model = $this->getModel('MailingList');
 				$user_group_model   = $this->getModel('UserGroup');
 				$results            = $mailing_list_model->add($user_group_model, $mailing_lst_name, $mailing_lists);
-				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
+				echo new JsonResponse($results);
 			}
 			else
 			{
-				Log::add("Only POST request allowed", Log::WARNING, Constants::COMPONENT_NAME);
+				throw new ValidationErrorException(["Only POST request allowed"]);
 			}
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'validationError', true);
 		}
 		catch (\Exception $e)
 		{
-			$responseDTO = Util::getErrorDTO($e);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
-		header('Content-Type: application/json; charset=UTF-8');
-		echo new JsonResponse($responseDTO->toArray());
-		Factory::getApplication()->close();
 	}
 
 	public function delete()
 	{
 		try
 		{
-			$app   = Factory::getApplication();
+			$app = Factory::getApplication();
+			header('Content-Type: application/json; charset=UTF-8');
 			$input = $app->input;
+			$ids   = $this->input->getString('ids');
+			//TODO ids should be be a list
+			if (empty($ids) || $ids === 'null')
+			{
+				throw new ValidationErrorException(['id cannot be null']);
+			}
+
+			if (!is_array($ids))
+			{
+				$ids = explode(',', $ids);
+			}
 
 			if ($input->getMethod() === 'DELETE')
 			{
-				$ids_to_delete      = $this->input->getString('ids');
 				$mailing_list_model = $this->getModel('MailingList');
-				$results            = $mailing_list_model->remove($ids_to_delete);
-				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
+				$results            = $mailing_list_model->remove($ids);
+				echo new JsonResponse(['success' => true, 'payload' => $results]);
 			}
 			else
 			{
-				Log::add("Only DELETE request allowed", Log::WARNING, Constants::COMPONENT_NAME);
+				throw new ValidationErrorException(["Only DELETE request allowed"]);
 			}
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'validationError', true);
 		}
 		catch (\Exception $e)
 		{
-			$responseDTO = Util::getErrorDTO($e);
+			http_response_code(500);
+			echo new JsonResponse($e, "exception", true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
-		header('Content-Type: application/json; charset=UTF-8');
-		echo new JsonResponse($responseDTO->toArray());
-		Factory::getApplication()->close();
 	}
 }

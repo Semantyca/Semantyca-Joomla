@@ -1,7 +1,11 @@
 <?php
 
-namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
+namespace ComSemantycanm\Admin\DTO;
 
+/**
+ *
+ * @deprecated
+ */
 class ResponseDTO
 {
 	private $results;

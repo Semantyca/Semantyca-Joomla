@@ -4,13 +4,11 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ResponseDTO;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\ValidationErrorDTO;
+use ComSemantycanm\Admin\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
@@ -40,7 +38,7 @@ class ServiceController extends BaseController
 
 			if (!empty($errors))
 			{
-				throw new ValidationErrorDTO($errors);
+				throw new ValidationErrorException($errors);
 			}
 
 			$mailingListModel = $this->getModel('MailingList');
@@ -54,7 +52,7 @@ class ServiceController extends BaseController
 			$responseDTO     = new ResponseDTO(['savingNewsLetter' => $result, 'sendEmail' => $result]);
 
 		}
-		catch (ValidationErrorDTO $e)
+		catch (ValidationErrorException $e)
 		{
 			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
 

@@ -1,5 +1,14 @@
 {
-    "require-dev": {
-        "phpunit/phpunit": "9.5"
+  "require-dev": {
+    "phpunit/phpunit": "9.5"
+  },
+  "require": {
+    "php": "^7.4 || ^8.0",
+    "ext-json": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "ComSemantycanm\\Admin\\": "com_semantycanm/admin/src/"
     }
+  }
 }
