@@ -5,10 +5,8 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 defined('_JEXEC') or die;
 
 use ComSemantycanm\Admin\Exception\RecordNotFoundException;
-use JFactory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class MailingListModel extends BaseDatabaseModel
@@ -21,13 +19,13 @@ class MailingListModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query->select(
 				array(
-					$db->quoteName('#__nm_mailing_list.name'),
-					$db->quoteName('#__nm_mailing_list.id'),
-					$db->quoteName('#__nm_mailing_list.reg_date')))
-				->from($db->quoteName('#__nm_mailing_list'))
+					$db->quoteName('#__semantyca_nm_mailing_list.name'),
+					$db->quoteName('#__semantyca_nm_mailing_list.id'),
+					$db->quoteName('#__semantyca_nm_mailing_list.reg_date')))
+				->from($db->quoteName('#__semantyca_nm_mailing_list'))
 				->join('LEFT',
-					$db->quoteName('#__nm_subscribers') . ' ON (' . $db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quoteName('#__nm_subscribers.mail_list_id') . ')')
-				->group($db->quoteName('#__nm_mailing_list.id'))
+					$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
+				->group($db->quoteName('#__semantyca_nm_mailing_list.id'))
 				->order('reg_date DESC');
 
 			$db->setQuery($query);
@@ -36,7 +34,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 
 			return null;
 		}
@@ -50,14 +48,14 @@ class MailingListModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query->select(
 				array(
-					$db->quoteName('#__nm_mailing_list.name'),
-					$db->quoteName('#__nm_mailing_list.id'),
-					$db->quoteName('#__nm_mailing_list.reg_date')))
-				->from($db->quoteName('#__nm_mailing_list'))
+					$db->quoteName('#__semantyca_nm_mailing_list.name'),
+					$db->quoteName('#__semantyca_nm_mailing_list.id'),
+					$db->quoteName('#__semantyca_nm_mailing_list.reg_date')))
+				->from($db->quoteName('#__semantyca_nm_mailing_list'))
 				->join('LEFT',
-					$db->quoteName('#__nm_subscribers') . ' ON (' . $db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quoteName('#__nm_subscribers.mail_list_id') . ')')
-				->where($db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quote($id))
-				->group($db->quoteName('#__nm_mailing_list.id'))
+					$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
+				->where($db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quote($id))
+				->group($db->quoteName('#__semantyca_nm_mailing_list.id'))
 				->order('reg_date DESC');
 
 			$db->setQuery($query);
@@ -72,7 +70,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (RecordNotFoundException|\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 
 			return null;
 		}
@@ -85,19 +83,19 @@ class MailingListModel extends BaseDatabaseModel
 		{
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
-			$query->select(array($db->quoteName('#__nm_subscribers.email')))
-				->from($db->quoteName('#__nm_mailing_list'))
+			$query->select(array($db->quoteName('#__semantyca_nm_subscribers.email')))
+				->from($db->quoteName('#__semantyca_nm_mailing_list'))
 				->join('LEFT',
-					$db->quoteName('#__nm_subscribers') . ' ON (' . $db->quoteName('#__nm_mailing_list.id') . ' = ' . $db->quoteName('#__nm_subscribers.mail_list_id') . ')')
-				->where($db->quoteName('#__nm_mailing_list.name') . ' = ' . $db->quote($mailing_list_name))
-				->group($db->quoteName('#__nm_mailing_list.id'));
+					$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
+				->where($db->quoteName('#__semantyca_nm_mailing_list.name') . ' = ' . $db->quote($mailing_list_name))
+				->group($db->quoteName('#__semantyca_nm_mailing_list.id'));
 			$db->setQuery($query);
 
 			return $db->loadObjectList();
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 
 			return null;
 		}
@@ -123,7 +121,7 @@ class MailingListModel extends BaseDatabaseModel
 			$db->transactionStart();
 
 			$query
-				->insert($db->quoteName('#__nm_mailing_list'))
+				->insert($db->quoteName('#__semantyca_nm_mailing_list'))
 				->columns(array('name'))
 				->values(array($db->quote($mailing_list_name)));
 			$db->setQuery($query);
@@ -135,7 +133,7 @@ class MailingListModel extends BaseDatabaseModel
 			{
 				$query = $db->getQuery(true);
 				$query
-					->insert($db->quoteName('#__nm_subscribers'))
+					->insert($db->quoteName('#__semantyca_nm_subscribers'))
 					->columns(array('name', 'email', 'mail_list_id'))
 					->values($db->quote($subscriber->name) . ', ' . $db->quote($subscriber->email) . ', ' . $db->quote($mailing_list_id));
 
@@ -151,7 +149,7 @@ class MailingListModel extends BaseDatabaseModel
 		catch (\Exception $e)
 		{
 			$db->transactionRollback();
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 			throw $e;
 		}
 	}
@@ -164,7 +162,7 @@ class MailingListModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query
 				->select($db->quoteName(array('id')))
-				->from($db->quoteName('#__nm_subscribers'))
+				->from($db->quoteName('#__semantyca_nm_subscribers'))
 				->where('email = ' . $db->quote($email));
 
 			$db->setQuery($query);
@@ -174,7 +172,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 		}
 
 		return 0;
@@ -199,7 +197,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 		}
 
 		return 0;
@@ -212,7 +210,7 @@ class MailingListModel extends BaseDatabaseModel
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
 			$query
-				->insert($db->quoteName('#__nm_subscribers'))
+				->insert($db->quoteName('#__semantyca_nm_subscribers'))
 				->columns(array('name', 'email', 'mail_list_id'))
 				->values($db->quote($user_name) . ', ' . $db->quote($email) . ', NULL');
 
@@ -223,7 +221,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 		}
 
 		return 0;
@@ -245,7 +243,7 @@ class MailingListModel extends BaseDatabaseModel
 				$db->quoteName('id') . ' IN (' . implode(',', $escapedIds) . ')'
 			);
 
-			$query->delete($db->quoteName('#__nm_mailing_list'));
+			$query->delete($db->quoteName('#__semantyca_nm_mailing_list'));
 			$query->where($conditions);
 
 			$db->setQuery($query);
@@ -257,7 +255,7 @@ class MailingListModel extends BaseDatabaseModel
 			}
 			else
 			{
-				Log::add("The mail list deletion was failed", Log::WARNING, Constants::COMPONENT_NAME);
+				Log::add("The mail list deletion was failed", Log::WARNING, __CLASS__);
 
 				return 0;
 			}
@@ -265,7 +263,7 @@ class MailingListModel extends BaseDatabaseModel
 		catch
 		(\Exception $e)
 		{
-			LogHelper::logError($e, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 			throw $e;
 		}
 

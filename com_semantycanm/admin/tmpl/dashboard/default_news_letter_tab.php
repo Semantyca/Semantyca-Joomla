@@ -185,7 +185,7 @@
             }
 
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=newsletter.add',
+                url: 'index.php?option=com_semantycanm&task=NewsLetter.add',
                 type: 'POST',
                 data: {
                     'subject': subj,
@@ -218,7 +218,7 @@
             const row = event.target.parentNode;
             const id = row.getAttribute('data-id');
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=newsletter.find&id=' + id,
+                url: 'index.php?option=com_semantycanm&task=NewsLetter.find&id=' + id,
                 type: 'GET',
                 success: function (response) {
                     console.log(JSON.stringify(response.data));
@@ -237,7 +237,7 @@
         $('.removeListBtn').click(function () {
             const id = $(this).closest('tr').attr('data-id');
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=newsletter.delete&ids=' + id,
+                url: 'index.php?option=com_semantycanm&task=NewsLetter.delete&ids=' + id,
                 type: 'DELETE',
                 success: function (response) {
                     console.log(id + " " + response);
@@ -297,7 +297,7 @@
     function refreshNewsletters() {
         showSpinner('newsletterSpinner');
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=newsletter.findAll',
+            url: 'index.php?option=com_semantycanm&task=NewsLetter.findAll',
             type: 'GET',
             success: function (response) {
                 console.log(response);

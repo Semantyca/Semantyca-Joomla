@@ -6,7 +6,6 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
@@ -19,7 +18,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query
 				->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
-				->from($db->quoteName('#__nm_newsletters'))
+				->from($db->quoteName('#__semantyca_nm_newsletters'))
 				->order('reg_date desc');
 			$db->setQuery($query);
 
@@ -27,7 +26,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
 
 			return null;
 		}
@@ -41,7 +40,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query
 				->select($db->quoteName(array('id', 'subject', 'message_content')))
-				->from($db->quoteName('#__nm_newsletters'))
+				->from($db->quoteName('#__semantyca_nm_newsletters'))
 				->where('id = ' . $db->quote($id));
 
 			$db->setQuery($query);
@@ -50,7 +49,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
 
 			return null;
 		}
@@ -64,7 +63,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			$query = $db->getQuery(true);
 			$query
 				->select($db->quoteName(array('id', 'subject', 'message_content')))
-				->from($db->quoteName('#__nm_newsletters'))
+				->from($db->quoteName('#__semantyca_nm_newsletters'))
 				->where('hash = ' . $db->quote(hash('sha256', $subject . $messageContent)));
 
 			$db->setQuery($query);
@@ -73,7 +72,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
 
 			return null;
 		}
@@ -94,7 +93,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		catch (\Exception $e)
 		{
 			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
 		}
 		return 0;
 	}
@@ -110,7 +109,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			$db    = $this->getDatabase();
 			$query = $db->getQuery(true);
 			$query
-				->insert($db->quoteName('#__nm_newsletters'))
+				->insert($db->quoteName('#__semantyca_nm_newsletters'))
 				->columns(array('subject', 'message_content'))
 				->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
 			//error_log($query->dump());
@@ -122,7 +121,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		catch (\Exception $e)
 		{
 			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
 		}
 
 		return 0;
@@ -138,7 +137,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			$db->quoteName('id') . ' IN (' . $ids . ')'
 		);
 
-		$query->delete($db->quoteName('#__nm_newsletters'));
+		$query->delete($db->quoteName('#__semantyca_nm_newsletters'));
 		$query->where($conditions);
 
 		$db->setQuery($query);
@@ -150,7 +149,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		else
 		{
-			Log::add("The new letter deletion was failed", Log::WARNING, Constants::COMPONENT_NAME);
+			Log::add("The new letter deletion was failed", Log::WARNING, __CLASS__);
 
 			return 0;
 		}

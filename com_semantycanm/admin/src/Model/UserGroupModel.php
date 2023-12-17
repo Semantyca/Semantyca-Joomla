@@ -4,8 +4,8 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class UserGroupModel extends BaseDatabaseModel
 {
@@ -23,8 +23,7 @@ class UserGroupModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, 'com_semantycanm');
+			LogHelper::logError($e, __CLASS__);
 
 			return null;
 		}
@@ -48,7 +47,7 @@ class UserGroupModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
+			LogHelper::logError($e, __CLASS__);
 
 			throw $e;
 		}

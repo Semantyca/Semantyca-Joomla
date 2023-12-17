@@ -9,6 +9,7 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use ComSemantycanm\Admin\DTO\ResponseDTO;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class NewsLetterController extends BaseController
@@ -17,7 +18,7 @@ class NewsLetterController extends BaseController
 	{
 		try
 		{
-			$model   = $this->getModel();
+			$model   = $this->getModel('NewsLetter');
 			$results = $model->getList();
 			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
@@ -30,6 +31,7 @@ class NewsLetterController extends BaseController
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
 	}
+
 	public function find()
 	{
 		try

@@ -105,15 +105,14 @@
             }
             showSpinner('listSpinner');
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=mailinglist.add',
+                url: 'index.php?option=com_semantycanm&task=MailingList.add',
                 type: 'POST',
                 data: {
                     'mailinglistname': mailingListName,
                     'mailinglists': listItems.join(',')
                 },
                 success: function (response) {
-                    //console.log(response.data);
-                    mailingListName.value = '';
+                    document.getElementById('mailingListName').value = '';
                     const newRow = createMailingListRow(response.data);
                     const tableBody = document.getElementById('mailingList');
                     tableBody.insertBefore(newRow, tableBody.firstChild);
@@ -126,31 +125,6 @@
                 }
             });
         });
-
-     /*   document.querySelectorAll('.removeMailingListBtn').forEach(button => {
-            button.addEventListener('click', function () {
-                const row = this.closest('tr');
-                const id = row.getAttribute('data-id');
-                showSpinner('mailinListSpinner');
-
-                $.ajax({
-                    url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
-                    type: 'DELETE',
-                    success: function (response.data) {
-                        if (row) {
-                            row.remove();
-                        }
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.error('Error:', textStatus, errorThrown);
-                    },
-                    complete: function () {
-                        hideSpinner('mailingListSpinner');
-                    }
-                });
-            });
-        });*/
-
 
 
         /*  window.addEventListener('load', function () {
@@ -172,7 +146,7 @@
     function refreshMailingList() {
         showSpinner('mailingListSpinner');
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=mailinglist.findall',
+            url: 'index.php?option=com_semantycanm&task=MailingList.findall',
             type: 'GET',
             success: function (response) {
                 console.log(response);
@@ -238,7 +212,7 @@
             showSpinner('mailinListSpinner');
 
             $.ajax({
-                url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+                url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
                 type: 'DELETE',
                 success: function(response) {
                     if (row) {
@@ -261,7 +235,7 @@
         showSpinner('mailinListSpinner');
 
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=mailinglist.delete&ids=' + id,
+            url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
             type: 'DELETE',
             success: function(response) {
                 if (row) {

@@ -5,12 +5,10 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use ComSemantycanm\Admin\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class MailingListController extends BaseController
 {
@@ -18,16 +16,17 @@ class MailingListController extends BaseController
 	{
 		try
 		{
-			Factory::getApplication();
-			header('Content-Type: application/json; charset=UTF-8');
 
 			$model   = $this->getModel();
 			$results = $model->getList();
+			Factory::getApplication();
+			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
 
 		}
 		catch (\Exception $e)
 		{
+			LogHelper::logError($e, __CLASS__);
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
@@ -64,6 +63,7 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
+			LogHelper::logError($e, __CLASS__);
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
@@ -108,6 +108,7 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
+			LogHelper::logError($e, __CLASS__);
 			http_response_code(500);
 			echo new JsonResponse($e, "exception", true);
 		} finally

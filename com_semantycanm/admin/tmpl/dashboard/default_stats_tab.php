@@ -48,7 +48,7 @@
         showSpinner('statSpinner');
 
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=stat.findAll',
+            url: 'index.php?option=com_semantycanm&task=Stat.findAll',
             type: 'GET',
             success: function (response) {
                 console.log(response);

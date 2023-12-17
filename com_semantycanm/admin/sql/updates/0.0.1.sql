@@ -1,12 +1,12 @@
-DROP TABLE IF EXISTS `#__nm_stats`;
-DROP TABLE IF EXISTS `#__subscriber_events`;
-DROP TABLE IF EXISTS `#__nm_newsletter_mailing_list`;
-DROP TABLE IF EXISTS `#__nm_subscribers`;
-DROP TABLE IF EXISTS `#__nm_newsletters`;
-DROP TABLE IF EXISTS `#__nm_mailing_list`;
+DROP TABLE IF EXISTS `#__semantyca_nm_stats`;
+DROP TABLE IF EXISTS `#__semantyca_nm_subscriber_events`;
+DROP TABLE IF EXISTS `#__semantyca_nm_newsletter_mailing_list`;
+DROP TABLE IF EXISTS `#__semantyca_nm_newsletters`;
+DROP TABLE IF EXISTS `#__semantyca_nm_subscribers`;
+DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list`;
 
 
-CREATE TABLE IF NOT EXISTS  `#__nm_mailing_list`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_mailing_list`
 (
     id       INT AUTO_INCREMENT,
     reg_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS  `#__nm_mailing_list`
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__nm_subscribers`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscribers`
 (
     id           INT AUTO_INCREMENT,
     reg_date     DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -22,10 +22,10 @@ CREATE TABLE IF NOT EXISTS  `#__nm_subscribers`
     name         VARCHAR(255),
     mail_list_id INT,
     PRIMARY KEY (id),
-    FOREIGN KEY (mail_list_id) REFERENCES `#__nm_mailing_list` (id) ON DELETE CASCADE
+    FOREIGN KEY (mail_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__subscriber_events`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscriber_events`
 (
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -36,11 +36,11 @@ CREATE TABLE IF NOT EXISTS  `#__subscriber_events`
     event_date    DATETIME,
 
     PRIMARY KEY (id),
-    FOREIGN KEY (subscriber_id) REFERENCES `#__nm_subscribers` (id) ON DELETE CASCADE
+    FOREIGN KEY (subscriber_id) REFERENCES `#__semantyca_nm_subscribers` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
 
-CREATE TABLE IF NOT EXISTS  `#__nm_newsletters`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletters`
 (
     id              INT AUTO_INCREMENT,
     reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -51,17 +51,17 @@ CREATE TABLE IF NOT EXISTS  `#__nm_newsletters`
 ) ENGINE = InnoDB;
 
 
-CREATE TABLE IF NOT EXISTS  `#__nm_newsletter_mailing_list`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletter_mailing_list`
 (
     reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
     newsletter_id   INT,
     mailing_list_id INT,
     PRIMARY KEY (newsletter_id, mailing_list_id),
-    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id),
-    FOREIGN KEY (mailing_list_id) REFERENCES `#__nm_mailing_list` (id)
+    FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id),
+    FOREIGN KEY (mailing_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__nm_stats`
+CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_stats`
 (
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -73,5 +73,5 @@ CREATE TABLE IF NOT EXISTS  `#__nm_stats`
     status        INT,
     sent_time     DATETIME,
     PRIMARY KEY (id),
-    FOREIGN KEY (newsletter_id) REFERENCES `#__nm_newsletters` (id)
+    FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id)
 ) ENGINE = InnoDB;

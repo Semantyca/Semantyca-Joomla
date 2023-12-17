@@ -66,7 +66,7 @@ defined('_JEXEC') or die;
             const searchTerm = this.value.toLowerCase();
             //if (searchTerm.length >= 2) {
                 showSpinner('composerSpinner');
-                fetch('index.php?option=com_semantycanm&task=article.search&q=' + encodeURIComponent(searchTerm))
+                fetch('index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm))
                     .then(response => response.json())
                     .then(data => {
                         const articlesList = document.getElementById('articlesList');

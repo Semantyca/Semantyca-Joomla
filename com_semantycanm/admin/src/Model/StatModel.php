@@ -7,9 +7,9 @@ defined('_JEXEC') or die;
 use DateTime;
 use Exception;
 use Joomla\CMS\Date\Date;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use stdClass;
 
 class StatModel extends BaseDatabaseModel
@@ -24,7 +24,7 @@ class StatModel extends BaseDatabaseModel
 				->select($db
 					->quoteName(array('id', 'recipient', 'newsletter_id', 'status', 'sent_time', 'reading_time')))
 				->from($db
-					->quoteName('#__nm_stats'))
+					->quoteName('#__semantyca_nm_stats'))
 				->order('reg_date desc');
 			$db->setQuery($query);
 
@@ -32,9 +32,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-
+			LogHelper::logError($e, __CLASS__);
 			return null;
 		}
 	}
@@ -49,7 +47,7 @@ class StatModel extends BaseDatabaseModel
 			$columns  = array('recipient', 'reg_date', 'status', 'newsletter_id', 'subscriber_id');
 			$values   = array($db->quote($recipient), $db->quote($reg_date->toSql()), $status, $newsletter_id, $subscriber_id);
 
-			$query->insert($db->quoteName('#__nm_stats'))
+			$query->insert($db->quoteName('#__semantyca_nm_stats'))
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
 			error_log($query->__toString());
@@ -60,8 +58,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 
 			return 0;
 		}
@@ -87,7 +84,7 @@ class StatModel extends BaseDatabaseModel
 			}
 
 
-			$result = $db->updateObject('#__nm_stats', $record, 'id');
+			$result = $db->updateObject('#__semantyca_nm_stats', $record, 'id');
 
 			if (!$result)
 			{
@@ -98,8 +95,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			LogHelper::logError($e, __CLASS__);
 
 			return false;
 		}
