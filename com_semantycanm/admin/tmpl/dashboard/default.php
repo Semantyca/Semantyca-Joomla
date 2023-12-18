@@ -39,7 +39,6 @@ catch (Exception $e)
 
 $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
-$this->mailingLists    = $this->mailing_lists;
 $this->selectedLetters = [];
 
 ?>
@@ -87,7 +86,7 @@ $this->selectedLetters = [];
     const joomlaHost = host + (port ? ':' + port : '');
     const bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
     const removeButtonText = "<?php echo JText::_('REMOVE'); ?>";
-    const initialMailingListData = <?php echo json_encode($this->mailingLists); ?>;
+    const initialMailingListData = <?php echo json_encode($this->mailing_lists); ?>;
 </script>
 
 
