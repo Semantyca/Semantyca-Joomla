@@ -1,7 +1,6 @@
 <?php
 
 defined('_JEXEC') or die;
-//require_once __DIR__ . '/template_source_helper.php';
 
 ?>
 
@@ -47,24 +46,29 @@ defined('_JEXEC') or die;
                 <button id="copyCodeBtn" class="btn btn-info mb-2"><?php echo JText::_('COPY_CODE'); ?></button>
                 <button id="nextBtn" class="btn btn-info mb-2"><?php echo JText::_('NEXT'); ?></button>
             </div>
-            <label for="output-html"></label><textarea id="output-html" class="form-control mt-3" rows="20"></textarea>
+            <label for="outputHtml"></label><textarea id="outputHtml" class="form-control mt-3" rows="20"></textarea>
         </div>
     </div>
 </div>
 
 <script>
-    let outputHtml = $('#output-html');
+    let outputHtml = $('#outputHtml');
 
     $(document).ready(function () {
-        $('#resetBtn').click(function () {
-            outputHtml.val('');
-            outputHtml.trumbowyg('html', '')
-            $('#selectedArticles').empty();
+        document.getElementById('resetBtn').addEventListener('click', function () {
+            let outputHtml = document.getElementById('outputHtml');
+            outputHtml.value = '';
+            if (outputHtml._trumbowyg) {
+                outputHtml._trumbowyg.empty();
+            }
+            document.getElementById('selectedArticles').innerHTML = '';
         });
 
         document.getElementById('articleSearchInput').addEventListener('input', function () {
-            const searchTerm = this.value.toLowerCase();
-            //if (searchTerm.length >= 2) {
+            const delayTime = 1000;
+            clearTimeout(this.delayTimeout);
+            this.delayTimeout = setTimeout(() => {
+                const searchTerm = this.value.toLowerCase();
                 showSpinner('composerSpinner');
                 fetch('index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm))
                     .then(response => response.json())
@@ -89,8 +93,9 @@ defined('_JEXEC') or die;
                     .finally(() => {
                         hideSpinner('composerSpinner');
                     });
-            //}
+            }, delayTime);
         });
+
 
 
         $('#copyCodeBtn').click(function () {

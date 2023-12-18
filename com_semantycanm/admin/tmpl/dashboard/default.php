@@ -14,7 +14,7 @@ global $media;
 
 $media = "administrator/components/com_semantycanm/assets/";
 $bannerImageUrl = JUri::root() . $media . "images/test_banner.png";
-
+$host = JUri::getInstance()->toString(['host']);
 //$doc->addScript(JURI::root() . $media . "js/jquery-3.7.1.min.js");
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
 $doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
@@ -82,6 +82,9 @@ $this->selectedLetters = [];
 </div>
 
 <script>
+    const host = window.location.protocol + '//' + window.location.hostname;
+    const port = window.location.port;
+    const joomlaHost = host + (port ? ':' + port : '');
     const bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
     const removeButtonText = "<?php echo JText::_('REMOVE'); ?>";
     const initialMailingListData = <?php echo json_encode($this->mailingLists); ?>;

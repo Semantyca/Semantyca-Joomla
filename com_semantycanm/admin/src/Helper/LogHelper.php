@@ -3,19 +3,22 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
 use Exception;
+use ReflectionClass;
 
 class LogHelper
 {
 	public static function logError(Exception $e, $componentName)
 	{
-		$logData = [
-			'timestamp' => date('Y-m-d H:i:s'),
-			'component' => $componentName,
-			'line'      => $e->getLine(),
+		$reflection = new ReflectionClass($componentName);
+		$className  = $reflection->getShortName();
+		$logData    = [
+			'time' => date('d.m.y H.i'),
+			'component' => $className,
+			'>'      => $e->getLine(),
 			'message'   => $e->getMessage(),
 		];
 
-		$date        = date('Y-m-d');
+		$date        = date('d-m-y');
 		$logFileName = $componentName . "_error_{$date}.log";
 		$logFilePath = JPATH_ADMINISTRATOR . '/logs/' . $logFileName;
 
