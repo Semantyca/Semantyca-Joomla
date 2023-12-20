@@ -46,11 +46,11 @@ function generateContent(currentDateFormatted, currentYear) {
     selectedArticlesLi.each(function (index, article) {
         const articleId = article.id;
         const title = article.title;
-        const url = joomlaHost + article.dataset.url;
+        const url = normalizeUrl(joomlaHost + article.dataset.url);
         let articleContent = editedContentStore[articleId];
         let intro;
         if (articleContent) {
-            intro =  articleContent;
+            intro = articleContent;
         } else {
             let htmlContent = decodeURIComponent(article.dataset.intro);
             intro = makeImageUrlsAbsolute(htmlContent);
@@ -135,13 +135,17 @@ function makeImageUrlsAbsolute(articleHtml) {
 
     for (let img of images) {
         let currentSrc = img.src;
-        if (currentSrc.includes('/administrator/')) {
-            img.src = currentSrc.replace('/administrator', '');
-        }
-
+        img.src = normalizeUrl(currentSrc);
         img.removeAttribute('loading');
         img.removeAttribute('data-path');
     }
 
     return htmlDoc.body.innerHTML;
+}
+
+function normalizeUrl(url) {
+    if (url.includes('/administrator/')) {
+        return url.replace('/administrator', '');
+    }
+    return url;
 }

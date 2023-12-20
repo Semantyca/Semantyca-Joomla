@@ -39,6 +39,7 @@ catch (Exception $e)
 
 $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
+$this->mailingLists    = $this->mailing_lists;
 $this->selectedLetters = [];
 
 ?>
