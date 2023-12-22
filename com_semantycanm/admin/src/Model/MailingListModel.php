@@ -34,7 +34,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			return null;
 		}
@@ -70,7 +70,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (RecordNotFoundException|\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			return null;
 		}
@@ -95,7 +95,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			return null;
 		}
@@ -149,7 +149,7 @@ class MailingListModel extends BaseDatabaseModel
 		catch (\Exception $e)
 		{
 			$db->transactionRollback();
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 			throw $e;
 		}
 	}
@@ -172,7 +172,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 		}
 
 		return 0;
@@ -197,7 +197,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 		}
 
 		return 0;
@@ -221,7 +221,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 		}
 
 		return 0;
@@ -263,7 +263,7 @@ class MailingListModel extends BaseDatabaseModel
 		catch
 		(\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 			throw $e;
 		}
 

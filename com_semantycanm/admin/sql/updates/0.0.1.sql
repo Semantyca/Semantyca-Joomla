@@ -61,16 +61,17 @@ CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletter_mailing_list`
     FOREIGN KEY (mailing_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_stats`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
 (
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
     newsletter_id INT,
     recipients    JSON,
-    opens         INT,
-    clicks        INT,
-    unsubs        INT,
-    status        INT,
+    errors        JSON,
+    opens         INT DEFAULT 0,
+    clicks        INT DEFAULT 0,
+    unsubs        INT DEFAULT 0,
+    status        INT DEFAULT 0,
     sent_time     DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id)

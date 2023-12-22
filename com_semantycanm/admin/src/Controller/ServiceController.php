@@ -5,11 +5,12 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use ComSemantycanm\Admin\DTO\ResponseDTO;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
@@ -18,6 +19,7 @@ class ServiceController extends BaseController
 {
 	public function sendEmail()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
 			$subject     = $this->input->post->get('subject', '', 'RAW');
@@ -49,21 +51,32 @@ class ServiceController extends BaseController
 
 			$messagingHelper = new Messaging($mailingListModel, $statModel);
 			$result          = $messagingHelper->sendEmail(urldecode($encodedBody), $subject, $user_group, $newsLetterUpsertResults);
-			$responseDTO     = new ResponseDTO(['savingNewsLetter' => $result, 'sendEmail' => $result]);
+			if ($result)
+			{
+				echo new JsonResponse($result);
+			}
+			else
+			{
+				throw new MessagingException(['An error happened while sending the message']);
+
+			}
 
 		}
-		catch (ValidationErrorException $e)
+		catch (ValidationErrorException|MessagingException $e)
 		{
-			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'Error', true);
 
 		}
 		catch (\Exception $e)
 		{
-			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
-		header('Content-Type: application/json; charset=UTF-8');
-		echo new JsonResponse($responseDTO->toArray());
-		Factory::getApplication()->close();
 	}
 
 	public function postStat()
@@ -76,39 +89,45 @@ class ServiceController extends BaseController
 			$statModel->updateStatRecord($id, Constants::HAS_BEEN_READ);
 			header("Content-type: image/png");
 			echo base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/wHtRbk7AAA=");
-			Factory::getApplication()->close();
-
 		}
 		catch
 		(\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			header('Content-Type: application/json; charset=UTF-8');
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
 	}
 
 	public function getSubject()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
 			$type = $this->input->get->get('type', '', 'RAW');
 			if ($type == 'random')
 			{
-				$util        = new Util();
-				$result      = $util->generateSubject();
-			} else {
+				$util   = new Util();
+				$result = $util->generateSubject();
+			}
+			else
+			{
 				$result = 'no subject';
 			}
-			$responseDTO = new ResponseDTO(['subject' => $result]);
+			echo new JsonResponse($result);
 		}
 		catch
 		(\Exception $e)
 		{
-			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
-
-		header('Content-Type: application/json; charset=UTF-8');
-		echo new JsonResponse($responseDTO->toArray());
-		Factory::getApplication()->close();
 	}
 }

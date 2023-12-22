@@ -6,6 +6,7 @@ use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\Mail\MailerFactoryInterface;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
@@ -27,63 +28,57 @@ class Messaging
 		$mailer->setSubject($subject);
 		$mailer->isHtml(true);
 
-		try
+		if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
 		{
-			if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
-			{
-				$independentSubscriberId = $this->mailingListModel->upsertSubscriber($user_or_user_group, $user_or_user_group);
-				return $this->sendMessage($mailer, $user_or_user_group, $body, $newsletter_id, $independentSubscriberId);
-			}
-			else
-			{
-				$result      = true;
-				$subscribers = $this->mailingListModel->getSubscribers($user_or_user_group);
-				foreach ($subscribers as $subscriber)
-				{
-					if (!$this->sendMessage($mailer, $subscriber, $body, $newsletter_id, $subscriber->id))
-					{
-						$result = false;
-					};
-				}
-			}
-			return $result;
+			$this->mailingListModel->upsertSubscriber($user_or_user_group, $user_or_user_group);
+
+			return $this->sendMessage($mailer, $user_or_user_group, $body, $newsletter_id);
 		}
-		catch (Exception $e)
+		else
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			$result      = true;
+			$subscribers = $this->mailingListModel->getSubscribers($user_or_user_group);
+
+			if (!$this->sendMessage($mailer, $subscribers, $body, $newsletter_id))
+			{
+				$result = false;
+			};
 		}
-		return false;
+
+		return $result;
 	}
 
-	function sendMessage($mailer, $recipient, $body, $newsletter_id, $subscriber_id): bool
+	function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
 	{
-		$mailer->addRecipient($recipient);
-		$stat_rec_id = $this->statModel->addStat($recipient, Constants::SENDING_ATTEMPT, $newsletter_id, $subscriber_id);
+		$mailer->addRecipient($recipients);
+		$model = $this->statModel;
+
+			$stat_rec_id = $model->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
+
 		if ($stat_rec_id != 0)
 		{
-			$body .= '<img src="' . $this->baseURL . '/administrator/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
+			$body .= '<img src="' . $this->baseURL . '/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
 			$mailer->setBody($body);
-			$send = $mailer->send();
-			if ($send === true)
+			try
 			{
-				Log::add('Mail sent to ' . $recipient, Log::INFO, Constants::COMPONENT_NAME);
-				$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
-				return true;
-			}
-			else
-			{
-				Log::add('Error sending email to ' . $recipient, Log::WARNING, Constants::COMPONENT_NAME);
+				$send = $mailer->send();
+			}catch (Exception $e) {
 				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+				throw $e;
+			}
+			if ($send !== true)
+			{
+				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+				throw new MessagingException(['Sending of the message was failed']);
 			}
 		}
 		else
 		{
-			Log::add('Error sending email to ' . $recipient . '. The stat has not not initiated correctly', Log::WARNING, Constants::COMPONENT_NAME);
 			$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+			throw new MessagingException(['Error sending email to ' . $recipients . '. The stat has not not initiated correctly']);
 		}
-
-		return false;
+		$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
+		return true;
 	}
 }
 

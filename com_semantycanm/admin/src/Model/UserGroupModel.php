@@ -23,7 +23,7 @@ class UserGroupModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			return null;
 		}
@@ -47,7 +47,7 @@ class UserGroupModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			throw $e;
 		}

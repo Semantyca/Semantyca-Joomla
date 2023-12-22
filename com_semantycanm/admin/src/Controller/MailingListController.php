@@ -26,7 +26,7 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
@@ -36,12 +36,11 @@ class MailingListController extends BaseController
 
 	public function add()
 	{
+		$app = Factory::getApplication();
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
-			$app = Factory::getApplication();
-			header('Content-Type: application/json; charset=UTF-8');
 			$input = $app->input;
-
 			if ($input->getMethod() === 'POST')
 			{
 				$mailing_lst_name   = $this->input->getString('mailinglistname');
@@ -63,11 +62,12 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
-			Factory::getApplication()->close();
+			$app->close();
 		}
 	}
 
@@ -108,7 +108,7 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 			http_response_code(500);
 			echo new JsonResponse($e, "exception", true);
 		} finally

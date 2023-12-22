@@ -11,51 +11,55 @@ use Joomla\CMS\Response\JsonResponse;
 use ComSemantycanm\Admin\DTO\ResponseDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class NewsLetterController extends BaseController
 {
 	public function findAll()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
 			$model   = $this->getModel('NewsLetter');
 			$results = $model->getList();
-			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
-			Factory::getApplication()->close();
-
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			http_response_code(500);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			LogHelper::logException($e, __CLASS__);
 		}
 	}
 
 	public function find()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
 			$id      = $this->input->getString('id');
 			$model   = $this->getModel();
 			$results = $model->find($id);
-			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
-			Factory::getApplication()->close();
-
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			http_response_code(500);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			LogHelper::logException($e, __CLASS__);
 		}
 	}
 
 	public function add()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
+		$app   = Factory::getApplication();
 		try
 		{
-			$app   = Factory::getApplication();
 			$input = $app->input;
 
 			if ($input->getMethod() === 'POST')
@@ -70,7 +74,7 @@ class NewsLetterController extends BaseController
 
 				$model       = $this->getModel('NewsLetter');
 				$results     = $model->upsert($subj, $msg);
-				$responseDTO = new ResponseDTO(['success' => ['id' => $results]]);
+				echo new JsonResponse($results);
 			}
 			else
 			{
@@ -79,22 +83,22 @@ class NewsLetterController extends BaseController
 		}
 		catch (ValidationErrorException $e)
 		{
-			$responseDTO = new ResponseDTO(['validationError' => ['message' => $e->getErrors(), 'code' => $e->getCode()]]);
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'Error', true);
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			//TODO should be replaced by generic message
-			$responseDTO = new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
 		}
-		header('Content-Type: application/json; charset=UTF-8');
-		echo new JsonResponse($responseDTO->toArray());
-		Factory::getApplication()->close();
+		$app->close();
 	}
 
 	public function delete()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
+		$app   = Factory::getApplication();
 		try
 		{
 			$app   = Factory::getApplication();
@@ -105,19 +109,26 @@ class NewsLetterController extends BaseController
 				$ids_to_delete      = $this->input->getString('ids');
 				$mailing_list_model = $this->getModel('NewsLetter');
 				$results            = $mailing_list_model->remove($ids_to_delete);
-				header('Content-Type: application/json; charset=UTF-8');
 				echo new JsonResponse($results);
-				Factory::getApplication()->close();
 			}
 			else
 			{
-				Log::add("Only DELETE request allowed", Log::WARNING, Constants::COMPONENT_NAME);
+				throw new ValidationErrorException(['Only DELETE request is allowed']);
 			}
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'Error', true);
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			$app->close();
 		}
 	}
 }

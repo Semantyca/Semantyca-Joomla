@@ -14,77 +14,86 @@ use stdClass;
 
 class StatModel extends BaseDatabaseModel
 {
-	public function getList()
+	public function getList($currentPage = 1, $itemsPerPage = 10)
 	{
-		try
-		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query
-				->select($db
-					->quoteName(array('id', 'recipient', 'newsletter_id', 'status', 'sent_time', 'reading_time')))
-				->from($db
-					->quoteName('#__semantyca_nm_stats'))
-				->order('reg_date desc');
-			$db->setQuery($query);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
+		$offset = ($currentPage - 1) * $itemsPerPage;
 
-			return $db->loadObjectList();
-		}
-		catch (\Exception $e)
-		{
-			LogHelper::logError($e, __CLASS__);
-			return null;
-		}
+		$query
+			->select($db->quoteName(array('id', 'recipients', 'newsletter_id', 'status', 'sent_time', 'opens', 'clicks', 'unsubs')))
+			->from($db->quoteName('#__semantyca_nm_stats'))
+			->order('reg_date desc')
+			->setLimit($itemsPerPage, $offset);
+
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
 	}
 
-	public function addStat($recipient, $status, $newsletter_id, $subscriber_id): int
+	public function getTotalCount()
 	{
-		try
-		{
-			$db       = $this->getDatabase();
-			$query    = $db->getQuery(true);
-			$reg_date = new Date();
-			$columns  = array('recipient', 'reg_date', 'status', 'newsletter_id', 'subscriber_id');
-			$values   = array($db->quote($recipient), $db->quote($reg_date->toSql()), $status, $newsletter_id, $subscriber_id);
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
 
-			$query->insert($db->quoteName('#__semantyca_nm_stats'))
-				->columns($db->quoteName($columns))
-				->values(implode(',', $values));
-			error_log($query->__toString());
-			$db->setQuery($query);
-			$db->execute();
+		$query
+			->select('COUNT(id)')
+			->from($db->quoteName('#__semantyca_nm_stats'));
 
-			return $db->insertid();
-		}
-		catch (\Exception $e)
-		{
-			LogHelper::logError($e, __CLASS__);
+		$db->setQuery($query);
 
-			return 0;
-		}
+		return (int) $db->loadResult();
+	}
+
+
+	public function createStatRecord($recipients, $status, $newsletter_id)
+	{
+		$db       = $this->getDatabase();
+		$query    = $db->getQuery(true);
+		$reg_date = new Date();
+
+		$columns = array('recipients', 'reg_date', 'status', 'newsletter_id');
+
+		$values = array(
+			$db->quote(json_encode($recipients)),
+			$db->quote($reg_date->toSql()),
+			$status,
+			$newsletter_id
+		);
+
+		$query->insert($db->quoteName('#__semantyca_nm_stats'))
+			->columns($db->quoteName($columns))
+			->values(implode(',', $values));
+		error_log($query->__toString());
+		$db->setQuery($query);
+		$db->execute();
+
+		return $db->insertid();
+
 	}
 
 	public function updateStatRecord($id, $status): bool
 	{
 		try
 		{
-			$db                   = $this->getDatabase();
-			$record               = new stdClass();
-			$record->id           = $id;
-			$record->status       = $status;
-			$record->sent_time    = null;
-			$record->reading_time = null;
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+
+			$fields = array(
+				$db->quoteName('status') . ' = ' . $db->quote($status)
+			);
+
 			if ($status == Constants::HAS_BEEN_SENT)
 			{
-				$record->sent_time = (new DateTime())->format('Y-m-d H:i:s');
-			}
-			elseif ($status == Constants::HAS_BEEN_READ)
-			{
-				$record->reading_time = (new DateTime())->format('Y-m-d H:i:s');
+				$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
 			}
 
+			$query->update($db->quoteName('#__semantyca_nm_stats'))
+				->set($fields)
+				->where($db->quoteName('id') . ' = ' . $db->quote($id));
 
-			$result = $db->updateObject('#__semantyca_nm_stats', $record, 'id');
+			$db->setQuery($query);
+			$result = $db->execute();
 
 			if (!$result)
 			{
@@ -95,7 +104,7 @@ class StatModel extends BaseDatabaseModel
 		}
 		catch (\Exception $e)
 		{
-			LogHelper::logError($e, __CLASS__);
+			LogHelper::logException($e, __CLASS__);
 
 			return false;
 		}
