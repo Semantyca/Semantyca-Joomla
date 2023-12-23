@@ -16,7 +16,6 @@ class MailingListController extends BaseController
 	{
 		try
 		{
-
 			$model   = $this->getModel();
 			$results = $model->getList();
 			Factory::getApplication();

@@ -4,8 +4,8 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
 use Exception;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\Mail\MailerFactoryInterface;
+use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
@@ -14,12 +14,13 @@ class Messaging
 {
 	private MailingListModel $mailingListModel;
 	private StatModel $statModel;
-	private string $baseURL = "http://localhost/joomla";
+	private string $baseURL;
 
 	public function __construct(MailingListModel $mailingListModel, StatModel $statModel)
 	{
 		$this->mailingListModel = $mailingListModel;
 		$this->statModel        = $statModel;
+		$this->baseURL = rtrim(Uri::base(), '/');
 	}
 
 	public function sendEmail($body, $subject, $user_or_user_group, $newsletter_id): bool
@@ -48,6 +49,10 @@ class Messaging
 		return $result;
 	}
 
+	/**
+	 * @throws MessagingException
+	 * @since
+	 */
 	function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
 	{
 		$mailer->addRecipient($recipients);

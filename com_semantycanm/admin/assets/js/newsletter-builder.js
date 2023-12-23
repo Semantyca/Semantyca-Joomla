@@ -24,7 +24,6 @@ function updateNewsletterContent() {
                 .on('tbwblur', function () {
                     const editedContent = $this.trumbowyg('html');
                     const articleId = $this.data('id');
-                    console.log(articleId);
                     editedContentStore[articleId] = editedContent;
                     $this.html(editedContent);
                     $this.data('intro', encodeURIComponent(editedContent));

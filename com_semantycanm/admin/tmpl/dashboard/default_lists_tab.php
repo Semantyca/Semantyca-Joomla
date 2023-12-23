@@ -1,6 +1,8 @@
 <div class="container mt-5">
+    <div id="alertPlaceholder"></div>
     <div class="row">
         <div class="col-md-6">
+
             <h3><?php echo JText::_('AVAILABLE_USER_GROUPS'); ?></h3>
             <div class="col-md-12 dragdrop-list">
                 <ul class="list-group" id="availableGroups">
@@ -78,11 +80,11 @@
            mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
         }
 
-        $('#nav-list-tab').on('shown.bs.tab', function () {
+        document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => {
             refreshMailingList();
         });
 
-        $('#refreshMailingListButton').click(function () {
+        document.getElementById('refreshMailingListButton').addEventListener('click', () => {
             refreshMailingList();
         });
 
@@ -90,8 +92,7 @@
             e.preventDefault();
             const mailingListName = document.getElementById('mailingListName').value;
             if (mailingListName === '') {
-                alert("Mailing list cannot be empty")
-                //TODO it needs boostrap validation
+                showBootstrapAlert("Mailing list name cannot be empty", "warning");
                 return;
             }
 
@@ -100,9 +101,10 @@
             }).get();
 
             if (listItems.length === 0) {
-                alert('The list is empty.');
+                showBootstrapAlert('The list is empty.', 'warning');
                 return;
             }
+
             showSpinner('listSpinner');
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=MailingList.add',
@@ -125,23 +127,25 @@
                 }
             });
         });
-
-
-        /*  window.addEventListener('load', function () {
-			  var list = document.getElementById('selectedGroups');
-			  console.log('Client Height:', list.clientHeight);
-			  console.log('Scroll Height:', list.scrollHeight);
-
-			  if (list.scrollHeight > list.clientHeight) {
-				  console.log('Enabling scroll');
-				  list.style.overflowY = 'scroll'; // Applying directly to the list
-			  } else {
-				  console.log('Hiding scroll');
-				  list.style.overflowY = 'hidden'; // Applying directly to the list
-			  }
-		  });*/
-
     });
+
+    function showBootstrapAlert(message, type = 'danger', duration = 5000) {
+        const alertPlaceholder = document.getElementById('alertPlaceholder');
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${message}
+        <button type="button" class="btn-close" aria-label="Close"></button>
+    </div>`;
+        alertPlaceholder.append(wrapper);
+        const closeButton = wrapper.querySelector('.btn-close');
+        closeButton.onclick = function () {
+            wrapper.remove();
+        };
+        setTimeout(function () {
+            wrapper.remove();
+        }, duration);
+    }
 
     function refreshMailingList() {
         showSpinner('mailingListSpinner');

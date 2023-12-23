@@ -6,15 +6,15 @@ use Joomla\CMS\Component\Router\RouterInterface;
 
 class Router implements RouterInterface {
 	public function build(&$query) {
-		// Logic to convert query to SEF URL
+		error_log($query);
 	}
 
 	public function parse(&$segments) {
-		// Logic to convert SEF URL back to query
+		error_log($segments);
 	}
 
 	public function preprocess($query)
 	{
-		// TODO: Implement preprocess() method.
+		error_log($query);
 	}
 }

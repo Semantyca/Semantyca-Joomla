@@ -5,46 +5,49 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class ArticleController extends BaseController
 {
 	public function find()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
 			$id = $this->input->getString('id');
 			$model   = $this->getModel('Article');
 			$results = $model->find($id);
-			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
-			Factory::getApplication()->close();
-
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
 	}
+
 	public function search()
 	{
+		header('Content-Type: application/json; charset=UTF-8');
 		try
 		{
-			$search = $this->input->getString('q');
+			$search  = $this->input->getString('q');
 			$article_model = $this->getModel('Article');
 			$results = $article_model->search($search);
-			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
-			Factory::getApplication()->close();
 		}
 		catch (\Exception $e)
 		{
-			error_log($e);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
 		}
 	}
 }

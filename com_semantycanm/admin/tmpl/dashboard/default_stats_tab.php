@@ -1,18 +1,18 @@
 <div class="container mt-5">
     <div class="row">
-        <div class="col-md-5">
-            <div class="header-container d-flex justify-content-between align-items-center">
-                <div>
+        <div class="col-md-6">
+            <div class="header-container d-flex align-items-center">
+                <div class="me-auto"> <!-- me-auto class pushes the element to the left -->
                     <h3><?php echo JText::_('STATISTICS'); ?></h3>
                 </div>
                 <div>
                     <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
                         <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                     </div>
-                    <input id="total" value="0"/>
-                    <input id="current" value="1"/>
+                    <input type="hidden" id="total" value="0"/>
+                    <input type="hidden" id="current" value="1"/>
                 </div>
-                <div>
+                <div> <!-- This will now be closer to the "STATISTICS" heading -->
                     <nav aria-label="Page navigation">
                         <ul class="pagination">
                             <li class="page-item"><a class="page-link" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a></li>

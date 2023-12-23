@@ -58,7 +58,7 @@ class LogHelper
 			foreach ($lines as $line) {
 				$formattedLines[] = $line;
 				if (strpos($line, "SemantycaNM") !== false) {
-					$formattedLines[] = "";  // Add an empty line for extra spacing
+					$formattedLines[] = "";
 				}
 			}
 			$formattedLogEntry = implode("\n", $formattedLines);
