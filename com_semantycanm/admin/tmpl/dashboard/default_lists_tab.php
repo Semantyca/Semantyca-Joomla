@@ -129,7 +129,7 @@
         });
     });
 
-    function showBootstrapAlert(message, type = 'danger', duration = 5000) {
+    function showBootstrapAlert(message, type = 'danger', duration = 3000) {
         const alertPlaceholder = document.getElementById('alertPlaceholder');
         const wrapper = document.createElement('div');
         wrapper.innerHTML = `
