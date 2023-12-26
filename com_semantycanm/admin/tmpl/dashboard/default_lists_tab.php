@@ -1,5 +1,4 @@
 <div class="container mt-5">
-    <div id="alertPlaceholder"></div>
     <div class="row">
         <div class="col-md-6">
 
@@ -29,12 +28,13 @@
             <form class="row needs-validation" novalidate>
                 <div class="input-group gap-2">
                     <div class="col-md-3">
-                        <input type="text" class="form-control has-validation" id="mailingListName"
+                        <input type="text" class="form-control" id="mailingListName"
                                placeholder="Mailing List Name" required>
+                        <div class="invalid-feedback">
+		                    <?php echo JText::_('VALIDATION_EMPTY_MAILING_LIST'); ?>
+                        </div>
                     </div>
-                    <div class="invalid-feedback">
-                        Please enter Mailing list name.
-                    </div>
+
                     <div class="col-md-2">
                         <button id="addGroup" class="btn btn-success btn"><?php echo JText::_('SAVE'); ?></button>
                     </div>
@@ -55,8 +55,10 @@
                 <thead>
                 <tr class="d-flex">
                     <th class="col-1">
-                        <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshMailingListButton">
-                            <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
+                        <button class="btn btn-outline-secondary refresh-button" type="button"
+                                id="refreshMailingListButton">
+                            <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png"
+                                 alt="Refresh" class="refresh-icon">
                         </button>
                     </th>
                     <th class="col-5"><?php echo JText::_('NAME'); ?></th>
@@ -73,11 +75,11 @@
 
 <script>
 
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const mailingListTable = document.getElementById("mailingList");
 
         if (initialMailingListData) {
-           mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
+            mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
         }
 
         document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => {
@@ -129,23 +131,22 @@
         });
     });
 
-    function showBootstrapAlert(message, type = 'danger', duration = 3000) {
-        const alertPlaceholder = document.getElementById('alertPlaceholder');
-        const wrapper = document.createElement('div');
-        wrapper.innerHTML = `
-    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-        ${message}
-        <button type="button" class="btn-close" aria-label="Close"></button>
-    </div>`;
-        alertPlaceholder.append(wrapper);
-        const closeButton = wrapper.querySelector('.btn-close');
-        closeButton.onclick = function () {
-            wrapper.remove();
-        };
-        setTimeout(function () {
-            wrapper.remove();
-        }, duration);
-    }
+    document.getElementById('addGroup').addEventListener('click', function (e) {
+        e.preventDefault();
+        const mailingListName = document.getElementById('mailingListName');
+        if (mailingListName.value === '') {
+            mailingListName.classList.add('is-invalid');
+        } else {
+            mailingListName.classList.remove('is-invalid');
+        }
+    });
+
+    document.getElementById('mailingListName').addEventListener('input', function () {
+        if (this.value !== '') {
+            this.classList.remove('is-invalid');
+        }
+    });
+
 
     function refreshMailingList() {
         showSpinner('mailingListSpinner');
@@ -162,7 +163,7 @@
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error:', textStatus, errorThrown);
             },
-            complete: function() {
+            complete: function () {
                 hideSpinner('mailingListSpinner');
             }
         });
@@ -210,7 +211,7 @@
     }
 
     function attachDeleteListenerToButton(button) {
-        button.addEventListener('click', function() {
+        button.addEventListener('click', function () {
             const row = this.closest('tr');
             const id = row.getAttribute('data-id');
             showSpinner('mailinListSpinner');
@@ -218,15 +219,15 @@
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
                 type: 'DELETE',
-                success: function(response) {
+                success: function (response) {
                     if (row) {
                         row.remove();
                     }
                 },
-                error: function(jqXHR, textStatus, errorThrown) {
+                error: function (jqXHR, textStatus, errorThrown) {
                     console.error('Error:', textStatus, errorThrown);
                 },
-                complete: function() {
+                complete: function () {
                     hideSpinner('mailingListSpinner');
                 }
             });
@@ -241,15 +242,15 @@
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
             type: 'DELETE',
-            success: function(response) {
+            success: function (response) {
                 if (row) {
                     row.remove();
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 console.error('Error:', textStatus, errorThrown);
             },
-            complete: function() {
+            complete: function () {
                 hideSpinner('mailingListSpinner');
             }
         });
