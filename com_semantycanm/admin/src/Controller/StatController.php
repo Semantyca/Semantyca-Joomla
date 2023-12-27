@@ -7,13 +7,14 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class StatController extends BaseController
 {
 	public function findAll()
 	{
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		$app = Factory::getApplication();
 
 		try

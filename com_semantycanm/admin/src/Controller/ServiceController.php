@@ -19,7 +19,7 @@ class ServiceController extends BaseController
 {
 	public function sendEmail()
 	{
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$subject     = $this->input->post->get('subject', '', 'RAW');
@@ -105,7 +105,7 @@ class ServiceController extends BaseController
 
 	public function getSubject()
 	{
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$type = $this->input->get->get('type', '', 'RAW');

@@ -12,119 +12,85 @@ class NewsLetterModel extends BaseDatabaseModel
 {
 	public function getList()
 	{
-		try
-		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query
-				->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
-				->from($db->quoteName('#__semantyca_nm_newsletters'))
-				->order('reg_date desc');
-			$db->setQuery($query);
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query
+			->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
+			->from($db->quoteName('#__semantyca_nm_newsletters'))
+			->order('reg_date desc');
+		$db->setQuery($query);
 
-			return $db->loadObjectList();
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
-
-			return null;
-		}
+		return $db->loadObjectList();
 	}
 
 	public function find($id)
 	{
-		try
-		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query
-				->select($db->quoteName(array('id', 'subject', 'message_content')))
-				->from($db->quoteName('#__semantyca_nm_newsletters'))
-				->where('id = ' . $db->quote($id));
 
-			$db->setQuery($query);
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query
+			->select($db->quoteName(array('id', 'subject', 'message_content')))
+			->from($db->quoteName('#__semantyca_nm_newsletters'))
+			->where('id = ' . $db->quote($id));
 
-			return $db->loadObjectList();
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
+		$db->setQuery($query);
 
-			return null;
-		}
+		return $db->loadObjectList();
+
 	}
 
 	public function findByContent($subject, $messageContent): ?object
 	{
-		try
-		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query
-				->select($db->quoteName(array('id', 'subject', 'message_content')))
-				->from($db->quoteName('#__semantyca_nm_newsletters'))
-				->where('hash = ' . $db->quote(hash('sha256', $subject . $messageContent)));
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query
+			->select($db->quoteName(array('id', 'subject', 'message_content')))
+			->from($db->quoteName('#__semantyca_nm_newsletters'))
+			->where('hash = ' . $db->quote(hash('sha256', $subject . $messageContent)));
 
-			$db->setQuery($query);
+		$db->setQuery($query);
 
-			return $db->loadObject();
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
+		return $db->loadObject();
 
-			return null;
-		}
 	}
 
 	public function upsert($subjectValue, $messageContent): int
 	{
-		try
+
+		$newsLetter = $this->findByContent($subjectValue, $messageContent);
+		if ($newsLetter == null)
 		{
-			$newsLetter = $this->findByContent($subjectValue, $messageContent);
-			if ($newsLetter == null) {
-				$id = $this->add($subjectValue, $messageContent);
-			} else {
-				$id = $newsLetter->id;
-			}
-			return $id;
+			$id = $this->add($subjectValue, $messageContent);
 		}
-		catch (\Exception $e)
+		else
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
+			$id = $newsLetter->id;
 		}
-		return 0;
+
+		return $id;
+
+
 	}
 
 	public function add($subject_value, $message_content): int
 	{
-		try
-		{
-			if ($subject_value == "")
-			{
-				$subject_value = Util::generateSubject();
-			}
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query
-				->insert($db->quoteName('#__semantyca_nm_newsletters'))
-				->columns(array('subject', 'message_content'))
-				->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
-			//error_log($query->dump());
-			$db->setQuery($query);
-			$db->execute();
 
-			return $db->insertid();
-		}
-		catch (\Exception $e)
+		if ($subject_value == "")
 		{
-			error_log($e->getMessage());
-			Log::add($e->getMessage(), Log::ERROR, __CLASS__);
+			$subject_value = Util::generateSubject();
 		}
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query
+			->insert($db->quoteName('#__semantyca_nm_newsletters'))
+			->columns(array('subject', 'message_content'))
+			->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
+		//error_log($query->dump());
+		$db->setQuery($query);
+		$db->execute();
 
-		return 0;
+		return $db->insertid();
+
 	}
 
 

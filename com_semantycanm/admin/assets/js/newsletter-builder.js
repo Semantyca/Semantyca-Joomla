@@ -45,7 +45,7 @@ function generateContent(currentDateFormatted, currentYear) {
     selectedArticlesLi.each(function (index, article) {
         const articleId = article.id;
         const title = article.title;
-        const url = normalizeUrl(joomlaHost + article.dataset.url);
+        const url = normalizeUrl(article.dataset.url);
         let articleContent = editedContentStore[articleId];
         let intro;
         if (articleContent) {

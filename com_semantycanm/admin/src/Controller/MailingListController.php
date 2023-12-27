@@ -8,18 +8,19 @@ use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class MailingListController extends BaseController
 {
 	public function findAll()
 	{
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$model   = $this->getModel();
 			$results = $model->getList();
 			Factory::getApplication();
-			header('Content-Type: application/json; charset=UTF-8');
 			echo new JsonResponse($results);
 
 		}
@@ -36,7 +37,7 @@ class MailingListController extends BaseController
 	public function add()
 	{
 		$app = Factory::getApplication();
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$input = $app->input;
@@ -75,7 +76,7 @@ class MailingListController extends BaseController
 		try
 		{
 			$app = Factory::getApplication();
-			header('Content-Type: application/json; charset=UTF-8');
+			header(Constants::JSON_CONTENT_TYPE);
 			$input = $app->input;
 			$ids   = $this->input->getString('ids');
 			//TODO ids should be be a list

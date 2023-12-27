@@ -6,6 +6,8 @@ use JText;
 
 class Constants
 {
+	public const JSON_CONTENT_TYPE = 'Content-Type: application/json; charset=UTF-8';
+
 	const COMPONENT_NAME = "com_semantycanm";
 	const MESSAGING_ERROR = -1;
 	const UNDEFINED = 0;

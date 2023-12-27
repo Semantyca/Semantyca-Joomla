@@ -7,13 +7,14 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class ArticleController extends BaseController
 {
 	public function find()
 	{
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$id = $this->input->getString('id');
@@ -33,7 +34,7 @@ class ArticleController extends BaseController
 
 	public function search()
 	{
-		header('Content-Type: application/json; charset=UTF-8');
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$search  = $this->input->getString('q');

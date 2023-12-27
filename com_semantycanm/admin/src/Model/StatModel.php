@@ -9,8 +9,6 @@ use Exception;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
-use stdClass;
 
 class StatModel extends BaseDatabaseModel
 {
@@ -74,40 +72,33 @@ class StatModel extends BaseDatabaseModel
 
 	public function updateStatRecord($id, $status): bool
 	{
-		try
+
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$fields = array(
+			$db->quoteName('status') . ' = ' . $db->quote($status)
+		);
+
+		if ($status == Constants::HAS_BEEN_SENT)
 		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-
-			$fields = array(
-				$db->quoteName('status') . ' = ' . $db->quote($status)
-			);
-
-			if ($status == Constants::HAS_BEEN_SENT)
-			{
-				$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
-			}
-
-			$query->update($db->quoteName('#__semantyca_nm_stats'))
-				->set($fields)
-				->where($db->quoteName('id') . ' = ' . $db->quote($id));
-
-			$db->setQuery($query);
-			$result = $db->execute();
-
-			if (!$result)
-			{
-				throw new Exception('Failed to update record');
-			}
-
-			return true;
+			$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
 		}
-		catch (\Exception $e)
+
+		$query->update($db->quoteName('#__semantyca_nm_stats'))
+			->set($fields)
+			->where($db->quoteName('id') . ' = ' . $db->quote($id));
+
+		$db->setQuery($query);
+		$result = $db->execute();
+
+		if (!$result)
 		{
-			LogHelper::logException($e, __CLASS__);
-
-			return false;
+			throw new Exception('Failed to update record');
 		}
+
+		return true;
+
 	}
 
 

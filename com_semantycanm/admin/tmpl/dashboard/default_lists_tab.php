@@ -31,7 +31,7 @@
                         <input type="text" class="form-control" id="mailingListName"
                                placeholder="Mailing List Name" required>
                         <div class="invalid-feedback">
-		                    <?php echo JText::_('VALIDATION_EMPTY_MAILING_LIST'); ?>
+	                        <?php echo JText::_('VALIDATION_EMPTY_MAILING_LIST'); ?>
                         </div>
                     </div>
 
@@ -136,10 +136,14 @@
         const mailingListName = document.getElementById('mailingListName');
         if (mailingListName.value === '') {
             mailingListName.classList.add('is-invalid');
+            setTimeout(function () {
+                mailingListName.classList.remove('is-invalid');
+            }, 5000);
         } else {
             mailingListName.classList.remove('is-invalid');
         }
     });
+
 
     document.getElementById('mailingListName').addEventListener('input', function () {
         if (this.value !== '') {

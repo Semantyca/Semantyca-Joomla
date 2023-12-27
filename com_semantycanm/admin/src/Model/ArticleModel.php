@@ -4,13 +4,21 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use ContentHelperRoute;
 use JFactory;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Uri\Uri;
 use JRoute;
 
 class ArticleModel extends BaseDatabaseModel
 {
+	protected string $base;
+
+	public function __construct()
+	{
+		parent::__construct();
+		$this->base = Uri::root();
+	}
+
 	public function getList()
 	{
 		$db   = $this->getDatabase();
@@ -36,7 +44,7 @@ class ArticleModel extends BaseDatabaseModel
 		$articles = $db->loadObjectList();
 		foreach ($articles as $article)
 		{
-			$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id, $article->catid));
+			$article->url = $this->constructArticleUrl($article);
 		}
 
 		return $articles;
@@ -68,7 +76,7 @@ class ArticleModel extends BaseDatabaseModel
 		$articles = $db->loadObjectList();
 		foreach ($articles as $article)
 		{
-			$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id, $article->catid));
+			$article->url = $this->constructArticleUrl($article);
 		}
 
 		return $articles;
@@ -101,11 +109,20 @@ class ArticleModel extends BaseDatabaseModel
 		$articles = $db->loadObjectList();
 		foreach ($articles as $article)
 		{
-			$article->url = JRoute::_(ContentHelperRoute::getArticleRoute($article->id, $article->catid));
-
+			$article->url = $this->constructArticleUrl($article);
 		}
 
 		return $articles;
+
+	}
+
+	private function constructArticleUrl($article): string
+	{
+		$link = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
+		//$sefUrl = "/article/{$article->alias}/{$article->catid}";
+		$regularUrl = str_replace("/administrator", "", html_entity_decode(JRoute::_($link)));
+
+		return str_replace('/joomla/joomla/', '/joomla/', $this->base . ltrim($regularUrl, '/'));
 
 	}
 

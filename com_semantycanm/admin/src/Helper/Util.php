@@ -1,8 +1,6 @@
 <?php
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
-use Joomla\CMS\Log\Log;
-use ComSemantycanm\Admin\DTO\ResponseDTO;
 
 class Util {
 
@@ -23,13 +21,6 @@ class Util {
 		$randomAction = $actions[array_rand($actions)];
 
 		return $randomTopic . ": " . $randomAction;
-	}
-
-	public static function getErrorDTO($e): ResponseDTO
-	{
-		error_log($e);
-		Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-		return new ResponseDTO(['error' => ['message' => $e->getMessage(), 'code' => $e->getCode()]]);
 	}
 }
 
