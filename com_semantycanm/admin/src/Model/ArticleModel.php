@@ -6,7 +6,6 @@ defined('_JEXEC') or die;
 
 use JFactory;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
 
 class ArticleModel extends BaseDatabaseModel
@@ -119,27 +118,9 @@ class ArticleModel extends BaseDatabaseModel
 	private function constructArticleUrl($article): string
 	{
 		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
-		$relativeUrl = str_replace("/administrator", "", html_entity_decode(Route::_($relativeUrl)));
-
 		$parsedBase     = parse_url($this->base);
-		$parsedRelative = parse_url($relativeUrl);
 
-		$basePath     = rtrim($parsedBase['path'], '/') . '/';
-		$relativePath = ltrim($parsedRelative['path'], '/');
-
-		if (substr($relativePath, 0, strlen($basePath)) == $basePath)
-		{
-			$relativePath = substr($relativePath, strlen($basePath));
-		}
-
-		$finalUrl = $parsedBase['scheme'] . '://' . $parsedBase['host'] . $basePath . $relativePath;
-
-		if (isset($parsedRelative['query']))
-		{
-			$finalUrl .= '?' . $parsedRelative['query'];
-		}
-
-		return $finalUrl;
+		return $parsedBase['scheme'] . '://' . $parsedBase['host'] . $parsedBase['path'] . $relativeUrl;
 	}
 
 
