@@ -22,7 +22,7 @@ class StatController extends BaseController
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
 
-			$model   = $this->getModel();
+			$model = $this->getModel('Stat');
 			$results = $model->getList($currentPage, $itemsPerPage);
 			$total   = $model->getTotalCount();
 

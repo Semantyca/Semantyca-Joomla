@@ -1,7 +1,7 @@
 <?php
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Exception;
-class RecordNotFoundException extends \Exception
+class UpdateRecordException extends \Exception
 {
 
 }

@@ -4,8 +4,8 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 defined('_JEXEC') or die;
 
-use ComSemantycanm\Admin\Exception\RecordNotFoundException;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 
 class MailingListModel extends BaseDatabaseModel
 {

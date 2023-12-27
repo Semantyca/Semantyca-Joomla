@@ -1,6 +1,6 @@
 <?php
 
-namespace ComSemantycanm\Admin\DTO;
+namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
 
 /**
  *

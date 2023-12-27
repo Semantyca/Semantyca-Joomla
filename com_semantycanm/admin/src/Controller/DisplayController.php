@@ -4,7 +4,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;

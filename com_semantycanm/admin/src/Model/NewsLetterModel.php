@@ -2,10 +2,8 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-defined('_JEXEC') or die;
-
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
@@ -94,6 +92,10 @@ class NewsLetterModel extends BaseDatabaseModel
 	}
 
 
+	/**
+	 * @throws UpdateRecordException
+	 * @since 1.0
+	 */
 	public function remove($ids): int
 	{
 		$db    = $this->getDatabase();
@@ -115,9 +117,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		else
 		{
-			Log::add("The new letter deletion was failed", Log::WARNING, __CLASS__);
-
-			return 0;
+			throw new UpdateRecordException('The new letter deletion was failed');
 		}
 	}
 

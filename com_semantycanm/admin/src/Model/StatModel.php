@@ -2,12 +2,10 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-defined('_JEXEC') or die;
-
 use DateTime;
-use Exception;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class StatModel extends BaseDatabaseModel
@@ -29,7 +27,7 @@ class StatModel extends BaseDatabaseModel
 		return $db->loadObjectList();
 	}
 
-	public function getTotalCount()
+	public function getTotalCount(): int
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -70,16 +68,17 @@ class StatModel extends BaseDatabaseModel
 
 	}
 
+	/**
+	 * @throws UpdateRecordException
+	 * @since 1.0
+	 */
 	public function updateStatRecord($id, $status): bool
 	{
-
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
-
 		$fields = array(
 			$db->quoteName('status') . ' = ' . $db->quote($status)
 		);
-
 		if ($status == Constants::HAS_BEEN_SENT)
 		{
 			$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
@@ -91,10 +90,9 @@ class StatModel extends BaseDatabaseModel
 
 		$db->setQuery($query);
 		$result = $db->execute();
-
 		if (!$result)
 		{
-			throw new Exception('Failed to update record');
+			throw new UpdateRecordException('Failed to update record');
 		}
 
 		return true;

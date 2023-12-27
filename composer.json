@@ -8,7 +8,7 @@
   },
   "autoload": {
     "psr-4": {
-      "ComSemantycanm\\Admin\\": "com_semantycanm/admin/src/"
+      "Semantyca\\Component\\SemantycaNM\\Administrator": "com_semantycanm/admin/src/"
     }
   }
 }

@@ -1,63 +1,60 @@
 <div class="container mt-5">
     <div class="row">
-        <div class="col-md-6">
-            <div class="header-container d-flex align-items-center">
-                <div class="me-auto"> <!-- me-auto class pushes the element to the left -->
+        <div class="col-md-12">
+            <div class="header-container d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center justify-content-start" style="flex-grow: 1;">
                     <h3><?php echo JText::_('STATISTICS'); ?></h3>
-                </div>
-                <div>
-                    <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status" style="display: none;">
+                    <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                         style="display: none; margin-left: 10px;">
                         <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
                     </div>
+                </div>
+                <div>
                     <input type="hidden" id="total" value="0"/>
                     <input type="hidden" id="current" value="1"/>
                 </div>
-                <div> <!-- This will now be closer to the "STATISTICS" heading -->
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination">
-                            <li class="page-item"><a class="page-link" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a></li>
-                            <li class="page-item"><a class="page-link" href="#" id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a></li>
-                            <li class="page-item"><a class="page-link" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a></li>
-                            <li class="page-item"><a class="page-link" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a></li>
-                        </ul>
-                    </nav>
+                <div class="pagination-container mb-2 me-3">
+                    <a class="btn btn-primary me-2" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
+                    <a class="btn btn-primary me-2" href="#"
+                       id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
+                    <a class="btn btn-primary me-2" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
                 </div>
             </div>
-
-
-            <table class="table">
-                <thead>
-                <tr class="d-flex">
-                    <th class="col-1">
-                        <button class="btn btn-outline-secondary refresh-button" type="button" id="refreshStatsButton">
-                            <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
-                        </button>
-                    </th>
-                    <th class="col-4"><?php echo JText::_('RECIPIENTS'); ?></th>
-                    <th class="col-2"><?php echo JText::_('STATUS'); ?></th>
-                    <th class="col-3"><?php echo JText::_('SEND_TIME'); ?></th>
-                    <th class="col-1"><?php echo JText::_('OPENS'); ?></th>
-                    <th class="col-1"><?php echo JText::_('CLICKS'); ?></th>
-                    <th class="col-1"><?php echo JText::_('UNSUBS'); ?></th>
-                    <th class="col-2"><?php echo JText::_('NEWSLETTER'); ?></th>
-                </tr>
-                </thead>
-                <tbody id="statsList">
-            </table>
-
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th style="width: 5%;">
+                            <button class="btn btn-outline-secondary refresh-button" type="button"
+                                    id="refreshStatsButton">
+                                <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/refresh.png"
+                                     alt="Refresh" class="refresh-icon">
+                            </button>
+                        </th>
+                        <th style="width: 20%;"><?php echo JText::_('RECIPIENTS'); ?></th>
+                        <th style="width: 10%;"><?php echo JText::_('STATUS'); ?></th>
+                        <th style="width: 15%;"><?php echo JText::_('SEND_TIME'); ?></th>
+                        <th style="width: 10%;"><?php echo JText::_('OPENS'); ?></th>
+                        <th style="width: 10%;"><?php echo JText::_('CLICKS'); ?></th>
+                        <th style="width: 10%;"><?php echo JText::_('UNSUBS'); ?></th>
+                        <th style="width: 20%;"><?php echo JText::_('NEWSLETTER'); ?></th>
+                    </tr>
+                    </thead>
+                    <tbody id="statsList">
+                </table>
+            </div>
         </div>
     </div>
 </div>
 
 
-
 <script>
-    const itemsPerPage = 10;
+    const ITEMS_PER_PAGE = 10;
 
     $(document).ready(function () {
         document.getElementById('nav-stats-tab').addEventListener('shown.bs.tab', () => refreshStats(1));
         document.getElementById('refreshStatsButton').addEventListener('click', () => refreshStats(getCurrentPage()));
-
         document.getElementById('goToFirstPage').addEventListener('click', () => goToFirstPage());
         document.getElementById('goToPreviousPage').addEventListener('click', () => goToPreviousPage());
         document.getElementById('goToNextPage').addEventListener('click', () => goToNextPage());
@@ -72,7 +69,7 @@
         currentPage = Math.min(currentPage, totalPages);
 
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=' + itemsPerPage,
+            url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
@@ -84,22 +81,20 @@
             error: function (jqXHR, textStatus, errorThrown) {
                 console.log('Error:', textStatus, errorThrown);
             },
-            complete: function() {
+            complete: function () {
                 hideSpinner('statSpinner');
             }
         });
     }
 
-
-    function getTotalPages(){
-        const totalRecords = parseInt($('#total').val());
+    function getTotalPages() {
+        const totalRecords = parseInt(document.getElementById('total').value);
         const itemsPerPage = 10;
         return Math.ceil(totalRecords / itemsPerPage);
     }
 
-
-    function getCurrentPage(){
-        return parseInt($('#current').val());
+    function getCurrentPage() {
+        return parseInt(document.getElementById('current').value);
     }
 
     function goToFirstPage() {
@@ -129,19 +124,20 @@
     function composeStatsContent(data) {
         let html = '';
         data.forEach(function (stat) {
-            html += '<tr class="list-group-item d-flex" data-groupid="' + stat.id + '">';
-            html += '<td class="col-1"><input type="checkbox" name="selectedItems[]" value="' + stat.id + '"></td>';
-            html += '<td class="col-4">' + stat.recipients + '</td>';
-            html += '<td class="col-2">' + getBadge(stat.status) + '</td>';
-            html += '<td class="col-3">' + (stat.sent_time ? stat.sent_time : 'N/A') + '</td>';
-            html += '<td class="col-1">' + stat.opens + '</td>';
-            html += '<td class="col-1">' + stat.clicks + '</td>';
-            html += '<td class="col-1">' + stat.unsubs + '</td>';
-            html += '<td class="col-2">' + stat.newsletter_id + '</td>';
+            html += '<tr data-groupid="' + stat.id + '">';
+            html += '<td style="width: 5%;"><input type="checkbox" name="selectedItems[]" value="' + stat.id + '"></td>';
+            html += '<td style="width: 20%;">' + stat.recipients + '</td>';
+            html += '<td style="width: 10%;">' + getBadge(stat.status) + '</td>';
+            html += '<td style="width: 15%;">' + (stat.sent_time ? stat.sent_time : 'N/A') + '</td>';
+            html += '<td style="width: 10%;">' + stat.opens + '</td>';
+            html += '<td style="width: 10%;">' + stat.clicks + '</td>';
+            html += '<td style="width: 10%;">' + stat.unsubs + '</td>';
+            html += '<td style="width: 20%;">' + stat.newsletter_id + '</td>';
             html += '</tr>';
         });
         return html;
     }
+
 
     function getBadge(status) {
         switch (status) {

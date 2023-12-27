@@ -118,7 +118,7 @@ class ArticleModel extends BaseDatabaseModel
 	private function constructArticleUrl($article): string
 	{
 		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
-		$parsedBase     = parse_url($this->base);
+		$parsedBase = parse_url($this->base);
 
 		return $parsedBase['scheme'] . '://' . $parsedBase['host'] . $parsedBase['path'] . $relativeUrl;
 	}

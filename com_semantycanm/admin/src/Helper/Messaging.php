@@ -2,11 +2,11 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
-use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
@@ -20,7 +20,7 @@ class Messaging
 	{
 		$this->mailingListModel = $mailingListModel;
 		$this->statModel        = $statModel;
-		$this->baseURL = rtrim(Uri::base(), '/');
+		$this->baseURL = Uri::root();
 	}
 
 	public function sendEmail($body, $subject, $user_or_user_group, $newsletter_id): bool
@@ -51,6 +51,7 @@ class Messaging
 
 	/**
 	 * @throws MessagingException
+	 * @throws UpdateRecordException
 	 * @since
 	 */
 	function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
@@ -58,19 +59,14 @@ class Messaging
 		$mailer->addRecipient($recipients);
 		$model = $this->statModel;
 
-			$stat_rec_id = $model->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
+		$stat_rec_id = $model->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
 
 		if ($stat_rec_id != 0)
 		{
 			$body .= '<img src="' . $this->baseURL . '/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
 			$mailer->setBody($body);
-			try
-			{
-				$send = $mailer->send();
-			}catch (Exception $e) {
-				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
-				throw $e;
-			}
+			$send = $mailer->send();
+
 			if ($send !== true)
 			{
 				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
@@ -83,6 +79,7 @@ class Messaging
 			throw new MessagingException(['Error sending email to ' . $recipients . '. The stat has not not initiated correctly']);
 		}
 		$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
+
 		return true;
 	}
 }
