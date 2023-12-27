@@ -6,8 +6,8 @@ defined('_JEXEC') or die;
 
 use JFactory;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Router\Route;
 use Joomla\CMS\Uri\Uri;
-use JRoute;
 
 class ArticleModel extends BaseDatabaseModel
 {
@@ -118,12 +118,29 @@ class ArticleModel extends BaseDatabaseModel
 
 	private function constructArticleUrl($article): string
 	{
-		$link = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
-		//$sefUrl = "/article/{$article->alias}/{$article->catid}";
-		$regularUrl = str_replace("/administrator", "", html_entity_decode(JRoute::_($link)));
+		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
+		$relativeUrl = str_replace("/administrator", "", html_entity_decode(Route::_($relativeUrl)));
 
-		return str_replace('/joomla/joomla/', '/joomla/', $this->base . ltrim($regularUrl, '/'));
+		$parsedBase     = parse_url($this->base);
+		$parsedRelative = parse_url($relativeUrl);
 
+		$basePath     = rtrim($parsedBase['path'], '/') . '/';
+		$relativePath = ltrim($parsedRelative['path'], '/');
+
+		if (substr($relativePath, 0, strlen($basePath)) == $basePath)
+		{
+			$relativePath = substr($relativePath, strlen($basePath));
+		}
+
+		$finalUrl = $parsedBase['scheme'] . '://' . $parsedBase['host'] . $basePath . $relativePath;
+
+		if (isset($parsedRelative['query']))
+		{
+			$finalUrl .= '?' . $parsedRelative['query'];
+		}
+
+		return $finalUrl;
 	}
+
 
 }
