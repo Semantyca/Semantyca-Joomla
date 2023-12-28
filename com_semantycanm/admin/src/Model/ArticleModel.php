@@ -2,8 +2,6 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-defined('_JEXEC') or die;
-
 use JFactory;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Uri\Uri;
@@ -11,11 +9,13 @@ use Joomla\CMS\Uri\Uri;
 class ArticleModel extends BaseDatabaseModel
 {
 	protected string $base;
+	protected string $defaultItem;
 
 	public function __construct()
 	{
 		parent::__construct();
 		$this->base = Uri::root();
+		$this->defaultItem = $this->getDefaultItem();
 	}
 
 	public function getList()
@@ -117,11 +117,41 @@ class ArticleModel extends BaseDatabaseModel
 
 	private function constructArticleUrl($article): string
 	{
-		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid;
-		$parsedBase = parse_url($this->base);
+		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid . '&Itemid=' . $this->defaultItem;
 
+		$parsedBase = parse_url($this->base);
 		return $parsedBase['scheme'] . '://' . $parsedBase['host'] . $parsedBase['path'] . $relativeUrl;
 	}
+
+	private function getDefaultItem(): int
+	{
+		$cache    = JFactory::getCache('com_semantycanm', '');
+		$cacheKey = 'defaultItem';
+		$itemid   = $cache->get($cacheKey);
+
+		if ($itemid === false)
+		{
+			$db    = $this->getDatabase();
+			$query = $db->getQuery(true);
+			$query->select('id AS Itemid')
+				->from($db->quoteName('#__menu'))
+				->where($db->quoteName('menutype') . ' = ' . $db->quote('mainmenu'))
+				->where($db->quoteName('published') . ' = 1')
+				->setLimit(1);
+
+			$db->setQuery($query);
+			$itemid = $db->loadResult();
+
+			if (!$itemid)
+			{
+				$itemid = 1;
+			}
+			$cache->store($itemid, $cacheKey);
+		}
+
+		return (int) $itemid;
+	}
+
 
 
 }

@@ -26,6 +26,7 @@ class MailingListController extends BaseController
 		}
 		catch (\Exception $e)
 		{
+			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally

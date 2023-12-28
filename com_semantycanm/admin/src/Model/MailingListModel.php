@@ -2,8 +2,6 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-defined('_JEXEC') or die;
-
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 
