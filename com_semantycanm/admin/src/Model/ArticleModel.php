@@ -15,7 +15,7 @@ class ArticleModel extends BaseDatabaseModel
 	{
 		parent::__construct();
 		$this->base = Uri::root();
-		$this->defaultItem = $this->getDefaultItem();
+		$this->defaultItem = '';
 	}
 
 	public function getList()
