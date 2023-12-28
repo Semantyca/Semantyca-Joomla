@@ -4,9 +4,38 @@ DROP TABLE IF EXISTS `#__semantyca_nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__semantyca_nm_newsletters`;
 DROP TABLE IF EXISTS `#__semantyca_nm_subscribers`;
 DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list`;
+DROP TABLE IF EXISTS `#__semantyca_nm_settings`;
+
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_settings`
+(
+    id             INT AUTO_INCREMENT,
+    reg_date       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    obsolete_since DATETIME,
+    name           VARCHAR(255),
+    obsolete       BOOLEAN  DEFAULT FALSE,
+    type           VARCHAR(255),
+    value          JSON,
+    PRIMARY KEY (id),
+    UNIQUE KEY `unique_name` (name, obsolete)
+) ENGINE = InnoDB;
+
+DELIMITER //
+
+CREATE TRIGGER UpdateObsoleteSince
+    BEFORE UPDATE
+    ON `#__semantyca_nm_settings`
+    FOR EACH ROW
+BEGIN
+    IF NEW.obsolete = TRUE AND OLD.obsolete = FALSE THEN
+        SET NEW.obsolete_since = CURRENT_TIMESTAMP;
+    END IF;
+END;
+//
+
+DELIMITER ;
 
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_mailing_list`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list`
 (
     id       INT AUTO_INCREMENT,
     reg_date DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -14,7 +43,7 @@ CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_mailing_list`
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscribers`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscribers`
 (
     id           INT AUTO_INCREMENT,
     reg_date     DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -25,7 +54,7 @@ CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscribers`
     FOREIGN KEY (mail_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscriber_events`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscriber_events`
 (
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -40,7 +69,7 @@ CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_subscriber_events`
 ) ENGINE = InnoDB;
 
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletters`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_newsletters`
 (
     id              INT AUTO_INCREMENT,
     reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -51,7 +80,7 @@ CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletters`
 ) ENGINE = InnoDB;
 
 
-CREATE TABLE IF NOT EXISTS  `#__semantyca_nm_newsletter_mailing_list`
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_newsletter_mailing_list`
 (
     reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
     newsletter_id   INT,
@@ -68,10 +97,10 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
     newsletter_id INT,
     recipients    JSON,
     errors        JSON,
-    opens         INT DEFAULT 0,
-    clicks        INT DEFAULT 0,
-    unsubs        INT DEFAULT 0,
-    status        INT DEFAULT 0,
+    opens  INT DEFAULT 0,
+    clicks INT DEFAULT 0,
+    unsubs INT DEFAULT 0,
+    status INT DEFAULT 0,
     sent_time     DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id)
