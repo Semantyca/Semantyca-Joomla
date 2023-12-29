@@ -6,6 +6,7 @@ defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\View\HtmlView as BaseHtmlView;
+use Joomla\CMS\Toolbar\ToolbarHelper;
 
 class HtmlView extends BaseHtmlView
 {
@@ -20,7 +21,7 @@ class HtmlView extends BaseHtmlView
 
 		if ($user->authorise('core.admin', 'com_semantycanm'))
 		{
-			\Joomla\CMS\Toolbar\ToolbarHelper::preferences('com_semantycanm');
+			ToolbarHelper::preferences('com_semantycanm');
 		}
 	}
 }

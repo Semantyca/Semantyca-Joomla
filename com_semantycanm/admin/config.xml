@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <config>
+    <help key="Semantyca:_Guideline"/>
+    <inlinehelp button="hide"/>
     <fieldset
             name="preferences"
             label="COM_SEMANTYCANM_PREFERENCES_LABEL"
