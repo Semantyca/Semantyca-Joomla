@@ -10,14 +10,14 @@
                 type="radio"
                 label="COM_SEMANTYCANM_ENABLE_ITEM_ID"
                 layout="joomla.form.field.radio.switcher"
-                default="SideBySide"
+                default="0"
         >
-            <option value="SideBySide">COM_SEMANTYCANM_ITEM_ID_DISABLED</option>
-            <option value="Inline">COM_SEMANTYCANM_ITEM_ID_ENABLED</option>
+            <option value="0">COM_SEMANTYCANM_ITEM_ID_DISABLED</option>
+            <option value="1">COM_SEMANTYCANM_ITEM_ID_ENABLED</option>
         </field>
 
         <field
-                name="default_item_id"
+                name="defined_item_id"
                 type="number"
                 label="COM_SEMANTYCANM_ITEM_ID"
                 default="1"

@@ -16,8 +16,8 @@ class ArticleModel extends BaseDatabaseModel
 	public function __construct()
 	{
 		parent::__construct();
-		$this->base = Uri::root();
-		$this->defaultItem = '';
+		$this->base        = Uri::root();
+		$this->defaultItem = $this->getDefaultItem();
 	}
 
 	public function getList()
@@ -122,46 +122,37 @@ class ArticleModel extends BaseDatabaseModel
 		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid . '&Itemid=' . $this->defaultItem;
 
 		$parsedBase = parse_url($this->base);
+
 		return $parsedBase['scheme'] . '://' . $parsedBase['host'] . $parsedBase['path'] . $relativeUrl;
 	}
 
-	private function getDefaultItem(): int
+	private function getDefaultItem(): string
 	{
-
-		$cache    = JFactory::getCache('com_semantycanm', '');
-		$cacheKey = 'defaultItem';
-		$itemid   = $cache->get($cacheKey);
-
-		if ($itemid === false)
+		if ($this->isItemIdEnabled() === 1)
 		{
-			$db    = $this->getDatabase();
-			$query = $db->getQuery(true);
-			$query->select('id AS Itemid')
-				->from($db->quoteName('#__menu'))
-				->where($db->quoteName('menutype') . ' = ' . $db->quote('mainmenu'))
-				->where($db->quoteName('published') . ' = 1')
-				->setLimit(1);
-
-			$db->setQuery($query);
-			$itemid = $db->loadResult();
-
-			if (!$itemid)
-			{
-				$itemid = 1;
-			}
-			$cache->store($itemid, $cacheKey);
+			//TODO it might be cached
+			return $this->getDefinedItemId();
 		}
-
-		return (int) $itemid;
+		else
+		{
+			return '';
+		}
 	}
 
-	public function getSomething()
+	public function isItemIdEnabled(): int
 	{
 		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
-		$itemId = $params->get('enable_itemid', 1); // 1 is default if not set
 
-		// Use $itemId in your query or logic
-		// ...
+		return $params->get('enable_itemid', 0);
+
+	}
+
+	public function getDefinedItemId(): int
+	{
+		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+
+		return $params->get('defined_item_id', 1);
+
 	}
 
 
