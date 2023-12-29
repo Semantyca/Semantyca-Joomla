@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <fieldset
+            name="preferences"
+            label="COM_SEMANTYCANM_PREFERENCES_LABEL"
+            description="COM_SEMANTYCANM_PREFERENCES_DESCRIPTION"
+    >
+        <field
+                name="enable_itemid"
+                type="radio"
+                label="COM_SEMANTYCANM_ENABLE_ITEM_ID"
+                layout="joomla.form.field.radio.switcher"
+                default="SideBySide"
+        >
+            <option value="SideBySide">COM_SEMANTYCANM_ITEM_ID_DISABLED</option>
+            <option value="Inline">COM_SEMANTYCANM_ITEM_ID_ENABLED</option>
+        </field>
+
+        <field
+                name="default_item_id"
+                type="number"
+                label="COM_SEMANTYCANM_ITEM_ID"
+                default="1"
+                extension="com_semantycanm"
+        />
+
+    </fieldset>
+
+    <fieldset
+            name="permissions"
+            label="JCONFIG_PERMISSIONS_LABEL"
+    >
+
+        <field
+                name="rules"
+                type="rules"
+                label="JCONFIG_PERMISSIONS_LABEL"
+                filter="rules"
+                validate="rules"
+                component="com_installer"
+                section="component"
+        />
+
+    </fieldset>
+</config>

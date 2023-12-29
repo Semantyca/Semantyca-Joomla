@@ -63,7 +63,9 @@ class Messaging
 
 		if ($stat_rec_id != 0)
 		{
-			$body .= '<img src="' . $this->baseURL . '/index.php?option=com_semantycanm&task=service.postStat?id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
+			$trackingPixel = '<img src="' . $this->baseURL . 'index.php?option=com_semantycanm&task=sitestat.postStat&id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
+			$body          = str_replace('</body>', $trackingPixel . '</body>', $body);
+
 			$mailer->setBody($body);
 			$send = $mailer->send();
 
@@ -82,6 +84,7 @@ class Messaging
 
 		return true;
 	}
+
 }
 
 

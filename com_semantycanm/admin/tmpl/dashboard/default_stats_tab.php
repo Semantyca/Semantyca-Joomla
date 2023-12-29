@@ -13,11 +13,11 @@
                     <input type="hidden" id="total" value="0"/>
                     <input type="hidden" id="current" value="1"/>
                 </div>
-                <div class="pagination-container mb-2 me-3">
-                    <a class="btn btn-primary me-2" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
-                    <a class="btn btn-primary me-2" href="#"
+                <div class="pagination-container mb-3 me-2">
+                    <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
+                    <a class="btn btn-primary" href="#"
                        id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
-                    <a class="btn btn-primary me-2" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
                     <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
                 </div>
             </div>

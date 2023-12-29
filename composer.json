@@ -3,12 +3,13 @@
     "phpunit/phpunit": "9.5"
   },
   "require": {
-    "php": "^7.4 || ^8.0",
+    "php": "7.4",
     "ext-json": "*"
   },
   "autoload": {
     "psr-4": {
-      "Semantyca\\Component\\SemantycaNM\\Administrator": "com_semantycanm/admin/src/"
+      "Semantyca\\Component\\SemantycaNM\\Administrator": "com_semantycanm/admin/src/",
+      "Semantyca\\Component\\SemantycaNM\\Site\\": "com_semantycanm/site/src/"
     }
   }
 }

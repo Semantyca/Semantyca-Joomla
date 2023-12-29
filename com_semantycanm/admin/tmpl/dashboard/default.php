@@ -1,9 +1,9 @@
 <?php
 
-use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\HTML\Helpers\Bootstrap;
+use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Log\Log;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Site\Helper\SiteConsts;
 
 HTMLHelper::_('form.csrf', '_csrf');
 HTMLHelper::_('jquery.framework');
@@ -12,10 +12,10 @@ $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 global $media;
 
+
 $media = "administrator/components/com_semantycanm/assets/";
-$bannerImageUrl = JUri::root() . $media . "images/test_banner.png";
+$bannerImageUrl = JUri::root() . "images/2020/EMSA_logo_full_600-ed.png";
 $host = JUri::getInstance()->toString(['host']);
-//$doc->addScript(JURI::root() . $media . "js/jquery-3.7.1.min.js");
 $doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
 $doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
 $doc->addScript(JUri::root() . $media . "js/bootstrap.min.js");
@@ -34,7 +34,7 @@ try
 }
 catch (Exception $e)
 {
-	Log::add($e, Log::ERROR, Constants::COMPONENT_NAME);
+	Log::add($e, Log::ERROR, SiteConsts::COMPONENT_NAME);
 }
 
 $this->usergroups      = $this->user_groups;

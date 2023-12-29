@@ -3,8 +3,10 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use JFactory;
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Uri\Uri;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class ArticleModel extends BaseDatabaseModel
 {
@@ -125,6 +127,7 @@ class ArticleModel extends BaseDatabaseModel
 
 	private function getDefaultItem(): int
 	{
+
 		$cache    = JFactory::getCache('com_semantycanm', '');
 		$cacheKey = 'defaultItem';
 		$itemid   = $cache->get($cacheKey);
@@ -152,6 +155,14 @@ class ArticleModel extends BaseDatabaseModel
 		return (int) $itemid;
 	}
 
+	public function getSomething()
+	{
+		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+		$itemId = $params->get('enable_itemid', 1); // 1 is default if not set
+
+		// Use $itemId in your query or logic
+		// ...
+	}
 
 
 }
