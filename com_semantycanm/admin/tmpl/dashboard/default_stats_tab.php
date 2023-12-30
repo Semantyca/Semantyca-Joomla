@@ -2,13 +2,15 @@
     <div class="row">
         <div class="col-md-12">
             <div class="header-container d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center justify-content-start" style="flex-grow: 1;">
+                <div class="header-container d-flex justify-content-between align-items-center">
                     <h3><?php echo JText::_('STATISTICS'); ?></h3>
-                    <div id="statSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
-                         style="display: none; margin-left: 10px;">
-                        <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
+                    <div id="statSpinner" class="spinner">
+                        <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
+                             alt="Loading" class="spinner-icon">
                     </div>
+
                 </div>
+
                 <div>
                     <input type="hidden" id="total" value="0"/>
                     <input type="hidden" id="current" value="1"/>

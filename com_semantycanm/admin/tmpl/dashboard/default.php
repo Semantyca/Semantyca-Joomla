@@ -14,19 +14,22 @@ global $media;
 
 
 $media = "administrator/components/com_semantycanm/assets/";
-$bannerImageUrl = JUri::root() . "images/2020/EMSA_logo_full_600-ed.png";
+$rootUrl = JUri::root();
+$bannerImageUrl = $rootUrl . "images/2020/EMSA_logo_full_600-ed.png";
 $host = JUri::getInstance()->toString(['host']);
-$doc->addScript(JURI::root() . $media . "js/Sortable.min.js");
-$doc->addScript(JURI::root() . $media . "js/trumbowyg.min.js");
-$doc->addScript(JUri::root() . $media . "js/bootstrap.min.js");
-$doc->addScript(JURI::root() . $media . "js/templates.js");
-$doc->addScript(JUri::root() . $media . "js/typeahead.bundle.js");
-$doc->addScript(JUri::root() . $media . "js/common.js");
-$doc->addScript(JUri::root() . $media . "js/dragdrop.js");
-$doc->addScript(JUri::root() . $media . "js/newsletter-builder.js");
-$doc->addStyleSheet(JUri::root() . $media . "css/trumbowyg.min.css");
-$doc->addStyleSheet(JUri::root() . $media . "css/default.css");
-$doc->addStyleSheet(JUri::root() . $media . "css/dragdrop.css");
+$doc->addScript($rootUrl . $media . "js/Sortable.min.js");
+$doc->addScript($rootUrl . $media . "js/trumbowyg.min.js");
+$doc->addScript($rootUrl . $media . "js/bootstrap.min.js");
+$doc->addScript($rootUrl . $media . "js/templates.js");
+$doc->addScript($rootUrl . $media . "js/typeahead.bundle.js");
+$doc->addScript($rootUrl . $media . "js/common.js");
+$doc->addScript($rootUrl . $media . "js/dragdrop.js");
+$doc->addScript($rootUrl . $media . "js/newsletter-builder.js");
+$doc->addStyleSheet($rootUrl . $media . "css/trumbowyg.min.css");
+$doc->addStyleSheet($rootUrl . $media . "css/default.css");
+$doc->addStyleSheet($rootUrl . $media . "css/dragdrop.css");
+
+
 
 try
 {

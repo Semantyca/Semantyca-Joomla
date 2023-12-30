@@ -24,7 +24,7 @@ class LogHelper
 		error_log(json_encode($logData) . PHP_EOL, 3, $logFilePath);
 	}
 
-	public static function logError(string $msg, $componentName)
+	public static function logWarn(string $msg, $componentName)
 	{
 		$reflection  = new ReflectionClass($componentName);
 		$className   = $reflection->getShortName();
@@ -36,6 +36,7 @@ class LogHelper
 		$logFilePath = JPATH_ADMINISTRATOR . '/logs/' . self::getFileName($className, self::WARN);
 		error_log(json_encode($logData) . PHP_EOL, 3, $logFilePath);
 	}
+
 
 	public static function logException(Exception $e, $componentName)
 	{

@@ -7,15 +7,17 @@
             label="COM_SEMANTYCANM_PREFERENCES_LABEL"
             description="COM_SEMANTYCANM_PREFERENCES_DESCRIPTION"
     >
+
         <field
-                name="enable_itemid"
-                type="radio"
-                label="COM_SEMANTYCANM_ENABLE_ITEM_ID"
-                layout="joomla.form.field.radio.switcher"
-                default="0"
+                name="itemid_sourcing"
+                type="list"
+                label="COM_SEMANTYCANM_ITEM_ID_SOURCING_METHOD"
+                default="show"
+                validate="options"
         >
-            <option value="0">COM_SEMANTYCANM_ITEM_ID_DISABLED</option>
-            <option value="1">COM_SEMANTYCANM_ITEM_ID_ENABLED</option>
+            <option value="empty">COM_SEMANTYCANM_EMPTY_ITEM</option>
+            <option value="smart">COM_SEMANTYCANM_SMART_ITEM</option>
+            <option value="custom">COM_SEMANTYCANM_CUSTOM_ITEM</option>
         </field>
 
         <field

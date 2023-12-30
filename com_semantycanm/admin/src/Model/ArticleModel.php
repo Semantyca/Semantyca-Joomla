@@ -128,32 +128,34 @@ class ArticleModel extends BaseDatabaseModel
 
 	private function getDefaultItem(): string
 	{
-		if ($this->isItemIdEnabled() === 1)
+		$params         = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+		$itemIdSourcing = $params->get('itemid_sourcing', 0);
+
+		switch ($itemIdSourcing)
 		{
-			//TODO it might be cached
-			return $this->getDefinedItemId();
+			case 'custom':
+				return $params->get('defined_item_id', 1);
+			case 'smart':
+				/*	$db   = $this->getDatabase();
+					$menuQuery = $db->getQuery(true)
+						->select($db->quoteName('id'))
+						->from($db->quoteName('#__menu'))
+						->where($db->quoteName('link') . ' LIKE ' . $db->quote('%option=com_content&view=category&layout=blog&id=' . (int)$article->catid . '%'))
+						->where($db->quoteName('published') . ' = 1')
+						->setLimit(1);
+
+					$db->setQuery($menuQuery);
+					$itemId = $db->loadResult();
+					if ($itemId) {
+						return $itemId;
+					} else {
+						LogHelper::logWarn('The itemId has not been resolved with the smart option', __CLASS__);
+						return '';
+					}*/
+				return '';
+			default:
+				return '';
 		}
-		else
-		{
-			return '';
-		}
 	}
-
-	public function isItemIdEnabled(): int
-	{
-		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
-
-		return $params->get('enable_itemid', 0);
-
-	}
-
-	public function getDefinedItemId(): int
-	{
-		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
-
-		return $params->get('defined_item_id', 1);
-
-	}
-
 
 }

@@ -44,11 +44,23 @@
     </div>
     <div class="row mt-4">
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
-            <div class="header-container">
+            <div class="header-container d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center justify-content-start" style="flex-grow: 1;">
                 <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
-                <div id="mailingListSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
-                     style="display: none;">
-                    <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
+                    <div id="mailingListSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+                         style="display: none; margin-left: 10px;">
+                        <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
+                    </div>
+                </div>
+                <div>
+                    <input type="hidden" id="totalInMailingList" value="0"/>
+                    <input type="hidden" id="currentInMailingList" value="1"/>
+                </div>
+                <div class="pagination-container mb-3">
+                    <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
                 </div>
             </div>
             <table class="table">
@@ -89,6 +101,23 @@
         document.getElementById('refreshMailingListButton').addEventListener('click', () => {
             refreshMailingList();
         });
+
+        document.getElementById('goToFirstPage').addEventListener('click', function (e) {
+            refreshMailingList(1);
+        });
+
+        document.getElementById('goToPreviousPage').addEventListener('click', function (e) {
+            goToPreviousPage();
+        });
+
+        document.getElementById('goToNextPage').addEventListener('click', function (e) {
+            goToNextPage();
+        });
+
+        document.getElementById('goToLastPage').addEventListener('click', function (e) {
+            goToLastPage();
+        });
+
 
         document.getElementById('addGroup').addEventListener('click', function (e) {
             e.preventDefault();
