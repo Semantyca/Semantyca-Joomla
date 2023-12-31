@@ -56,7 +56,7 @@
                     <input type="hidden" id="totalInMailingList" value="0"/>
                     <input type="hidden" id="currentInMailingList" value="1"/>
                 </div>
-                <div class="pagination-container mb-3">
+                <div class="pagination-container mb-3 me-2">
                     <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
                     <a class="btn btn-primary" href="#" id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
                     <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
@@ -210,10 +210,23 @@
         return fragment;
     }
 
+    function createButton(buttonText, buttonClass, eventHandler) {
+        const button = document.createElement('button');
+        button.className = buttonClass;
+        button.textContent = buttonText;
+        button.style.height = '30px';  // Set the height of the button
+        button.style.width = '65px';
+        if (eventHandler) {
+            button.addEventListener('click', eventHandler);
+        }
+        return button;
+    }
+
     function createMailingListRow(entry) {
         const tr = document.createElement('tr');
         tr.className = 'list-group-item d-flex';
         tr.setAttribute('data-id', entry.id);
+
         const tdCheckbox = document.createElement('td');
         tdCheckbox.className = 'col-1';
         const checkbox = document.createElement('input');
@@ -221,6 +234,7 @@
         checkbox.name = 'selectedItems[]';
         checkbox.value = entry.id;
         tdCheckbox.appendChild(checkbox);
+
         const tdName = document.createElement('td');
         tdName.className = 'col-5';
         tdName.textContent = entry.name;
@@ -230,18 +244,27 @@
         tdRegDate.textContent = entry.reg_date;
 
         const tdButton = document.createElement('td');
-        tdButton.className = 'col-3';
-        const button = document.createElement('button');
-        button.className = 'btn btn-danger btn-sm removeMailingListBtn';
-        button.textContent = removeButtonText;
-        button.addEventListener('click', deleteRowHandler);
-        tdButton.appendChild(button);
+        tdButton.className = 'col-3 d-flex justify-content-end align-items-center'; // Flexbox alignment
+
+        // Create and append Edit Button
+        const editButton = createButton('Edit', 'btn btn-success btn-sm', editRowHandler); // Replace editRowHandler with your function
+        tdButton.appendChild(editButton);
+
+        // Add a little gap between buttons
+        editButton.style.marginRight = '10px'; // 10px gap, adjust as needed
+
+        // Create and append Remove Button
+        const removeButton = createButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
+        tdButton.appendChild(removeButton);
+
         tr.appendChild(tdCheckbox);
         tr.appendChild(tdName);
         tr.appendChild(tdRegDate);
         tr.appendChild(tdButton);
+
         return tr;
     }
+
 
     function attachDeleteListenerToButton(button) {
         button.addEventListener('click', function () {
@@ -266,6 +289,10 @@
             });
         });
     }
+
+    const editRowHandler = function () {
+        alert('not available')
+    };
 
     const deleteRowHandler = function () {
         const row = this.closest('tr');

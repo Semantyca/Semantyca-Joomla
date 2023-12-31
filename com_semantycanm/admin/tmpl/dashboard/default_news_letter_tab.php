@@ -63,11 +63,21 @@
     </div>
     <div class="row justify-content-center mt-5">
         <div class="col-md-12">
-            <div class="header-container">
+            <div class="header-container d-flex justify-content-between align-items-center">
                 <h3 class="mb-4"><?php echo JText::_('NEWSLETTERS_LIST'); ?></h3>
                 <div id="newsletterSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
                      style="display: none;">
                     <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
+                </div>
+                <div>
+                    <input type="hidden" id="totalInMailingList" value="0"/>
+                    <input type="hidden" id="currentInMailingList" value="1"/>
+                </div>
+                <div class="pagination-container mb-3 me-2">
+                    <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
+                    <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
                 </div>
             </div>
             <div class="table-responsive" style="height: 200px;">
