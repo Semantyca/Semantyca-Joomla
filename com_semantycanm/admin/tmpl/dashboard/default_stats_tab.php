@@ -2,26 +2,16 @@
     <div class="row">
         <div class="col-md-12">
             <div class="header-container d-flex justify-content-between align-items-center">
-                <div class="header-container d-flex justify-content-between align-items-center">
                     <h3><?php echo JText::_('STATISTICS'); ?></h3>
                     <div id="statSpinner" class="spinner">
                         <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
                              alt="Loading" class="spinner-icon">
                     </div>
-
-                </div>
-
                 <div>
                     <input type="hidden" id="total" value="0"/>
                     <input type="hidden" id="current" value="1"/>
                 </div>
-                <div class="pagination-container mb-3 me-2">
-                    <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
-                    <a class="btn btn-primary" href="#"
-                       id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
-                    <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
-                    <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
-                </div>
+	            <?php include(__DIR__ . '/../pagination.php'); ?>
             </div>
             <div class="table-responsive">
                 <table class="table">

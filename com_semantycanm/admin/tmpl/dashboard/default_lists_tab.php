@@ -1,7 +1,7 @@
 <div class="container mt-5">
+
     <div class="row">
         <div class="col-md-6">
-
             <h3><?php echo JText::_('AVAILABLE_USER_GROUPS'); ?></h3>
             <div class="col-md-12 dragdrop-list">
                 <ul class="list-group" id="availableGroups">
@@ -45,23 +45,16 @@
     <div class="row mt-4">
         <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
             <div class="header-container d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center justify-content-start" style="flex-grow: 1;">
                 <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
-                    <div id="mailingListSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
-                         style="display: none; margin-left: 10px;">
-                        <span class="visually-hidden"><?php echo JText::_('LOADING'); ?></span>
-                    </div>
+                <div id="listSpinner" class="spinner">
+                    <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
+                         alt="Loading" class="spinner-icon">
                 </div>
                 <div>
                     <input type="hidden" id="totalInMailingList" value="0"/>
                     <input type="hidden" id="currentInMailingList" value="1"/>
                 </div>
-                <div class="pagination-container mb-3 me-2">
-                    <a class="btn btn-primary" href="#" id="goToFirstPage"><?php echo JText::_('FIRST'); ?></a>
-                    <a class="btn btn-primary" href="#" id="goToPreviousPage"><?php echo JText::_('PREVIOUS'); ?></a>
-                    <a class="btn btn-primary" href="#" id="goToNextPage"><?php echo JText::_('NEXT'); ?></a>
-                    <a class="btn btn-primary" href="#" id="goToLastPage"><?php echo JText::_('LAST'); ?></a>
-                </div>
+	            <?php include(__DIR__ . '/../pagination.php'); ?>
             </div>
             <table class="table">
                 <thead>
@@ -94,36 +87,17 @@
             mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
         }
 
-        document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => {
-            refreshMailingList();
-        });
+        document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => refreshMailingList());
+        document.getElementById('refreshMailingListButton').addEventListener('click', () => refreshMailingList());
+        document.getElementById('goToFirstPage').addEventListener('click', () => refreshMailingList(1));
+        document.getElementById('goToPreviousPage').addEventListener('click', () => goToPreviousPage());
+        document.getElementById('goToNextPage').addEventListener('click', () => goToNextPage());
+        document.getElementById('goToLastPage').addEventListener('click', () => goToLastPage());
 
-        document.getElementById('refreshMailingListButton').addEventListener('click', () => {
-            refreshMailingList();
-        });
-
-        document.getElementById('goToFirstPage').addEventListener('click', function (e) {
-            refreshMailingList(1);
-        });
-
-        document.getElementById('goToPreviousPage').addEventListener('click', function (e) {
-            goToPreviousPage();
-        });
-
-        document.getElementById('goToNextPage').addEventListener('click', function (e) {
-            goToNextPage();
-        });
-
-        document.getElementById('goToLastPage').addEventListener('click', function (e) {
-            goToLastPage();
-        });
-
-
-        document.getElementById('addGroup').addEventListener('click', function (e) {
-            e.preventDefault();
+        document.getElementById('addGroup').addEventListener('click', function () {
             const mailingListName = document.getElementById('mailingListName').value;
             if (mailingListName === '') {
-                showBootstrapAlert("Mailing list name cannot be empty", "warning");
+                showAlertBar("Mailing list name cannot be empty", "warning");
                 return;
             }
 
@@ -132,7 +106,7 @@
             }).get();
 
             if (listItems.length === 0) {
-                showBootstrapAlert('The list is empty.', 'warning');
+                showAlertBar('The list is empty.', 'warning');
                 return;
             }
 
@@ -154,7 +128,7 @@
                     console.log(textStatus, errorThrown);
                 },
                 complete: function () {
-                    hideSpinner('mailingListSpinner');
+                    hideSpinner('listSpinner');
                 }
             });
         });
@@ -182,7 +156,7 @@
 
 
     function refreshMailingList() {
-        showSpinner('mailingListSpinner');
+        showSpinner('listSpinner');
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=MailingList.findall',
             type: 'GET',
@@ -197,7 +171,7 @@
                 console.log('Error:', textStatus, errorThrown);
             },
             complete: function () {
-                hideSpinner('mailingListSpinner');
+                hideSpinner('listSpinner');
             }
         });
     }
@@ -214,7 +188,7 @@
         const button = document.createElement('button');
         button.className = buttonClass;
         button.textContent = buttonText;
-        button.style.height = '30px';  // Set the height of the button
+        button.style.height = '30px';
         button.style.width = '65px';
         if (eventHandler) {
             button.addEventListener('click', eventHandler);
@@ -244,16 +218,10 @@
         tdRegDate.textContent = entry.reg_date;
 
         const tdButton = document.createElement('td');
-        tdButton.className = 'col-3 d-flex justify-content-end align-items-center'; // Flexbox alignment
-
-        // Create and append Edit Button
-        const editButton = createButton('Edit', 'btn btn-success btn-sm', editRowHandler); // Replace editRowHandler with your function
+        tdButton.className = 'col-3 d-flex justify-content-end align-items-center';
+        const editButton = createButton('Edit', 'btn btn-success btn-sm', editRowHandler);
         tdButton.appendChild(editButton);
-
-        // Add a little gap between buttons
-        editButton.style.marginRight = '10px'; // 10px gap, adjust as needed
-
-        // Create and append Remove Button
+        editButton.style.marginRight = '10px';
         const removeButton = createButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
         tdButton.appendChild(removeButton);
 
@@ -270,7 +238,7 @@
         button.addEventListener('click', function () {
             const row = this.closest('tr');
             const id = row.getAttribute('data-id');
-            showSpinner('mailinListSpinner');
+            showSpinner('listSpinner');
 
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
@@ -284,7 +252,7 @@
                     console.error('Error:', textStatus, errorThrown);
                 },
                 complete: function () {
-                    hideSpinner('mailingListSpinner');
+                    hideSpinner('listSpinner');
                 }
             });
         });
@@ -297,7 +265,7 @@
     const deleteRowHandler = function () {
         const row = this.closest('tr');
         const id = row.getAttribute('data-id');
-        showSpinner('mailinListSpinner');
+        showSpinner('listSpinner');
 
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
@@ -311,7 +279,7 @@
                 console.error('Error:', textStatus, errorThrown);
             },
             complete: function () {
-                hideSpinner('mailingListSpinner');
+                hideSpinner('listSpinner');
             }
         });
     };

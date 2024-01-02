@@ -47,7 +47,7 @@ $this->selectedLetters = [];
 
 ?>
 
-
+<div id="alertPlaceholder"></div>
 <div class="bd-example">
     <nav>
         <div class="nav nav-tabs mb-3" id="nav-tab" role="tablist">
