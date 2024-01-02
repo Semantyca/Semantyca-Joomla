@@ -7,17 +7,16 @@ use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class ArticleModel extends BaseDatabaseModel
 {
 	protected string $base;
-	protected string $defaultItem;
 
 	public function __construct()
 	{
 		parent::__construct();
 		$this->base        = Uri::root();
-		$this->defaultItem = $this->getDefaultItem();
 	}
 
 	public function getList()
@@ -119,14 +118,15 @@ class ArticleModel extends BaseDatabaseModel
 
 	private function constructArticleUrl($article): string
 	{
-		$relativeUrl = 'index.php?option=com_content&view=article&id=' . $article->id . '&catid=' . $article->catid . '&Itemid=' . $this->defaultItem;
+		$relativeUrl = 'index.php?option=com_content&view=article&id='
+			. $article->id . '&catid=' . $article->catid . $this->getItemId($article);
 
 		$parsedBase = parse_url($this->base);
 
 		return $parsedBase['scheme'] . '://' . $parsedBase['host'] . $parsedBase['path'] . $relativeUrl;
 	}
 
-	private function getDefaultItem(): string
+	private function getItemId($article): string
 	{
 		$params         = ComponentHelper::getParams(Constants::COMPONENT_NAME);
 		$itemIdSourcing = $params->get('itemid_sourcing', 0);
@@ -134,9 +134,9 @@ class ArticleModel extends BaseDatabaseModel
 		switch ($itemIdSourcing)
 		{
 			case 'custom':
-				return $params->get('defined_item_id', 1);
+				return '&Itemid=' . $params->get('defined_item_id', 1);
 			case 'smart':
-				/*	$db   = $this->getDatabase();
+				$db = $this->getDatabase();
 					$menuQuery = $db->getQuery(true)
 						->select($db->quoteName('id'))
 						->from($db->quoteName('#__menu'))
@@ -147,14 +147,14 @@ class ArticleModel extends BaseDatabaseModel
 					$db->setQuery($menuQuery);
 					$itemId = $db->loadResult();
 					if ($itemId) {
-						return $itemId;
+						return '&Itemid=' . $itemId;
 					} else {
 						LogHelper::logWarn('The itemId has not been resolved with the smart option', __CLASS__);
-						return '';
-					}*/
-				return '';
+
+						return '&Itemid=';
+					}
 			default:
-				return '';
+				return '&Itemid=';
 		}
 	}
 
