@@ -101,9 +101,7 @@
                 return;
             }
 
-            const listItems = $('#selectedGroups li').map(function () {
-                return $(this).text();
-            }).get();
+            const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.textContent);
 
             if (listItems.length === 0) {
                 showAlertBar('The list is empty.', 'warning');
@@ -125,7 +123,7 @@
                     tableBody.insertBefore(newRow, tableBody.firstChild);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                    showAlertBar(errorThrown, "error");
                 },
                 complete: function () {
                     hideSpinner('listSpinner');
@@ -135,7 +133,6 @@
     });
 
     document.getElementById('addGroup').addEventListener('click', function (e) {
-        e.preventDefault();
         const mailingListName = document.getElementById('mailingListName');
         if (mailingListName.value === '') {
             mailingListName.classList.add('is-invalid');
@@ -161,14 +158,13 @@
             url: 'index.php?option=com_semantycanm&task=MailingList.findall',
             type: 'GET',
             success: function (response) {
-                console.log(response);
                 if (response.success && response.data) {
                     const mailingList = document.getElementById('mailingList');
                     mailingList.replaceChildren(composeMailingListEntry(response.data));
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.log('Error:', textStatus, errorThrown);
+                showAlertBar(errorThrown, "error");
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -184,30 +180,13 @@
         return fragment;
     }
 
-    function createButton(buttonText, buttonClass, eventHandler) {
-        const button = document.createElement('button');
-        button.className = buttonClass;
-        button.textContent = buttonText;
-        button.style.height = '30px';
-        button.style.width = '65px';
-        if (eventHandler) {
-            button.addEventListener('click', eventHandler);
-        }
-        return button;
-    }
-
     function createMailingListRow(entry) {
         const tr = document.createElement('tr');
         tr.className = 'list-group-item d-flex';
         tr.setAttribute('data-id', entry.id);
 
         const tdCheckbox = document.createElement('td');
-        tdCheckbox.className = 'col-1';
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.name = 'selectedItems[]';
-        checkbox.value = entry.id;
-        tdCheckbox.appendChild(checkbox);
+        tdCheckbox.appendChild(createRowCheckBox(entry.id));
 
         const tdName = document.createElement('td');
         tdName.className = 'col-5';
@@ -219,10 +198,10 @@
 
         const tdButton = document.createElement('td');
         tdButton.className = 'col-3 d-flex justify-content-end align-items-center';
-        const editButton = createButton('Edit', 'btn btn-success btn-sm', editRowHandler);
+        const editButton = createRowButton('Edit', 'btn btn-success btn-sm', editRowHandler);
         tdButton.appendChild(editButton);
         editButton.style.marginRight = '10px';
-        const removeButton = createButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
+        const removeButton = createRowButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
         tdButton.appendChild(removeButton);
 
         tr.appendChild(tdCheckbox);
@@ -233,33 +212,26 @@
         return tr;
     }
 
-
-    function attachDeleteListenerToButton(button) {
-        button.addEventListener('click', function () {
-            const row = this.closest('tr');
-            const id = row.getAttribute('data-id');
-            showSpinner('listSpinner');
-
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
-                type: 'DELETE',
-                success: function (response) {
-                    if (row) {
-                        row.remove();
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('Error:', textStatus, errorThrown);
-                },
-                complete: function () {
-                    hideSpinner('listSpinner');
-                }
-            });
-        });
-    }
-
     const editRowHandler = function () {
-        alert('not available')
+        const row = this.closest('tr');
+        const id = row.getAttribute('data-id');
+        showSpinner('listSpinner');
+
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=MailingList.find&detailed=1&id=' + id,
+            type: 'GET',
+            success: function (response) {
+                console.log(response.data)
+                //document.getElementById('mailingListName').value = response.data.name;
+                showAlertBar('the feature is not available yet', "warning");
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showAlertBar(errorThrown, "error");
+            },
+            complete: function () {
+                hideSpinner('listSpinner');
+            }
+        });
     };
 
     const deleteRowHandler = function () {
@@ -270,20 +242,19 @@
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
             type: 'DELETE',
-            success: function (response) {
+            success: function () {
                 if (row) {
                     row.remove();
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.error('Error:', textStatus, errorThrown);
+                showAlertBar(errorThrown, "error");
             },
             complete: function () {
                 hideSpinner('listSpinner');
             }
         });
     };
-
 
     const elementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');
@@ -293,7 +264,9 @@
         return newLiEntry;
     };
 
-    dragAndDropSet($('#availableGroups')[0], $('#selectedGroups')[0], elementCreator);
+    dragAndDropSet(document.getElementById('availableGroups'), document.getElementById('selectedGroups'), elementCreator);
+
+
 
 
 </script>

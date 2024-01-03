@@ -72,6 +72,27 @@ class MailingListController extends BaseController
 		}
 	}
 
+	public function find()
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
+			$id       = $this->input->getString('id');
+			$detailed = $this->input->getString('detailed');
+			$model    = $this->getModel();
+			$results  = $model->find($id, $detailed);
+			echo new JsonResponse($results);
+		}
+		catch (\Exception $e)
+		{
+			http_response_code(500);
+			echo new JsonResponse($e->getErrors(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
+		}
+	}
+
 	public function delete()
 	{
 		try

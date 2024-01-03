@@ -4,7 +4,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
-use Semantyca\Component\SemantycaNM\Site\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
 {

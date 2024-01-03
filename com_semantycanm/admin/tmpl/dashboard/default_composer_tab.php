@@ -14,22 +14,20 @@
 				foreach ($this->articlesList as $article): ?>
                     <li class="list-group-item"
 						<?php echo 'id="' . $article->id .
-                            '" title="' . $article->title .
-                            '"  data-url="' . $article->url .
-                            '" data-category="' . $article->category .
-                            '" data-intro="' . rawurlencode($article->introtext) . '"'; ?>>
+							'" title="' . $article->title .
+							'"  data-url="' . $article->url .
+							'" data-category="' . $article->category .
+							'" data-intro="' . rawurlencode($article->introtext) . '"'; ?>>
                         <strong><?php echo $article->category ?></strong><br>'<?php echo $article->title; ?>'
                     </li>
 				<?php endforeach; ?>
             </ul>
         </div>
         <div class="col-md-6">
-            <h3><?php echo JText::_('SELECTED_ARTICLES'); ?></h3>
-            <div class="col-md-12 dragdrop-list">
-                <ul id="selectedArticles" class="list-group">
-
-                </ul>
+            <div class="header-container">
+                <h3><?php echo JText::_('SELECTED_ARTICLES'); ?></h3>
             </div>
+            <ul id="selectedArticles" class="list-group dragdrop-list"></ul>
         </div>
     </div>
     <div class="row mt-4">
@@ -50,11 +48,17 @@
 
     $(document).ready(function () {
         document.getElementById('resetBtn').addEventListener('click', function () {
-            let outputHtml = document.getElementById('outputHtml');
-            outputHtml.value = '';
-            if (outputHtml._trumbowyg) {
-                outputHtml._trumbowyg.empty();
-            }
+            let sourceList = document.querySelectorAll('#selectedArticles li');
+            let targetList = document.getElementById('articlesList');
+            sourceList.forEach((li) => {
+                let articleElement = createElement(li.id, li.title, li.dataset.url, li.dataset.category, li.dataset.intro);
+                if (targetList.firstChild) {
+                    targetList.insertBefore(articleElement, targetList.firstChild);
+                } else {
+                    targetList.appendChild(articleElement);
+                }
+            });
+            document.querySelector('.trumbowyg-editor').innerHTML = '';
             document.getElementById('selectedArticles').innerHTML = '';
         });
 
@@ -63,33 +67,9 @@
             clearTimeout(this.delayTimeout);
             this.delayTimeout = setTimeout(() => {
                 const searchTerm = this.value.toLowerCase();
-                showSpinner('composerSpinner');
-                fetch('index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm))
-                    .then(response => response.json())
-                    .then(data => {
-                        const articlesList = document.getElementById('articlesList');
-                        articlesList.innerHTML = '';
-                        data.data.forEach(article => {
-                            const li = document.createElement('li');
-                            li.className = 'list-group-item';
-                            li.setAttribute('id', article.id);
-                            li.setAttribute('title', article.title);
-                            li.setAttribute('data-url', article.url);
-                            li.setAttribute('data-category', article.category);
-                            li.setAttribute('data-intro', encodeURIComponent(article.introtext));
-                            li.innerHTML = `<strong>${article.category}</strong><br>${article.title}`;
-                            articlesList.appendChild(li);
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                    })
-                    .finally(() => {
-                        hideSpinner('composerSpinner');
-                    });
+                fetchArticles(searchTerm);
             }, delayTime);
         });
-
 
 
         $('#copyCodeBtn').click(function () {
@@ -97,9 +77,9 @@
             const tempTextArea = $('<textarea>').val(completeHTML).appendTo('body').select();
             const successful = document.execCommand('copy');
             if (successful) {
-                alert('HTML code copied to clipboard!');
+                showAlertBar('HTML code copied to clipboard!', "info");
             } else {
-                alert('Failed to copy. Please try again.');
+                showAlertBar('Failed to copy. Please try again.', "warning");
             }
             tempTextArea.remove();
         });
@@ -111,18 +91,42 @@
         });
     });
 
-    const articleElementCreator = function (draggedElement) {
-        let newLiEntry = document.createElement('li');
-        newLiEntry.dataset.id = draggedElement.id;
-        newLiEntry.textContent = draggedElement.title;
-        newLiEntry.dataset.title = draggedElement.title;
-        newLiEntry.dataset.url = draggedElement.dataset.url;
-        newLiEntry.dataset.category = draggedElement.dataset.category;
-        newLiEntry.dataset.intro = draggedElement.dataset.intro;
-        newLiEntry.className = "list-group-item4";
-        return newLiEntry;
+    function createElement(id, title, url, category, intro) {
+        let li = document.createElement('li');
+        li.className = 'list-group-item';
+        li.setAttribute('id', id);
+        li.setAttribute('title', title);
+        li.setAttribute('data-url', url);
+        li.setAttribute('data-category', category);
+        li.setAttribute('data-intro', intro);
+        li.innerHTML = `<strong>${category}</strong><br>${title}`;
+        return li;
     }
 
-    dragAndDropSet($('#articlesList')[0], $('#selectedArticles')[0], articleElementCreator, updateNewsletterContent);
+    const articleElementCreator = function (draggedObj) {
+        return createElement(draggedObj.id, draggedObj.title, draggedObj.dataset.url, draggedObj.dataset.category, draggedObj.dataset.intro);
+    }
+
+    dragAndDropSet(document.getElementById('articlesList'), document.getElementById('selectedArticles'), articleElementCreator, updateNewsletterContent);
+
+    function fetchArticles(searchTerm) {
+        showSpinner('composerSpinner');
+        fetch('index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm))
+            .then(response => response.json())
+            .then(data => {
+                const artclLst = document.getElementById('articlesList');
+                artclLst.innerHTML = '';
+                data.data.forEach(a => {
+                    let liElement = createElement(a.id, a.title, a.url, a.category, encodeURIComponent(a.introtext));
+                    artclLst.appendChild(liElement);
+                });
+            })
+            .catch(error => {
+                showAlertBar(error, "error");
+            })
+            .finally(() => {
+                hideSpinner('composerSpinner');
+            });
+    }
 
 </script>

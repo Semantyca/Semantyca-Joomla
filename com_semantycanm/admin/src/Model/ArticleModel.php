@@ -109,6 +109,7 @@ class ArticleModel extends BaseDatabaseModel
 		$articles = $db->loadObjectList();
 		foreach ($articles as $article)
 		{
+			//TODO it should be optimized
 			$article->url = $this->constructArticleUrl($article);
 		}
 

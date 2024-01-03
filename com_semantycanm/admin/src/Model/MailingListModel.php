@@ -27,33 +27,46 @@ class MailingListModel extends BaseDatabaseModel
 		return $db->loadObjectList();
 	}
 
-	public function find($id)
+	public function find($id, $detailed)
 	{
-		$db    = $this->getDatabase();
+		$db = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query->select(
 			array(
 				$db->quoteName('#__semantyca_nm_mailing_list.name'),
 				$db->quoteName('#__semantyca_nm_mailing_list.id'),
-				$db->quoteName('#__semantyca_nm_mailing_list.reg_date')))
-			->from($db->quoteName('#__semantyca_nm_mailing_list'))
-			->join('LEFT',
-				$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
-			->where($db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quote($id))
-			->group($db->quoteName('#__semantyca_nm_mailing_list.id'))
-			->order('reg_date DESC');
+				$db->quoteName('#__semantyca_nm_mailing_list.reg_date')
+			)
+		)->from($db->quoteName('#__semantyca_nm_mailing_list'))
+			->where($db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quote($id));
 
 		$db->setQuery($query);
-		$result = $db->loadObject();
-		if (!$result)
+		$mailingList = $db->loadObject();
+
+		if (!$mailingList)
 		{
 			throw new RecordNotFoundException("Record not found for ID: $id");
 		}
 
-		return $result;
+		if ($detailed)
+		{
+			$subscribersQuery = $db->getQuery(true);
+			$subscribersQuery->select(
+				array(
+					$db->quoteName('id', 'subscriber_id'),
+					$db->quoteName('name', 'subscriber_name'),
+					$db->quoteName('email', 'subscriber_email')
+				)
+			)->from($db->quoteName('#__semantyca_nm_subscribers'))
+				->where($db->quoteName('mail_list_id') . ' = ' . $db->quote($id));
 
+			$db->setQuery($subscribersQuery);
+			$subscribers              = $db->loadObjectList();
+			$mailingList->subscribers = $subscribers;
+		}
+
+		return $mailingList;
 	}
-
 
 	public function getSubscribers($mailing_list_name)
 	{
