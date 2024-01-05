@@ -7,25 +7,36 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundExcept
 
 class MailingListModel extends BaseDatabaseModel
 {
-	public function getList()
+	public function getList($currentPage, $itemsPerPage)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
-		$query->select(
-			array(
-				$db->quoteName('#__semantyca_nm_mailing_list.name'),
-				$db->quoteName('#__semantyca_nm_mailing_list.id'),
-				$db->quoteName('#__semantyca_nm_mailing_list.reg_date')))
+		$offset = ($currentPage - 1) * $itemsPerPage;
+
+		$query
+			->select($db->quoteName(array('id', 'name', 'reg_date')))
 			->from($db->quoteName('#__semantyca_nm_mailing_list'))
-			->join('LEFT',
-				$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
-			->group($db->quoteName('#__semantyca_nm_mailing_list.id'))
-			->order('reg_date DESC');
+			->order('reg_date DESC')
+			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
+		$documents = $db->loadObjectList();
 
-		return $db->loadObjectList();
+		$queryCount = $db->getQuery(true)
+			->select('COUNT(' . $db->quoteName('id') . ')')
+			->from($db->quoteName('#__semantyca_nm_mailing_list'));
+		$db->setQuery($queryCount);
+		$count   = $db->loadResult();
+		$maxPage = (int) ceil($count / $itemsPerPage);
+
+		return [
+			'docs'    => $documents,
+			'count'   => $count,
+			'current' => $currentPage,
+			'maxPage' => $maxPage
+		];
 	}
+
 
 	public function find($id, $detailed)
 	{

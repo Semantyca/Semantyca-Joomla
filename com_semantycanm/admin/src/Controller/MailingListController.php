@@ -16,13 +16,13 @@ class MailingListController extends BaseController
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
 		try
 		{
+			$currentPage  = $app->input->getInt('page', 1);
+			$itemsPerPage = $app->input->getInt('limit', 10);
 			$model   = $this->getModel();
-			$results = $model->getList();
-			Factory::getApplication();
-			echo new JsonResponse($results);
-
+			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Exception $e)
 		{
@@ -31,7 +31,7 @@ class MailingListController extends BaseController
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
-			Factory::getApplication()->close();
+			$app->close();
 		}
 	}
 

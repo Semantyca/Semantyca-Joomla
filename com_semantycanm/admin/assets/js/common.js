@@ -10,38 +10,37 @@ function hideSpinner(spinnerId) {
     spinner.style.opacity = '0';
 }
 
-function getTotalPages() {
-    const totalRecords = parseInt(document.getElementById('total').value);
-    const itemsPerPage = 10;
-    return Math.ceil(totalRecords / itemsPerPage);
+function getTotalPages(hiddenTotalInput) {
+    const totalRecords = parseInt(document.getElementById(hiddenTotalInput).value);
+    return Math.ceil(totalRecords / ITEMS_PER_PAGE);
 }
 
-function getCurrentPage() {
-    return parseInt(document.getElementById('current').value);
+function getCurrentPage(hiddenCurrentPageInput) {
+    return parseInt(document.getElementById(hiddenCurrentPageInput).value);
 }
 
-function goToFirstPage() {
-    refreshStats(1);
+function goToFirstPage(func) {
+    func(1);
 }
 
-function goToPreviousPage() {
-    const currentPage = getCurrentPage();
+function goToPreviousPage(currentPageNumHolder, func) {
+    const currentPage = getCurrentPage(currentPageNumHolder);
     if (currentPage > 1) {
-        refreshStats(currentPage - 1);
+        func(currentPage - 1);
     }
 }
 
-function goToNextPage() {
-    const currentPage = getCurrentPage();
-    const totalPages = getTotalPages();
+function goToNextPage(currentPageNumHolder, totalValueHolder, func) {
+    const currentPage = getCurrentPage(currentPageNumHolder);
+    const totalPages = getTotalPages(totalValueHolder);
     if (currentPage < totalPages) {
-        refreshStats(currentPage + 1);
+        func(currentPage + 1);
     }
 }
 
-function goToLastPage() {
-    const totalPages = getTotalPages();
-    refreshStats(totalPages);
+function goToLastPage(totalValueHolder, func) {
+    const totalPages = getTotalPages(totalValueHolder);
+    func(totalPages);
 }
 
 
@@ -82,12 +81,16 @@ function showAlertBar(message, type = 'danger', duration = 5000) {
     closeButton.onclick = function () {
         fadeOutAndRemoveAlert(alert);
     };
-    setTimeout(function () {
-        fadeOutAndRemoveAlert(alert);
-    }, duration);
+    if (type !== 'danger') {
+        setTimeout(function () {
+            fadeOutAndRemoveAlert(alert);
+        }, duration);
+    }
 }
 
 function fadeOutAndRemoveAlert(alert) {
     alert.classList.remove('show');
-    alert.ontransitionend = () => alert.remove();
+    setTimeout(() => alert.remove(), 150);
 }
+
+

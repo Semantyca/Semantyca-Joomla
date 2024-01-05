@@ -7,12 +7,12 @@
             <div class="col-md-12 dragdrop-list">
                 <ul class="list-group" id="availableListsUL">
 					<?php
-					$availableLists = $this->mailingLists;
-					foreach ($availableLists as $listName): ?>
-                        <li class="list-group-item" <?php echo 'id="' . $listName->id . '"'; ?>>
-							<?php echo $listName->name; ?>
+					/*					$availableLists = $this->mailingLists;
+										foreach ($availableLists as $listName): */ ?><!--
+                        <li class="list-group-item" <?php /*echo 'id="' . $listName->id . '"'; */ ?>>
+							<?php /*echo $listName->name; */ ?>
                         </li>
-					<?php endforeach; ?>
+					--><?php /*endforeach; */ ?>
                 </ul>
             </div>
         </div>
@@ -69,11 +69,30 @@
                     <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
                          alt="Loading" class="spinner-icon">
                 </div>
-                <div>
-                    <input type="hidden" id="totalInMailingList" value="0"/>
-                    <input type="hidden" id="currentInMailingList" value="1"/>
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="color: gray; display: flex; gap: 5px; align-items: center;">
+                        <label for="totalNewsletterList">Total:</label><input type="text" id="totalNewsletterList"
+                                                                              value="0" readonly
+                                                                              style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                        <label for="currentNewsletterList">Page:</label><input type="text" id="currentNewsletterList"
+                                                                               value="1" readonly
+                                                                               style="width: 20px; border: none; background-color: transparent; color: inherit;"/>
+                        <label for="maxNewsletterList">of</label><input type="text" id="maxNewsletterList" value="1"
+                                                                        readonly
+                                                                        style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                    </div>
+                    <div class="pagination-container mb-3 me-2">
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="firstPageNewsletterList"><?php echo JText::_('FIRST'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="previousPageNewsletterList"><?php echo JText::_('PREVIOUS'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="nextPageNewsletterList"><?php echo JText::_('NEXT'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="lastPageNewsletterList"><?php echo JText::_('LAST'); ?></a>
+                    </div>
                 </div>
-	            <?php include(__DIR__ . '/../pagination.php'); ?>
+
             </div>
             <div class="table-responsive" style="height: 200px;">
                 <table class="table table-fixed">
@@ -105,31 +124,34 @@
 <script>
 
     $(document).ready(function () {
-        $('#nav-newsletters-tab').on('shown.bs.tab', function () {
-            refreshNewsletters();
+
+        document.querySelector('#nav-newsletters-tab').addEventListener('shown.bs.tab', function () {
+            refreshNewsletters(1);
         });
 
-        $('#refreshNewsLettersButton').click(function () {
-            refreshNewsletters();
+        document.querySelector('#refreshNewsLettersButton').addEventListener('click', function () {
+            refreshNewsletters(1);
         });
 
-        $('#addSubjectBtn').click(function () {
+        new Pagination('NewsletterList', refreshNewsletters);
+
+        document.querySelector('#addSubjectBtn').addEventListener('click', function () {
             $.ajax({
                 url: 'index.php?option=com_semantycanm&task=service.getSubject&type=random',
                 type: 'GET',
                 success: function (response) {
                     console.log(response.data);
-                    $('#subject').val(response.data);
+                    document.querySelector('#subject').value = response.data;
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                    showAlertBar(textStatus + ", " + errorThrown);
                 }
             });
         });
 
-        $('#sendNewsletterBtn').click(function () {
-            const msgContent = $('#messageContent').val();
-            let subj = $('#subject').val();
+        document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
+            const msgContent = document.getElementById('messageContent').value;
+            let subj = document.getElementById('subject').value;
             let listItems = $('#selectedLists li').map(function () {
                 return $(this).text();
             }).get();
@@ -170,7 +192,7 @@
                     if (response.status === 200) {
                         console.log(JSON.stringify(response.data));
                         alert(JSON.stringify(response.data))
-                        refreshNewsletters();
+                        refreshNewsletters(1);
                     } else {
                         console.error('Error:', response.status);
                     }
@@ -178,9 +200,9 @@
                 .catch((error) => console.error('Error:', error));
         });
 
-        $('#saveNewsletterBtn').click(function (e) {
-            const msgContent = $('#messageContent').val();
-            let subj = $('#subject').val();
+        document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
+            const msgContent = document.getElementById('messageContent').value;
+            let subj = document.getElementById('subject').value;
 
             if (msgContent === '') {
                 alert("Message content is empty. It cannot be saved")
@@ -203,15 +225,15 @@
                 success: function (response) {
                     console.log(JSON.stringify(response.data));
                     alert(JSON.stringify(response.data))
-                    refreshNewsletters();
+                    refreshNewsletters(1);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                    showAlertBar(textStatus + ", " + errorThrown);
                 }
             });
         });
 
-        $('#toggleEditBtn').click(function () {
+        document.getElementById('toggleEditBtn').addEventListener('click', function () {
             const messageContent = document.getElementById('messageContent');
             const toggleBtn = document.getElementById('toggleEditBtn');
             if (messageContent.hasAttribute('readonly')) {
@@ -238,7 +260,7 @@
                     $('#subject').val(respData.subject);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                    showAlertBar(textStatus + ", " + errorThrown);
                 }
             });
         });
@@ -253,45 +275,11 @@
                     $('#' + id).remove();
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    console.log(textStatus, errorThrown);
+                    showAlertBar(textStatus + ", " + errorThrown);
                 }
             });
         });
     });
-
-    /*  let availableLists = document.getElementById('availableListsUL');
-	  let selectedLists = document.getElementById('selectedLists');
-	  let sortableAvailableLists = Sortable.create(availableLists, {
-		  group: {
-			  name: 'shared',
-			  pull: 'clone',
-			  nut: false
-		  },
-		  animation: 150,
-		  sort: false
-		  //TODO it needs to be added
-		  //swap: true,
-		  //swapClass: 'highlight',
-	  });
-
-	  sortableAvailableLists.option("onEnd", function (evt) {
-		  let draggedElement = evt.item;
-		  let duplicate = Array.from(selectedLists.children).some(li => {
-			  return li.dataset.id === draggedElement.id;
-		  });
-		  if (!duplicate) {
-			  let newLiEntry = document.createElement('li');
-			  newLiEntry.textContent = draggedElement.textContent;
-			  newLiEntry.dataset.id = draggedElement.id;
-			  newLiEntry.className = "list-group-item";
-			  newLiEntry.addEventListener("click", function () {
-				  this.parentNode.removeChild(this);
-			  });
-			  selectedLists.appendChild(newLiEntry);
-		  } else {
-			  // selectedLists.style.animation = "flash 1s infinite";
-		  }
-	  });*/
 
     const receiverElementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');
@@ -303,19 +291,23 @@
 
     dragAndDropSet($('#availableListsUL')[0], $('#selectedLists')[0], receiverElementCreator, null);
 
-    function refreshNewsletters() {
+    function refreshNewsletters(currentPage) {
         showSpinner('newsletterSpinner');
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=NewsLetter.findAll',
+            url: 'index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
             type: 'GET',
             success: function (response) {
                 console.log(response);
                 if (response.success && response.data) {
-                    $('#newsLettersList').html(composeNewsLettersContent(response.data));
+                    console.log(response.data);
+                    document.getElementById('totalNewsletterList').value = response.data.count;
+                    document.getElementById('currentNewsletterList').value = response.data.current;
+                    document.getElementById('maxNewsletterList').value = response.data.maxPage;
+                    document.getElementById('newsLettersList').innerHTML = composeNewsLettersContent(response.data.docs);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.log('Error:', textStatus, errorThrown);
+                showAlertBar(textStatus + ", " + errorThrown);
             },
             complete: function () {
                 hideSpinner('newsletterSpinner');

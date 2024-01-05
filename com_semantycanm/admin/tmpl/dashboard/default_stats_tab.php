@@ -8,8 +8,8 @@
                              alt="Loading" class="spinner-icon">
                     </div>
                 <div>
-                    <input type="hidden" id="total" value="0"/>
-                    <input type="hidden" id="current" value="1"/>
+                    <input type="hidden" id="totalStats" value="0"/>
+                    <input type="hidden" id="currentStats" value="1"/>
                 </div>
 	            <?php include(__DIR__ . '/../pagination.php'); ?>
             </div>
@@ -42,7 +42,7 @@
 
 
 <script>
-    const ITEMS_PER_PAGE = 10;
+
 
     $(document).ready(function () {
         document.getElementById('nav-stats-tab').addEventListener('shown.bs.tab', () => refreshStats(1));
@@ -57,7 +57,7 @@
         showSpinner('statSpinner');
 
         currentPage = Math.max(currentPage, 1);
-        const totalPages = getTotalPages();
+        const totalPages = getTotalPages1();
         currentPage = Math.min(currentPage, totalPages);
 
         $.ajax({
@@ -79,37 +79,37 @@
         });
     }
 
-    function getTotalPages() {
-        const totalRecords = parseInt(document.getElementById('total').value);
+    function getTotalPages1() {
+        const totalRecords = parseInt(document.getElementById('totalStats').value);
         const itemsPerPage = 10;
         return Math.ceil(totalRecords / itemsPerPage);
     }
 
-    function getCurrentPage() {
-        return parseInt(document.getElementById('current').value);
+    function getCurrentPage1() {
+        return parseInt(document.getElementById('currentStats').value);
     }
 
-    function goToFirstPage() {
+    function goToFirstPage1() {
         refreshStats(1);
     }
 
-    function goToPreviousPage() {
+    function goToPreviousPage1() {
         const currentPage = getCurrentPage();
         if (currentPage > 1) {
             refreshStats(currentPage - 1);
         }
     }
 
-    function goToNextPage() {
-        const currentPage = getCurrentPage();
-        const totalPages = getTotalPages();
+    function goToNextPage1() {
+        const currentPage = getCurrentPage1();
+        const totalPages = getTotalPages1();
         if (currentPage < totalPages) {
             refreshStats(currentPage + 1);
         }
     }
 
-    function goToLastPage() {
-        const totalPages = getTotalPages();
+    function goToLastPage1() {
+        const totalPages = getTotalPages1();
         refreshStats(totalPages);
     }
 

@@ -7,22 +7,40 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordExceptio
 
 class NewsLetterModel extends BaseDatabaseModel
 {
-	public function getList()
+	public function getList($currentPage, $itemsPerPage)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
+		$offset = ($currentPage - 1) * $itemsPerPage;
+
 		$query
 			->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
 			->from($db->quoteName('#__semantyca_nm_newsletters'))
-			->order('reg_date desc');
+			->order('reg_date desc')
+			->setLimit($itemsPerPage, $offset);
+
 		$db->setQuery($query);
 
-		return $db->loadObjectList();
+		$documents = $db->loadObjectList();
+
+		$queryCount = $db->getQuery(true)
+			->select('COUNT(' . $db->quoteName('id') . ')')
+			->from($db->quoteName('#__semantyca_nm_newsletters'));
+		$db->setQuery($queryCount);
+		$count   = $db->loadResult();
+		$maxPage = (int) ceil($count / $itemsPerPage);
+
+		return [
+			'docs'    => $documents,
+			'count'   => $count,
+			'current' => $currentPage,
+			'maxPage' => $maxPage
+		];
 	}
+
 
 	public function find($id)
 	{
-
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query

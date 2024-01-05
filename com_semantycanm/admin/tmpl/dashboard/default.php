@@ -17,6 +17,7 @@ $media = "administrator/components/com_semantycanm/assets/";
 $rootUrl = JUri::root();
 $bannerImageUrl = $rootUrl . "images/2020/EMSA_logo_full_600-ed.png";
 $host = JUri::getInstance()->toString(['host']);
+$doc->addScript($rootUrl . $media . "js/Pagination.js");
 $doc->addScript($rootUrl . $media . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $media . "js/trumbowyg.min.js");
 $doc->addScript($rootUrl . $media . "js/bootstrap.min.js");
@@ -42,7 +43,6 @@ catch (Exception $e)
 
 $this->usergroups      = $this->user_groups;
 $this->articlesList    = $this->articles;
-$this->mailingLists    = $this->mailing_lists;
 $this->selectedLetters = [];
 
 ?>
@@ -84,13 +84,14 @@ $this->selectedLetters = [];
     </div>
 </div>
 
+
 <script>
+    const ITEMS_PER_PAGE = 5;
     const host = window.location.protocol + '//' + window.location.hostname;
     const port = window.location.port;
     const joomlaHost = host + (port ? ':' + port : '');
     const bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
     const removeButtonText = "<?php echo JText::_('REMOVE'); ?>";
-    const initialMailingListData = <?php echo json_encode($this->mailing_lists); ?>;
 </script>
 
 

@@ -16,10 +16,13 @@ class NewsLetterController extends BaseController
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
 		try
 		{
+			$currentPage  = $app->input->getInt('page', 1);
+			$itemsPerPage = $app->input->getInt('limit', 10);
 			$model   = $this->getModel('NewsLetter');
-			$results = $model->getList();
+			$results      = $model->getList($currentPage, $itemsPerPage);
 			echo new JsonResponse($results);
 		}
 		catch (\Exception $e)
@@ -28,7 +31,7 @@ class NewsLetterController extends BaseController
 			echo new JsonResponse($e->getErrors(), 'error', true);
 		} finally
 		{
-			Factory::getApplication()->close();
+			$app->close();
 		}
 	}
 

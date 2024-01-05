@@ -43,19 +43,38 @@
         </div>
     </div>
     <div class="row mt-4">
-        <div class="col-md-12" style="height: 400px !important; overflow-y: auto;">
-            <div class="header-container d-flex justify-content-between align-items-center">
-                <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
-                <div id="listSpinner" class="spinner">
-                    <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
-                         alt="Loading" class="spinner-icon">
-                </div>
-                <div>
-                    <input type="hidden" id="totalInMailingList" value="0"/>
-                    <input type="hidden" id="currentInMailingList" value="1"/>
-                </div>
-	            <?php include(__DIR__ . '/../pagination.php'); ?>
+
+        <div class="header-container d-flex justify-content-between align-items-center">
+            <h3><?php echo JText::_('MAILING_LISTS'); ?></h3>
+            <div id="listSpinner" class="spinner">
+                <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
+                     alt="Loading" class="spinner-icon">
             </div>
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div style="color: gray; display: flex; gap: 5px; align-items: center;">
+                    <label for="totalMailingList">Total:</label><input type="text" id="totalMailingList" value="0"
+                                                                       readonly
+                                                                       style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                    <label for="currentMailingList">Page:</label><input type="text" id="currentMailingList" value="1"
+                                                                        readonly
+                                                                        style="width: 20px; border: none; background-color: transparent; color: inherit;"/>
+                    <label for="maxMailingList">of</label><input type="text" id="maxMailingList" value="1" readonly
+                                                                 style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                </div>
+                <div class="pagination-container mb-3 me-2">
+                    <a class="btn btn-primary btn-sm" href="#"
+                       id="firstPageMailingList"><?php echo JText::_('FIRST'); ?></a>
+                    <a class="btn btn-primary btn-sm" href="#"
+                       id="previousPageMailingList"><?php echo JText::_('PREVIOUS'); ?></a>
+                    <a class="btn btn-primary btn-sm" href="#"
+                       id="nextPageMailingList"><?php echo JText::_('NEXT'); ?></a>
+                    <a class="btn btn-primary btn-sm" href="#"
+                       id="lastPageMailingList"><?php echo JText::_('LAST'); ?></a>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-md-12" style="height: 400px; overflow-y: auto;">
             <table class="table">
                 <thead>
                 <tr class="d-flex">
@@ -81,18 +100,12 @@
 <script>
 
     document.addEventListener('DOMContentLoaded', function () {
-        const mailingListTable = document.getElementById("mailingList");
+        refreshMailingList(1)
+        document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => refreshMailingList(1));
 
-        if (initialMailingListData) {
-            mailingListTable.appendChild(composeMailingListEntry(initialMailingListData));
-        }
+        document.getElementById('refreshMailingListButton').addEventListener('click', () => refreshMailingList(1));
 
-        document.getElementById('nav-list-tab').addEventListener('shown.bs.tab', () => refreshMailingList());
-        document.getElementById('refreshMailingListButton').addEventListener('click', () => refreshMailingList());
-        document.getElementById('goToFirstPage').addEventListener('click', () => refreshMailingList(1));
-        document.getElementById('goToPreviousPage').addEventListener('click', () => goToPreviousPage());
-        document.getElementById('goToNextPage').addEventListener('click', () => goToNextPage());
-        document.getElementById('goToLastPage').addEventListener('click', () => goToLastPage());
+        new Pagination('MailingList', refreshMailingList);
 
         document.getElementById('addGroup').addEventListener('click', function () {
             const mailingListName = document.getElementById('mailingListName').value;
@@ -117,13 +130,17 @@
                     'mailinglists': listItems.join(',')
                 },
                 success: function (response) {
+                    debugger;
                     document.getElementById('mailingListName').value = '';
                     const newRow = createMailingListRow(response.data);
                     const tableBody = document.getElementById('mailingList');
                     tableBody.insertBefore(newRow, tableBody.firstChild);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
-                    showAlertBar(errorThrown, "error");
+                    console.log('Error:', textStatus, errorThrown);
+                    debugger;
+                    showAlertBar(errorThrown);
+
                 },
                 complete: function () {
                     hideSpinner('listSpinner');
@@ -152,19 +169,23 @@
     });
 
 
-    function refreshMailingList() {
+    function refreshMailingList(currentPage) {
         showSpinner('listSpinner');
+
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=MailingList.findall',
+            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
-                    const mailingList = document.getElementById('mailingList');
-                    mailingList.replaceChildren(composeMailingListEntry(response.data));
+                    console.log("data", response.data)
+                    document.getElementById('totalMailingList').value = response.data.count;
+                    document.getElementById('currentMailingList').value = response.data.current;
+                    document.getElementById('maxMailingList').value = response.data.maxPage;
+                    document.getElementById('mailingList').replaceChildren(composeMailingListEntry(response.data.docs));
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown, "error");
+                showAlertBar(errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -226,7 +247,7 @@
                 showAlertBar('the feature is not available yet', "warning");
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown, "error");
+                showAlertBar(errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -248,7 +269,7 @@
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown, "error");
+                showAlertBar(errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -265,8 +286,6 @@
     };
 
     dragAndDropSet(document.getElementById('availableGroups'), document.getElementById('selectedGroups'), elementCreator);
-
-
 
 
 </script>

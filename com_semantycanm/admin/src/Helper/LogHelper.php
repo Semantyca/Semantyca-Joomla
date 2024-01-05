@@ -7,6 +7,7 @@ use ReflectionClass;
 
 class LogHelper
 {
+	const log_pattern = "%s: %s, Component: %s, Message: %s";
 	const INF = "inf";
 	const WARN = "warn";
 	const ERR = "err";
@@ -15,26 +16,31 @@ class LogHelper
 	{
 		$reflection  = new ReflectionClass($componentName);
 		$className   = $reflection->getShortName();
-		$logData     = [
-			'time'      => date('d.m.y H.i'),
-			'component' => $className,
-			'message'   => $msg,
-		];
+		$logEntry = sprintf(
+			self::log_pattern,
+			INF,
+			date('d.m.y H.i'),
+			$className,
+			$msg
+		);
 		$logFilePath = JPATH_ADMINISTRATOR . '/logs/' . self::getFileName($className, self::INF);
-		error_log(json_encode($logData) . PHP_EOL, 3, $logFilePath);
+		error_log($logEntry . PHP_EOL, 3, $logFilePath);
 	}
 
 	public static function logWarn(string $msg, $componentName)
 	{
 		$reflection  = new ReflectionClass($componentName);
 		$className   = $reflection->getShortName();
-		$logData     = [
-			'time'      => date('d.m.y H.i'),
-			'component' => $className,
-			'message'   => $msg,
-		];
+		$logEntry = sprintf(
+			self::log_pattern,
+			self::WARN,
+			date('d.m.y H.i'),
+			$className,
+			$msg
+		);
+
 		$logFilePath = JPATH_ADMINISTRATOR . '/logs/' . self::getFileName($className, self::WARN);
-		error_log(json_encode($logData) . PHP_EOL, 3, $logFilePath);
+		error_log($logEntry . PHP_EOL, 3, $logFilePath);
 	}
 
 
@@ -43,7 +49,8 @@ class LogHelper
 		$reflection = new ReflectionClass($componentName);
 		$className  = $reflection->getShortName();
 		$logEntry   = sprintf(
-			"Time: %s, Component: %s, Line: %d, Message: %s\nStack Trace:\n%s",
+			"%s: %s, Component: %s, Line: %d, Message: %s\nStack Trace:\n%s",
+			self::ERR,
 			date('d.m.y H.i'),
 			$className,
 			$e->getLine(),
@@ -65,7 +72,7 @@ class LogHelper
 			$formattedLogEntry = implode("\n", $formattedLines);
 		}
 
-		error_log($formattedLogEntry . PHP_EOL, 3, $logFilePath);
+		error_log('----------------------------------------------' . PHP_EOL . $formattedLogEntry . PHP_EOL, 3, $logFilePath);
 	}
 
 
