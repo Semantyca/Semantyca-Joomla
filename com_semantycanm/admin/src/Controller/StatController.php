@@ -23,16 +23,7 @@ class StatController extends BaseController
 			$itemsPerPage = $app->input->getInt('limit', 10);
 
 			$model = $this->getModel('Stat');
-			$results = $model->getList($currentPage, $itemsPerPage);
-			$total   = $model->getTotalCount();
-
-
-			$response = [
-				'documents'  => $results,
-				'total' => $total
-			];
-
-			echo new JsonResponse($response);
+			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Exception $e)
 		{

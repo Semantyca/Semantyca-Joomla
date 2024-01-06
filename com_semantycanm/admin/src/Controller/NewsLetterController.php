@@ -21,9 +21,8 @@ class NewsLetterController extends BaseController
 		{
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
-			$model   = $this->getModel('NewsLetter');
-			$results      = $model->getList($currentPage, $itemsPerPage);
-			echo new JsonResponse($results);
+			$model = $this->getModel('NewsLetter');
+			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Exception $e)
 		{
@@ -58,7 +57,7 @@ class NewsLetterController extends BaseController
 	public function add()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
-		$app   = Factory::getApplication();
+		$app = Factory::getApplication();
 		try
 		{
 			$input = $app->input;
@@ -73,8 +72,8 @@ class NewsLetterController extends BaseController
 					throw new ValidationErrorException(['Message body is required']);
 				}
 
-				$model       = $this->getModel('NewsLetter');
-				$results     = $model->upsert($subj, $msg);
+				$model   = $this->getModel('NewsLetter');
+				$results = $model->upsert($subj, $msg);
 				echo new JsonResponse($results);
 			}
 			else
@@ -99,7 +98,7 @@ class NewsLetterController extends BaseController
 	public function delete()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
-		$app   = Factory::getApplication();
+		$app = Factory::getApplication();
 		try
 		{
 			$app   = Factory::getApplication();

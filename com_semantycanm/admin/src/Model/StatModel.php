@@ -12,8 +12,8 @@ class StatModel extends BaseDatabaseModel
 {
 	public function getList($currentPage = 1, $itemsPerPage = 10)
 	{
-		$db     = $this->getDatabase();
-		$query  = $db->getQuery(true);
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
@@ -23,9 +23,23 @@ class StatModel extends BaseDatabaseModel
 			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
+		$stats = $db->loadObjectList();
 
-		return $db->loadObjectList();
+		$queryCount = $db->getQuery(true)
+			->select('COUNT(' . $db->quoteName('id') . ')')
+			->from($db->quoteName('#__semantyca_nm_stats'));
+		$db->setQuery($queryCount);
+		$count   = $db->loadResult();
+		$maxPage = (int) ceil($count / $itemsPerPage);
+
+		return [
+			'docs'    => $stats,
+			'count'   => $count,
+			'current' => $currentPage,
+			'maxPage' => $maxPage
+		];
 	}
+
 
 	public function getTotalCount(): int
 	{

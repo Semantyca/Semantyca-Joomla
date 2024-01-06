@@ -2,16 +2,37 @@
     <div class="row">
         <div class="col-md-12">
             <div class="header-container d-flex justify-content-between align-items-center">
-                    <h3><?php echo JText::_('STATISTICS'); ?></h3>
-                    <div id="statSpinner" class="spinner">
-                        <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
-                             alt="Loading" class="spinner-icon">
-                    </div>
-                <div>
-                    <input type="hidden" id="totalStats" value="0"/>
-                    <input type="hidden" id="currentStats" value="1"/>
+                <h3><?php echo JText::_('STATISTICS'); ?></h3>
+                <div id="statSpinner" class="spinner">
+                    <img src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
+                         alt="Loading" class="spinner-icon">
                 </div>
-	            <?php include(__DIR__ . '/../pagination.php'); ?>
+                <div style="display: flex; justify-content: space-between; align-items: start;">
+                    <div style="color: gray; display: flex; gap: 5px; align-items: center;">
+                        <label for="totalStatList">Total:</label>
+                        <input type="text" id="totalStatList"
+                               value="0" readonly
+                               style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                        <label for="currentStatList">Page:</label>
+                        <input type="text" id="currentStatList"
+                               value="1" readonly
+                               style="width: 20px; border: none; background-color: transparent; color: inherit;"/>
+                        <label for="maxStatList">of</label>
+                        <input type="text" id="maxStatList" value="1"
+                               readonly
+                               style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
+                    </div>
+                    <div class="pagination-container mb-3 me-2">
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="firstPageStatList"><?php echo JText::_('FIRST'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="previousPageStatList"><?php echo JText::_('PREVIOUS'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="nextPageStatList"><?php echo JText::_('NEXT'); ?></a>
+                        <a class="btn btn-primary btn-sm" href="#"
+                           id="lastPageStatList"><?php echo JText::_('LAST'); ?></a>
+                    </div>
+                </div>
             </div>
             <div class="table-responsive">
                 <table class="table">
@@ -40,77 +61,35 @@
     </div>
 </div>
 
-
 <script>
-
-
     $(document).ready(function () {
         document.getElementById('nav-stats-tab').addEventListener('shown.bs.tab', () => refreshStats(1));
-        document.getElementById('refreshStatsButton').addEventListener('click', () => refreshStats(getCurrentPage()));
-        document.getElementById('goToFirstPage').addEventListener('click', () => goToFirstPage());
-        document.getElementById('goToPreviousPage').addEventListener('click', () => goToPreviousPage());
-        document.getElementById('goToNextPage').addEventListener('click', () => goToNextPage());
-        document.getElementById('goToLastPage').addEventListener('click', () => goToLastPage());
+        document.getElementById('refreshStatsButton').addEventListener('click', () => refreshStats(1));
+        new Pagination('StatList', refreshStats);
     });
 
     function refreshStats(currentPage) {
         showSpinner('statSpinner');
-
-        currentPage = Math.max(currentPage, 1);
-        const totalPages = getTotalPages1();
-        currentPage = Math.min(currentPage, totalPages);
 
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
-                    $('#statsList').html(composeStatsContent(response.data.documents));
-                    $('#total').val(response.data.total);
-                    $('#current').val(currentPage);
+                    console.log(response.data);
+                    document.getElementById('totalStatList').value = response.data.count;
+                    document.getElementById('currentStatList').value = response.data.current;
+                    document.getElementById('maxStatList').value = response.data.maxPage;
+                    document.getElementById('statsList').innerHTML = composeStatsContent(response.data.docs);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.log('Error:', textStatus, errorThrown);
+                showAlertBar(textStatus + ", " + errorThrown);
             },
             complete: function () {
                 hideSpinner('statSpinner');
             }
         });
-    }
-
-    function getTotalPages1() {
-        const totalRecords = parseInt(document.getElementById('totalStats').value);
-        const itemsPerPage = 10;
-        return Math.ceil(totalRecords / itemsPerPage);
-    }
-
-    function getCurrentPage1() {
-        return parseInt(document.getElementById('currentStats').value);
-    }
-
-    function goToFirstPage1() {
-        refreshStats(1);
-    }
-
-    function goToPreviousPage1() {
-        const currentPage = getCurrentPage();
-        if (currentPage > 1) {
-            refreshStats(currentPage - 1);
-        }
-    }
-
-    function goToNextPage1() {
-        const currentPage = getCurrentPage1();
-        const totalPages = getTotalPages1();
-        if (currentPage < totalPages) {
-            refreshStats(currentPage + 1);
-        }
-    }
-
-    function goToLastPage1() {
-        const totalPages = getTotalPages1();
-        refreshStats(totalPages);
     }
 
     function composeStatsContent(data) {
