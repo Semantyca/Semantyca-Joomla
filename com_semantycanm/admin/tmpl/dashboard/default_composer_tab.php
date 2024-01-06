@@ -58,7 +58,9 @@
                     targetList.appendChild(articleElement);
                 }
             });
-            document.querySelector('.trumbowyg-editor').innerHTML = '';
+
+            outputHtml.value = '';
+            $('#outputHtml').trumbowyg('html', '');
             document.getElementById('selectedArticles').innerHTML = '';
         });
 

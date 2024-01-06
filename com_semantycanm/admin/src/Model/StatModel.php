@@ -40,22 +40,6 @@ class StatModel extends BaseDatabaseModel
 		];
 	}
 
-
-	public function getTotalCount(): int
-	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-
-		$query
-			->select('COUNT(id)')
-			->from($db->quoteName('#__semantyca_nm_stats'));
-
-		$db->setQuery($query);
-
-		return (int) $db->loadResult();
-	}
-
-
 	public function createStatRecord($recipients, $status, $newsletter_id)
 	{
 		$db       = $this->getDatabase();
