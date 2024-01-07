@@ -4,6 +4,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
@@ -24,7 +25,7 @@ class MailingListController extends BaseController
 			$model = $this->getModel();
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
@@ -35,6 +36,10 @@ class MailingListController extends BaseController
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function add()
 	{
 		$app = Factory::getApplication();
@@ -61,7 +66,7 @@ class MailingListController extends BaseController
 			http_response_code(400);
 			echo new JsonResponse($e->getErrors(), 'validationError', true);
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
@@ -83,7 +88,7 @@ class MailingListController extends BaseController
 			$results  = $model->find($id, $detailed);
 			echo new JsonResponse($results);
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			http_response_code(500);
 			echo new JsonResponse($e->getErrors(), 'error', true);
@@ -128,7 +133,7 @@ class MailingListController extends BaseController
 			http_response_code(400);
 			echo new JsonResponse($e->getErrors(), 'validationError', true);
 		}
-		catch (\Exception $e)
+		catch (Exception $e)
 		{
 			LogHelper::logException($e, __CLASS__);
 			http_response_code(500);

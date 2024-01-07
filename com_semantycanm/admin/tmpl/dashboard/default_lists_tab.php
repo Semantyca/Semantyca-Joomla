@@ -170,14 +170,12 @@
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
-                    console.log("data", response.data)
                     document.getElementById('totalMailingList').value = response.data.count;
                     document.getElementById('currentMailingList').value = response.data.current;
                     document.getElementById('maxMailingList').value = response.data.maxPage;
                     let fragments = composeMailingListEntry(response.data.docs);
                     document.getElementById('mailingList').replaceChildren(fragments.fragment);
                     document.getElementById('availableListsUL').replaceChildren(fragments.fragmentForUl);
-
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -264,20 +262,36 @@
         });
     };
 
+    function debounce(func, wait) {
+        let timeout;
+        return function () {
+            const context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    }
+
+    const debouncedRefreshMailingList = debounce(function () {
+        refreshMailingList(1);
+    }, 1000);
+
     const deleteRowHandler = function () {
         const row = this.closest('tr');
         const id = row.getAttribute('data-id');
+        row.style.opacity = '0.5';
+        row.style.pointerEvents = 'none';
+
         showSpinner('listSpinner');
 
         $.ajax({
             url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
             type: 'DELETE',
             success: function () {
-                if (row) {
-                    row.remove();
-                }
+                debouncedRefreshMailingList();
             },
             error: function (jqXHR, textStatus, errorThrown) {
+                row.style.opacity = '1';
+                row.style.pointerEvents = 'auto';
                 showErrorBar('MailingList.delete', errorThrown);
             },
             complete: function () {
@@ -285,6 +299,7 @@
             }
         });
     };
+
 
     const elementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');

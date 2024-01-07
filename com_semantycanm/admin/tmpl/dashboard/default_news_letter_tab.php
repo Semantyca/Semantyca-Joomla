@@ -183,7 +183,6 @@
             })
                 .then(response => {
                     if (response.status === 200) {
-                        console.log(JSON.stringify(response.data));
                         alert(JSON.stringify(response.data))
                         refreshNewsletters(1);
                     } else {
