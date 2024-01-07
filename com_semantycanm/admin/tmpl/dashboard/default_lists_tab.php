@@ -107,45 +107,38 @@
 
         new Pagination('MailingList', refreshMailingList);
 
-        document.getElementById('addGroup').addEventListener('click', function () {
+        document.getElementById('addGroup').addEventListener('click', function (e) {
+            e.preventDefault();
             const mailingListName = document.getElementById('mailingListName').value;
+            const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.textContent);
             if (mailingListName === '') {
                 showAlertBar("Mailing list name cannot be empty", "warning");
-                return;
-            }
-
-            const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.textContent);
-
-            if (listItems.length === 0) {
+            } else if (listItems.length === 0) {
                 showAlertBar('The list is empty.', 'warning');
-                return;
+            } else {
+                showSpinner('listSpinner');
+                $.ajax({
+                    url: 'index.php?option=com_semantycanm&task=MailingList.add',
+                    type: 'POST',
+                    data: {
+                        'mailinglistname': mailingListName,
+                        'mailinglists': listItems.join(',')
+                    },
+                    success: function (response) {
+                        document.getElementById('mailingListName').value = '';
+                        const newRow = createMailingListRow(response.data);
+                        const tableBody = document.getElementById('mailingList');
+                        tableBody.insertBefore(newRow, tableBody.firstChild);
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        console.log('MailingList.add:', textStatus, errorThrown);
+                        showErrorBar('MailingList.add', errorThrown);
+                    },
+                    complete: function () {
+                        hideSpinner('listSpinner');
+                    }
+                });
             }
-
-            showSpinner('listSpinner');
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=MailingList.add',
-                type: 'POST',
-                data: {
-                    'mailinglistname': mailingListName,
-                    'mailinglists': listItems.join(',')
-                },
-                success: function (response) {
-                    debugger;
-                    document.getElementById('mailingListName').value = '';
-                    const newRow = createMailingListRow(response.data);
-                    const tableBody = document.getElementById('mailingList');
-                    tableBody.insertBefore(newRow, tableBody.firstChild);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.log('Error:', textStatus, errorThrown);
-                    debugger;
-                    showAlertBar(errorThrown);
-
-                },
-                complete: function () {
-                    hideSpinner('listSpinner');
-                }
-            });
         });
     });
 
@@ -181,11 +174,14 @@
                     document.getElementById('totalMailingList').value = response.data.count;
                     document.getElementById('currentMailingList').value = response.data.current;
                     document.getElementById('maxMailingList').value = response.data.maxPage;
-                    document.getElementById('mailingList').replaceChildren(composeMailingListEntry(response.data.docs));
+                    let fragments = composeMailingListEntry(response.data.docs);
+                    document.getElementById('mailingList').replaceChildren(fragments.fragment);
+                    document.getElementById('availableListsUL').replaceChildren(fragments.fragmentForUl);
+
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown);
+                showErrorBar('MailingList.findall', errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -195,10 +191,23 @@
 
     function composeMailingListEntry(data) {
         const fragment = document.createDocumentFragment();
+        const fragmentForUl = document.createDocumentFragment();
         data.forEach(entry => {
             fragment.appendChild(createMailingListRow(entry));
+            fragmentForUl.appendChild(createMailingListLi(entry));
         });
-        return fragment;
+        return {
+            fragment,
+            fragmentForUl
+        };
+    }
+
+    function createMailingListLi(entry) {
+        const listItem = document.createElement('li');
+        listItem.className = 'list-group-item';
+        listItem.id = entry.id;
+        listItem.textContent = entry.name;
+        return listItem;
     }
 
     function createMailingListRow(entry) {
@@ -247,7 +256,7 @@
                 showAlertBar('the feature is not available yet', "warning");
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown);
+                showErrorBar('MailingList.find', errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');
@@ -269,7 +278,7 @@
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(errorThrown);
+                showErrorBar('MailingList.delete', errorThrown);
             },
             complete: function () {
                 hideSpinner('listSpinner');

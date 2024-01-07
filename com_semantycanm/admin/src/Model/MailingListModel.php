@@ -135,7 +135,7 @@ class MailingListModel extends BaseDatabaseModel
 
 		$db->transactionCommit();
 
-		return $this->find($mailing_list_id);
+		return $this->find($mailing_list_id, false);
 
 
 	}

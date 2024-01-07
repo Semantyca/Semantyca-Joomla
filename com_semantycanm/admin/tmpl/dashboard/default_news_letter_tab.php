@@ -6,13 +6,6 @@
             </div>
             <div class="col-md-12 dragdrop-list">
                 <ul class="list-group" id="availableListsUL">
-					<?php
-					/*					$availableLists = $this->mailingLists;
-										foreach ($availableLists as $listName): */ ?><!--
-                        <li class="list-group-item" <?php /*echo 'id="' . $listName->id . '"'; */ ?>>
-							<?php /*echo $listName->name; */ ?>
-                        </li>
-					--><?php /*endforeach; */ ?>
                 </ul>
             </div>
         </div>

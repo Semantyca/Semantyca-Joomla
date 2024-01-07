@@ -8,9 +8,9 @@ use ReflectionClass;
 class LogHelper
 {
 	const log_pattern = "%s: %s, Component: %s, Message: %s";
-	const INF = "inf";
-	const WARN = "warn";
-	const ERR = "err";
+	const INF = "INFFFFO";
+	const WARN = "WWWWARN";
+	const ERR = "ERRRRR";
 
 	public static function logInfo(string $msg, $componentName)
 	{

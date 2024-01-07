@@ -21,7 +21,7 @@ class MailingListController extends BaseController
 		{
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
-			$model   = $this->getModel();
+			$model = $this->getModel();
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Exception $e)

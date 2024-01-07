@@ -88,6 +88,20 @@ function showAlertBar(message, type = 'danger', duration = 5000) {
     }
 }
 
+function showErrorBar(cause, message) {
+    const alertPlaceholder = document.getElementById('alertPlaceholder');
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = `<div class="alert alert-danger alert-dismissible" role="alert">${cause}#&nbsp;${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>`;
+    alertPlaceholder.append(wrapper);
+    const alert = wrapper.firstElementChild;
+    const closeButton = wrapper.querySelector('.btn-close');
+    closeButton.onclick = function () {
+        fadeOutAndRemoveAlert(alert);
+    };
+}
+
 function fadeOutAndRemoveAlert(alert) {
     alert.classList.remove('show');
     setTimeout(() => alert.remove(), 150);

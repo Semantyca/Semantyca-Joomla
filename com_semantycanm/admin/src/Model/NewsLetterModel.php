@@ -4,6 +4,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
 {
@@ -89,7 +90,6 @@ class NewsLetterModel extends BaseDatabaseModel
 
 	public function add($subject_value, $message_content): int
 	{
-
 		if ($subject_value == "")
 		{
 			$subject_value = Util::generateSubject();
@@ -100,7 +100,6 @@ class NewsLetterModel extends BaseDatabaseModel
 			->insert($db->quoteName('#__semantyca_nm_newsletters'))
 			->columns(array('subject', 'message_content'))
 			->values($db->quote($subject_value) . ', ' . $db->quote($message_content));
-		//error_log($query->dump());
 		$db->setQuery($query);
 		$db->execute();
 
