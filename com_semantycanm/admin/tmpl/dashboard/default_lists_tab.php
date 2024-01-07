@@ -129,6 +129,7 @@
                         const newRow = createMailingListRow(response.data);
                         const tableBody = document.getElementById('mailingList');
                         tableBody.insertBefore(newRow, tableBody.firstChild);
+                        getPageOfMailingList();
                     },
                     error: function (jqXHR, textStatus, errorThrown) {
                         console.log('MailingList.add:', textStatus, errorThrown);
@@ -173,9 +174,7 @@
                     document.getElementById('totalMailingList').value = response.data.count;
                     document.getElementById('currentMailingList').value = response.data.current;
                     document.getElementById('maxMailingList').value = response.data.maxPage;
-                    let fragments = composeMailingListEntry(response.data.docs);
-                    document.getElementById('mailingList').replaceChildren(fragments.fragment);
-                    document.getElementById('availableListsUL').replaceChildren(fragments.fragmentForUl);
+                    document.getElementById('mailingList').replaceChildren(composeMailingListEntry(response.data.docs));
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
@@ -189,15 +188,10 @@
 
     function composeMailingListEntry(data) {
         const fragment = document.createDocumentFragment();
-        const fragmentForUl = document.createDocumentFragment();
         data.forEach(entry => {
             fragment.appendChild(createMailingListRow(entry));
-            fragmentForUl.appendChild(createMailingListLi(entry));
         });
-        return {
-            fragment,
-            fragmentForUl
-        };
+        return fragment;
     }
 
     function createMailingListLi(entry) {
@@ -262,19 +256,6 @@
         });
     };
 
-    function debounce(func, wait) {
-        let timeout;
-        return function () {
-            const context = this, args = arguments;
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func.apply(context, args), wait);
-        };
-    }
-
-    const debouncedRefreshMailingList = debounce(function () {
-        refreshMailingList(1);
-    }, 1000);
-
     const deleteRowHandler = function () {
         const row = this.closest('tr');
         const id = row.getAttribute('data-id');
@@ -287,7 +268,8 @@
             url: 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + id,
             type: 'DELETE',
             success: function () {
-                debouncedRefreshMailingList();
+                refreshMailingList(1);
+                getPageOfMailingList();
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 row.style.opacity = '1';

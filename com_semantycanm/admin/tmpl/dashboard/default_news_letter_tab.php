@@ -119,6 +119,7 @@
     $(document).ready(function () {
 
         document.querySelector('#nav-newsletters-tab').addEventListener('shown.bs.tab', function () {
+            getPageOfMailingList();
             refreshNewsletters(1);
         });
 
@@ -282,6 +283,29 @@
     }
 
     dragAndDropSet($('#availableListsUL')[0], $('#selectedLists')[0], receiverElementCreator, null);
+
+    function getPageOfMailingList() {
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=1&limit=' + ITEMS_PER_PAGE,
+            type: 'GET',
+            success: function (response) {
+                if (response.success && response.data) {
+                    document.getElementById('availableListsUL').replaceChildren(composeMailingListUl(response.data.docs));
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showErrorBar('MailingList.findall', errorThrown);
+            }
+        });
+    }
+
+    function composeMailingListUl(data) {
+        const fragmentForUl = document.createDocumentFragment();
+        data.forEach(entry => {
+            fragmentForUl.appendChild(createMailingListLi(entry));
+        });
+        return fragmentForUl;
+    }
 
     function refreshNewsletters(currentPage) {
         showSpinner('newsletterSpinner');
