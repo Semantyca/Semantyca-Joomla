@@ -120,7 +120,7 @@
 
         document.querySelector('#nav-newsletters-tab').addEventListener('shown.bs.tab', function () {
             getPageOfMailingList();
-            refreshNewsletters(1);
+            // refreshNewsletters(1);
         });
 
         document.querySelector('#refreshNewsLettersButton').addEventListener('click', function () {
