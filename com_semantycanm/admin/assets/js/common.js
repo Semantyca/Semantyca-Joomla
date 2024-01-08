@@ -66,6 +66,9 @@ function createRowCheckBox(id) {
     return checkbox;
 }
 
+function showWarnBar(message) {
+    showAlertBar(message, 'warning');
+}
 function showAlertBar(message, type = 'danger', duration = 5000) {
     const alertPlaceholder = document.getElementById('alertPlaceholder');
     const wrapper = document.createElement('div');

@@ -27,7 +27,7 @@ class NewsLetterController extends BaseController
 		catch (\Exception $e)
 		{
 			http_response_code(500);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			$app->close();
@@ -47,7 +47,7 @@ class NewsLetterController extends BaseController
 		catch (\Exception $e)
 		{
 			http_response_code(500);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();
@@ -84,13 +84,13 @@ class NewsLetterController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getErrors(), 'Error', true);
+			echo new JsonResponse($e->getMessage(), 'Error', true);
 		}
 		catch (\Exception $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		}
 		$app->close();
 	}
@@ -119,13 +119,13 @@ class NewsLetterController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getErrors(), 'Error', true);
+			echo new JsonResponse($e->getMessage(), 'Error', true);
 		}
 		catch (\Exception $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			$app->close();

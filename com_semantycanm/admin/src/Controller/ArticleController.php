@@ -25,7 +25,7 @@ class ArticleController extends BaseController
 		catch (\Exception $e)
 		{
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();
@@ -45,7 +45,7 @@ class ArticleController extends BaseController
 		catch (\Exception $e)
 		{
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();

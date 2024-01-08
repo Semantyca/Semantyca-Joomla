@@ -65,14 +65,14 @@ class ServiceController extends BaseController
 		catch (ValidationErrorException|MessagingException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getErrors(), 'Error', true);
+			echo new JsonResponse($e->getMessage(), 'Error', true);
 
 		}
 		catch (\Exception $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();
@@ -100,7 +100,7 @@ class ServiceController extends BaseController
 		(\Exception $e)
 		{
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();

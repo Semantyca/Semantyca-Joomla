@@ -110,11 +110,11 @@
         document.getElementById('addGroup').addEventListener('click', function (e) {
             e.preventDefault();
             const mailingListName = document.getElementById('mailingListName').value;
-            const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.textContent);
+            const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.id);
             if (mailingListName === '') {
-                showAlertBar("Mailing list name cannot be empty", "warning");
+                showWarnBar("Mailing list name cannot be empty");
             } else if (listItems.length === 0) {
-                showAlertBar('The list is empty.', 'warning');
+                showWarnBar('The list is empty');
             } else {
                 showSpinner('listSpinner');
                 $.ajax({
@@ -206,37 +206,42 @@
         const tr = document.createElement('tr');
         tr.className = 'list-group-item d-flex';
         tr.setAttribute('data-id', entry.id);
-
         const tdCheckbox = document.createElement('td');
+        tdCheckbox.className = 'col-1';
         tdCheckbox.appendChild(createRowCheckBox(entry.id));
-
+        tr.appendChild(tdCheckbox);
         const tdName = document.createElement('td');
         tdName.className = 'col-5';
         tdName.textContent = entry.name;
-
+        tr.appendChild(tdName);
         const tdRegDate = document.createElement('td');
         tdRegDate.className = 'col-3';
         tdRegDate.textContent = entry.reg_date;
-
-        const tdButton = document.createElement('td');
-        tdButton.className = 'col-3 d-flex justify-content-end align-items-center';
-        const editButton = createRowButton('Edit', 'btn btn-success btn-sm', editRowHandler);
-        tdButton.appendChild(editButton);
-        editButton.style.marginRight = '10px';
-        const removeButton = createRowButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
-        tdButton.appendChild(removeButton);
-
-        tr.appendChild(tdCheckbox);
-        tr.appendChild(tdName);
         tr.appendChild(tdRegDate);
-        tr.appendChild(tdButton);
-
+        const tdButtonBar = document.createElement('td');
+        tdButtonBar.className = 'col-3 d-flex justify-content-end align-items-center';
+        const editButton = createRowButton('Edit', 'btn btn-success btn-sm', editRowHandler);
+        editButton.style.marginRight = '10px';
+        tdButtonBar.appendChild(editButton);
+        const removeButton = createRowButton('Remove', 'btn btn-danger btn-sm', deleteRowHandler);
+        tdButtonBar.appendChild(removeButton);
+        tr.appendChild(tdButtonBar);
         return tr;
     }
 
     const editRowHandler = function () {
         const row = this.closest('tr');
+        const tableRows = row.closest('table').querySelectorAll('tr');
         const id = row.getAttribute('data-id');
+
+        tableRows.forEach(tr => {
+            tr.style.opacity = '1';
+            tr.style.pointerEvents = 'auto';
+        });
+
+        row.style.opacity = '0.5';
+        row.style.pointerEvents = 'none';
+
         showSpinner('listSpinner');
 
         $.ajax({
@@ -244,10 +249,22 @@
             type: 'GET',
             success: function (response) {
                 console.log(response.data)
-                //document.getElementById('mailingListName').value = response.data.name;
-                showAlertBar('the feature is not available yet', "warning");
+                document.getElementById('mailingListName').value = response.data.name;
+                const ulSelectedGroups = document.getElementById('selectedGroups');
+                ulSelectedGroups.innerHTML = '';
+                response.data.groups.forEach(item => {
+                    let newLiEntry = document.createElement('li');
+                    newLiEntry.textContent = item.title;
+                    newLiEntry.dataset.id = item.id;
+                    newLiEntry.className = "list-group-item";
+                    ulSelectedGroups.appendChild(newLiEntry);
+                });
             },
             error: function (jqXHR, textStatus, errorThrown) {
+                tableRows.forEach(tr => {
+                    tr.style.opacity = '1';
+                    tr.style.pointerEvents = 'auto';
+                });
                 showErrorBar('MailingList.find', errorThrown);
             },
             complete: function () {
@@ -255,6 +272,7 @@
             }
         });
     };
+
 
     const deleteRowHandler = function () {
         const row = this.closest('tr');

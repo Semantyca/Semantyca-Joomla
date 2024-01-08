@@ -2,6 +2,7 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
+use Exception;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 
@@ -61,19 +62,14 @@ class MailingListModel extends BaseDatabaseModel
 
 		if ($detailed)
 		{
-			$subscribersQuery = $db->getQuery(true);
-			$subscribersQuery->select(
-				array(
-					$db->quoteName('id', 'subscriber_id'),
-					$db->quoteName('name', 'subscriber_name'),
-					$db->quoteName('email', 'subscriber_email')
-				)
-			)->from($db->quoteName('#__semantyca_nm_subscribers'))
-				->where($db->quoteName('mail_list_id') . ' = ' . $db->quote($id));
+			$nestedQuery = $db->getQuery(true);
+			$nestedQuery->select($db->quoteName(['ug.id', 'ug.title']))
+				->from($db->quoteName('#__usergroups', 'ug'))
+				->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups', 'rel') . ' ON (' . $db->quoteName('ug.id') . ' = ' . $db->quoteName('rel.user_group_id') . ')')
+				->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list', 'ml') . ' ON (' . $db->quoteName('rel.mailing_list_id') . ' = ' . $db->quoteName('ml.id') . ')');
 
-			$db->setQuery($subscribersQuery);
-			$subscribers              = $db->loadObjectList();
-			$mailingList->subscribers = $subscribers;
+			$db->setQuery($nestedQuery);
+			$mailingList->groups = $db->loadObjectList();
 		}
 
 		return $mailingList;
@@ -95,50 +91,80 @@ class MailingListModel extends BaseDatabaseModel
 
 	}
 
-	public function add($user_group_model, $mailing_list_name, $mailing_lists): object
+	/**
+	 * @throws RecordNotFoundException
+	 * @since 1.0
+	 */
+	public function add($mailing_list_name, $mailing_list_ids): object
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		try
+		{
+			$db->transactionStart();
+
+			$query
+				->insert($db->quoteName('#__semantyca_nm_mailing_list'))
+				->columns(array('name'))
+				->values(array($db->quote($mailing_list_name)));
+			$db->setQuery($query);
+			$db->execute();
+
+			$mailing_list_id = $db->insertid();
+			$this->insertUserGroups($mailing_list_id, explode(",", $mailing_list_ids));
+
+			$db->transactionCommit();
+
+			return $this->find($mailing_list_id, false);
+		}
+		catch (Exception $e)
+		{
+			$db->transactionRollback();
+			throw $e;
+		}
+
+	}
+
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
+	public function update($id, $mailing_lst_name, $mailing_list_ids): object
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
-		$all_subscribers     = array();
-		$mailing_lists_array = explode(",", $mailing_lists);
-		foreach ($mailing_lists_array as $ml)
+		try
 		{
-			$subscribers     = $user_group_model->getUserGroup(trim(str_replace(["\r", "\n"], '', $ml)));
-			$all_subscribers = array_merge($all_subscribers, $subscribers);
-		}
+			$db->transactionStart();
 
-		$all_subscribers = $this->remove_duplicate_emails($all_subscribers);
-
-		$db->transactionStart();
-
-		$query
-			->insert($db->quoteName('#__semantyca_nm_mailing_list'))
-			->columns(array('name'))
-			->values(array($db->quote($mailing_list_name)));
-		$db->setQuery($query);
-		$db->execute();
-
-		$mailing_list_id = $db->insertid();
-
-		foreach ($all_subscribers as $subscriber)
-		{
-			$query = $db->getQuery(true);
 			$query
-				->insert($db->quoteName('#__semantyca_nm_subscribers'))
-				->columns(array('name', 'email', 'mail_list_id'))
-				->values($db->quote($subscriber->name) . ', ' . $db->quote($subscriber->email) . ', ' . $db->quote($mailing_list_id));
-
+				->update($db->quoteName('#__semantyca_nm_mailing_list'))
+				->set($db->quoteName('name') . ' = ' . $db->quote($mailing_lst_name))
+				->where($db->quoteName('id') . ' = ' . $db->quote($id));
 			$db->setQuery($query);
 			$db->execute();
+
+			$query = $db->getQuery(true);
+			$query->delete($db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups'))
+				->where($db->quoteName('mailing_list_id') . ' = ' . $db->quote($id));
+			$db->setQuery($query);
+			$db->execute();
+
+			$this->insertUserGroups($id, explode(",", $mailing_list_ids));
+
+			$db->transactionCommit();
+
+			return $this->find($id, false);
+
 		}
-
-		$db->transactionCommit();
-
-		return $this->find($mailing_list_id, false);
-
-
+		catch (Exception $e)
+		{
+			$db->transactionRollback();
+			throw $e;
+		}
 	}
+
 
 	public function findByEmail($email)
 	{
@@ -206,28 +232,27 @@ class MailingListModel extends BaseDatabaseModel
 
 		$query->delete($db->quoteName('#__semantyca_nm_mailing_list'));
 		$query->where($conditions);
-
 		$db->setQuery($query);
-		$result = $db->execute();
+		$db->execute();
 
-		if ($result)
-		{
-			return $db->getAffectedRows();
-		}
-		else
-		{
-			throw new RecordNotFoundException("The mail list deletion was failed: $ids");
-		}
+		return $db->getAffectedRows();
+
 	}
 
-	function remove_duplicate_emails($subscribers): array
+	private function insertUserGroups($mailing_list_id, $user_group_ids)
 	{
-		$emails = array_map(function ($subscriber) {
-			return $subscriber->email;
-		}, $subscribers);
+		$db = $this->getDatabase();
 
-		$unique_emails = array_unique($emails);
+		foreach ($user_group_ids as $id)
+		{
+			$query = $db->getQuery(true);
+			$query
+				->insert($db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups'))
+				->columns(array('mailing_list_id', 'user_group_id'))
+				->values($db->quote($mailing_list_id) . ', ' . $db->quote($id));
 
-		return array_values(array_intersect_key($subscribers, $unique_emails));
+			$db->setQuery($query);
+			$db->execute();
+		}
 	}
 }

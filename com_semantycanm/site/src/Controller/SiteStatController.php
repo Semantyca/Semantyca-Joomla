@@ -26,7 +26,7 @@ class SiteStatController extends BaseController
 		{
 			header(SiteConsts::JSON_CONTENT_TYPE);
 			http_response_code(500);
-			echo new JsonResponse($e->getErrors(), 'error', true);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();

@@ -120,7 +120,6 @@
 
         document.querySelector('#nav-newsletters-tab').addEventListener('shown.bs.tab', function () {
             getPageOfMailingList();
-            // refreshNewsletters(1);
         });
 
         document.querySelector('#refreshNewsLettersButton').addEventListener('click', function () {
@@ -144,6 +143,7 @@
         });
 
         document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
+            e.preventDefault();
             const msgContent = document.getElementById('messageContent').value;
             let subj = document.getElementById('subject').value;
             let listItems = $('#selectedLists li').map(function () {
@@ -151,7 +151,7 @@
             }).get();
             const testEmails = $('#testEmails').val().trim();
             if (listItems.length === 0 && testEmails === "") {
-                alert('The list is empty.');
+                showWarnBar('The list is empty');
                 return;
             }
 
@@ -160,16 +160,15 @@
             }
 
             if (msgContent === '') {
-                alert("Message content is empty. It cannot be saved")
+                showWarnBar('Message content is empty. It cannot be saved');
                 return;
             }
             if (subj === '') {
-                alert("Subject cannot be empty")
-                //TODO it needs boostrap validation
+                showWarnBar('Subject cannot be empty');
                 return;
             }
 
-            const url = "/joomla/administrator/index.php?option=com_semantycanm&task=service.sendEmail";
+            const url = "index.php?option=com_semantycanm&task=service.sendEmail";
             const headers = new Headers();
             headers.append("Content-Type", "application/x-www-form-urlencoded");
             const data = new URLSearchParams();
@@ -190,21 +189,20 @@
                         console.error('Error:', response.status);
                     }
                 })
-                .catch((error) => console.error('Error:', error));
+                .catch((error) => console.error(showErrorBar('service.sendEmail', error)));
         });
 
         document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
+            e.preventDefault();
             const msgContent = document.getElementById('messageContent').value;
             let subj = document.getElementById('subject').value;
 
             if (msgContent === '') {
-                alert("Message content is empty. It cannot be saved")
-                //TODO it needs boostrap validation
+                showWarnBar("Message content is empty. It cannot be saved")
                 return;
             }
             if (subj === '') {
-                alert("Subject cannot be empty")
-                //TODO it needs boostrap validation
+                showWarnBar("Subject cannot be empty")
                 return;
             }
 
@@ -217,7 +215,6 @@
                 },
                 success: function (response) {
                     console.log(JSON.stringify(response.data));
-                    alert(JSON.stringify(response.data))
                     refreshNewsletters(1);
                 },
                 error: function (jqXHR, textStatus, errorThrown) {

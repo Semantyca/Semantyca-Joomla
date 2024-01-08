@@ -1,4 +1,5 @@
 DROP TABLE IF EXISTS `#__semantyca_nm_stats`;
+DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list_rel_usergroups`;
 DROP TABLE IF EXISTS `#__semantyca_nm_subscriber_events`;
 DROP TABLE IF EXISTS `#__semantyca_nm_newsletter_mailing_list`;
 DROP TABLE IF EXISTS `#__semantyca_nm_newsletters`;
@@ -13,15 +14,23 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list`
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list_rel_usergroups`
+(
+    mailing_list_id INT,
+    user_group_id   INT,
+    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (mailing_list_id, user_group_id),
+    FOREIGN KEY (mailing_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscribers`
 (
     id           INT AUTO_INCREMENT,
     reg_date     DATETIME DEFAULT CURRENT_TIMESTAMP,
     email        VARCHAR(255),
     name         VARCHAR(255),
-    mail_list_id INT,
-    PRIMARY KEY (id),
-    FOREIGN KEY (mail_list_id) REFERENCES `#__semantyca_nm_mailing_list` (id) ON DELETE CASCADE
+    PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscriber_events`
