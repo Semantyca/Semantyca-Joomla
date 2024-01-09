@@ -18,6 +18,7 @@ $rootUrl = JUri::root();
 $bannerImageUrl = $rootUrl . "images/2020/EMSA_logo_full_600-ed.png";
 $host = JUri::getInstance()->toString(['host']);
 $doc->addScript($rootUrl . $media . "js/Pagination.js");
+$doc->addScript($rootUrl . $media . "js/MailingListRequest.js");
 $doc->addScript($rootUrl . $media . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $media . "js/trumbowyg.min.js");
 $doc->addScript($rootUrl . $media . "js/bootstrap.min.js");

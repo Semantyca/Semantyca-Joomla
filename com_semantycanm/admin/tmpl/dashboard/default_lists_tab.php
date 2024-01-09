@@ -35,9 +35,11 @@
                         </div>
                     </div>
 
-                    <div class="col-md-2">
-                        <button id="addGroup" class="btn btn-success btn"><?php echo JText::_('SAVE'); ?></button>
+                    <div class="col-md-3">
+                        <button id="saveGroup" class="btn btn-success"><?php echo JText::_('SAVE'); ?></button>
+                        <button id="cancelEditing" class="btn btn-secondary"><?php echo JText::_('CANCEL'); ?></button>
                     </div>
+
                 </div>
             </form>
         </div>
@@ -92,6 +94,7 @@
                 </thead>
                 <tbody id="mailingList">
             </table>
+            <label for="mode">mode</label><input type="text" id="mailingListMode" value=""/>
         </div>
     </div>
 </div>
@@ -107,7 +110,7 @@
 
         new Pagination('MailingList', refreshMailingList);
 
-        document.getElementById('addGroup').addEventListener('click', function (e) {
+        document.getElementById('saveGroup').addEventListener('click', function (e) {
             e.preventDefault();
             const mailingListName = document.getElementById('mailingListName').value;
             const listItems = Array.from(document.querySelectorAll('#selectedGroups li')).map(li => li.id);
@@ -116,52 +119,34 @@
             } else if (listItems.length === 0) {
                 showWarnBar('The list is empty');
             } else {
-                showSpinner('listSpinner');
-                $.ajax({
-                    url: 'index.php?option=com_semantycanm&task=MailingList.add',
-                    type: 'POST',
-                    data: {
-                        'mailinglistname': mailingListName,
-                        'mailinglists': listItems.join(',')
-                    },
-                    success: function (response) {
-                        document.getElementById('mailingListName').value = '';
-                        const newRow = createMailingListRow(response.data);
-                        const tableBody = document.getElementById('mailingList');
-                        tableBody.insertBefore(newRow, tableBody.firstChild);
-                        getPageOfMailingList();
-                    },
-                    error: function (jqXHR, textStatus, errorThrown) {
-                        console.log('MailingList.add:', textStatus, errorThrown);
-                        showErrorBar('MailingList.add', errorThrown);
-                    },
-                    complete: function () {
-                        hideSpinner('listSpinner');
-                    }
-                });
+                let mode = document.getElementById('mailingListMode').value;
+                const mailingListRequest = new MailingListRequest(mode);
+                mailingListRequest.process(mailingListName, listItems);
             }
         });
-    });
 
-    document.getElementById('addGroup').addEventListener('click', function (e) {
-        const mailingListName = document.getElementById('mailingListName');
-        if (mailingListName.value === '') {
-            mailingListName.classList.add('is-invalid');
-            setTimeout(function () {
-                mailingListName.classList.remove('is-invalid');
-            }, 5000);
-        } else {
-            mailingListName.classList.remove('is-invalid');
-        }
-    });
+        document.getElementById('cancelEditing').addEventListener('click', function (e) {
+            e.preventDefault();
+            let mode = document.getElementById('mailingListMode');
+            if (mode.value === 'editing') {
+                const tableRows = document.querySelectorAll('#mailingList tr');
+                tableRows.forEach(tr => {
+                    tr.style.opacity = '1';
+                    tr.style.pointerEvents = 'auto';
+                });
+                document.getElementById('selectedGroups').innerHTML = '';
+                mode.value = '';
+            }
+            document.getElementById('mailingListName').value = '';
+        });
 
+    });
 
     document.getElementById('mailingListName').addEventListener('input', function () {
         if (this.value !== '') {
             this.classList.remove('is-invalid');
         }
     });
-
 
     function refreshMailingList(currentPage) {
         showSpinner('listSpinner');
@@ -258,6 +243,7 @@
                     newLiEntry.dataset.id = item.id;
                     newLiEntry.className = "list-group-item";
                     ulSelectedGroups.appendChild(newLiEntry);
+                    document.getElementById('mailingListMode').value = 'editing';
                 });
             },
             error: function (jqXHR, textStatus, errorThrown) {

@@ -38,7 +38,10 @@ class MailingListModel extends BaseDatabaseModel
 		];
 	}
 
-
+	/**
+	 * @throws RecordNotFoundException
+	 * @since 1.0
+	 */
 	public function find($id, $detailed)
 	{
 		$db = $this->getDatabase();
@@ -62,18 +65,24 @@ class MailingListModel extends BaseDatabaseModel
 
 		if ($detailed)
 		{
-			$nestedQuery = $db->getQuery(true);
-			$nestedQuery->select($db->quoteName(['ug.id', 'ug.title']))
-				->from($db->quoteName('#__usergroups', 'ug'))
-				->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups', 'rel') . ' ON (' . $db->quoteName('ug.id') . ' = ' . $db->quoteName('rel.user_group_id') . ')')
-				->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list', 'ml') . ' ON (' . $db->quoteName('rel.mailing_list_id') . ' = ' . $db->quoteName('ml.id') . ')');
+			$query = $db->getQuery(true);
+			$query->select(
+				array(
+					$db->quoteName('u.id'),
+					$db->quoteName('u.title')
+				)
+			)
+				->from($db->quoteName('#__usergroups', 'u'))
+				->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups', 'm') . ' ON ' . $db->quoteName('u.id') . ' = ' . $db->quoteName('m.user_group_id'))
+				->where($db->quoteName('m.mailing_list_id') . ' = ' . $db->quote($mailingList->id));
 
-			$db->setQuery($nestedQuery);
+			$db->setQuery($query);
 			$mailingList->groups = $db->loadObjectList();
 		}
 
 		return $mailingList;
 	}
+
 
 	public function getSubscribers($mailing_list_name)
 	{
