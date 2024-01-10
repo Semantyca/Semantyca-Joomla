@@ -47,7 +47,7 @@ class MailingListController extends BaseController
 		{
 			$id       = $this->input->getString('id');
 			$detailed = $this->input->getString('detailed');
-			$model    = $this->getModel();
+			$model = $this->getModel('MailingList');
 			$results  = $model->find($id, $detailed);
 			echo new JsonResponse($results);
 		}

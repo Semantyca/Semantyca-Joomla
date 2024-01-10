@@ -40,7 +40,7 @@ class NewsLetterController extends BaseController
 		try
 		{
 			$id      = $this->input->getString('id');
-			$model   = $this->getModel();
+			$model = $this->getModel('NewsLetter');
 			$results = $model->find($id);
 			echo new JsonResponse($results);
 		}
