@@ -14,6 +14,10 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class MailingListController extends BaseController
 {
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -78,7 +82,7 @@ class MailingListController extends BaseController
 			}
 			else
 			{
-				throw new ValidationErrorException(["Only POST request allowed"]);
+				throw new ValidationErrorException([], "Only POST request allowed");
 			}
 		}
 		catch (ValidationErrorException $e)
@@ -97,31 +101,22 @@ class MailingListController extends BaseController
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function update()
 	{
 		$app = Factory::getApplication();
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$input = $app->input;
-			if ($input->getMethod() === 'PUT')
-			{
-				$id                 = $this->input->getString('id');
-				$mailing_lst_name   = $this->input->getString('mailinglistname');
-				$mailing_lists      = $this->input->getString('mailinglists');
-				$mailing_list_model = $this->getModel('MailingList');
-				$results            = $mailing_list_model->update($id, $mailing_lst_name, $mailing_lists);
-				echo new JsonResponse($results);
-			}
-			else
-			{
-				throw new ValidationErrorException(["Only PUT request allowed"]);
-			}
-		}
-		catch (ValidationErrorException $e)
-		{
-			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'validationError', true);
+			$id                 = $this->input->getString('id');
+			$mailing_lst_name   = $this->input->getString('mailinglistname');
+			$mailing_lists      = $this->input->getString('mailinglists');
+			$mailing_list_model = $this->getModel('MailingList');
+			$results            = $mailing_list_model->update($id, $mailing_lst_name, $mailing_lists);
+			echo new JsonResponse($results);
 		}
 		catch (Exception $e)
 		{
@@ -146,7 +141,7 @@ class MailingListController extends BaseController
 			//TODO ids should be be a list
 			if (empty($ids) || $ids === 'null')
 			{
-				throw new ValidationErrorException(['id cannot be null']);
+				throw new ValidationErrorException([], 'id cannot be null');
 			}
 
 			if (!is_array($ids))
@@ -162,7 +157,7 @@ class MailingListController extends BaseController
 			}
 			else
 			{
-				throw new ValidationErrorException(["Only DELETE request allowed"]);
+				throw new ValidationErrorException([], "Only DELETE request allowed");
 			}
 		}
 		catch (ValidationErrorException $e)

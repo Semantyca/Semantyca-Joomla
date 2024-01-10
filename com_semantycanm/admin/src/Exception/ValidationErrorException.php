@@ -6,20 +6,20 @@ use Exception;
 
 class ValidationErrorException extends Exception
 {
-	private $errors;
+	private array $errors;
 
-	public function __construct(array $errors = [])
+	public function __construct(array $errors = [], $message = "")
 	{
-		parent::__construct();
+		parent::__construct($message);
 		$this->errors = $errors;
 	}
 
-	public function getErrors()
+	public function getErrors(): array
 	{
 		return $this->errors;
 	}
 
-	public function toArray()
+	public function toArray(): array
 	{
 		return $this->errors;
 	}

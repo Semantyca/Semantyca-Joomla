@@ -252,7 +252,7 @@ class MailingListModel extends BaseDatabaseModel
 	{
 		$db = $this->getDatabase();
 
-		foreach ($user_group_ids as $id)
+		foreach (array_unique($user_group_ids) as $id)
 		{
 			$query = $db->getQuery(true);
 			$query

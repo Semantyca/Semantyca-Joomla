@@ -1,10 +1,10 @@
 class MailingListRequest {
     static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
 
-    constructor(mode) {
-        this.mode = mode;
-        this.operation = this.mode === 'editing' ? 'update' : 'add';
-        this.httpMethod = this.mode === 'editing' ? 'PUT' : 'POST';
+    constructor(id) {
+        this.id = id;
+        this.operation = this.id === '' ? 'add' : 'update';
+        this.httpMethod = 'POST';
     }
 
     process(mailingListName, listItems) {
@@ -16,6 +16,7 @@ class MailingListRequest {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
+                'id': this.id,
                 'mailinglistname': mailingListName,
                 'mailinglists': listItems.join(',')
             })
@@ -30,7 +31,7 @@ class MailingListRequest {
                 if (!data.success) {
                     throw new Error(data.message || 'Unknown error occurred');
                 }
-                showInfoBar("The mailing list updated successfully");
+                //showInfoBar("The mailing list updated successfully");
             })
             .catch(error => {
                 console.log('MailingList.' + this.operation + ':', error);
@@ -38,9 +39,10 @@ class MailingListRequest {
             })
             .finally(() => {
                 refreshMailingList(1);
-                if (this.mode === '') {
+                if (this.id === '') {
                     getPageOfMailingList();
                 } else {
+                    this.id = '';
                     document.getElementById('mailingListMode').value = '';
                 }
                 document.getElementById('mailingListName').value = '';

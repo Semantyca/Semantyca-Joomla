@@ -94,7 +94,7 @@
                 </thead>
                 <tbody id="mailingList">
             </table>
-            <label for="mode">mode</label><input type="text" id="mailingListMode" value=""/>
+            <label for="mailingListMode"></label><input type="text" id="mailingListMode" value=""/>
         </div>
     </div>
 </div>
@@ -128,7 +128,7 @@
         document.getElementById('cancelEditing').addEventListener('click', function (e) {
             e.preventDefault();
             let mode = document.getElementById('mailingListMode');
-            if (mode.value === 'editing') {
+            if (mode.value !== '') {
                 const tableRows = document.querySelectorAll('#mailingList tr');
                 tableRows.forEach(tr => {
                     tr.style.opacity = '1';
@@ -240,10 +240,10 @@
                 response.data.groups.forEach(item => {
                     let newLiEntry = document.createElement('li');
                     newLiEntry.textContent = item.title;
-                    newLiEntry.dataset.id = item.id;
+                    newLiEntry.id = item.id;
                     newLiEntry.className = "list-group-item";
                     ulSelectedGroups.appendChild(newLiEntry);
-                    document.getElementById('mailingListMode').value = 'editing';
+                    document.getElementById('mailingListMode').value = id;
                 });
             },
             error: function (jqXHR, textStatus, errorThrown) {
