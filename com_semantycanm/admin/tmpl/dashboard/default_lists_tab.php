@@ -94,7 +94,8 @@
                 </thead>
                 <tbody id="mailingList">
             </table>
-            <label for="mailingListMode"></label><input type="text" id="mailingListMode" value=""/>
+            <label for="mailingListMode"></label>
+            <input type="hidden" id="mailingListMode" value=""/>
         </div>
     </div>
 </div>
