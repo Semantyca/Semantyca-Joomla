@@ -169,7 +169,7 @@ class MailingListController extends BaseController
 		{
 			LogHelper::logException($e, __CLASS__);
 			http_response_code(500);
-			echo new JsonResponse($e, "error", true);
+			echo new JsonResponse($e->getMessage(), "error", true);
 		} finally
 		{
 			$app->close();

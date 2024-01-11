@@ -87,7 +87,7 @@ class ArticleModel extends BaseDatabaseModel
 	{
 		$db   = $this->getDatabase();
 		$date = JFactory::getDate();
-		$date->modify('-3 months');
+		$date->modify('-12 months');
 		$threeMonthsAgo = $db->quote($date->toSql());
 		$query          = $db->getQuery(true)
 			->select(array(
