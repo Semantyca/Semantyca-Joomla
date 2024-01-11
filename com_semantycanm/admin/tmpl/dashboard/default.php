@@ -43,7 +43,6 @@ catch (Exception $e)
 }
 
 $this->usergroups      = $this->user_groups;
-$this->articlesList    = $this->articles;
 $this->selectedLetters = [];
 
 ?>

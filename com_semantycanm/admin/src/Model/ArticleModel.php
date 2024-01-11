@@ -16,16 +16,18 @@ class ArticleModel extends BaseDatabaseModel
 	public function __construct()
 	{
 		parent::__construct();
-		$this->base        = Uri::root();
+		$this->base = Uri::root();
 	}
 
 	public function getList()
 	{
-		$db   = $this->getDatabase();
-		$date = JFactory::getDate();
-		$date->modify('-3 months');
-		$threeMonthsAgo = $db->quote($date->toSql());
-		$query          = $db->getQuery(true)
+		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+		$days   = $params->get('retrieval_gap_in_days', 1);
+		$db     = $this->getDatabase();
+		$date   = JFactory::getDate();
+		$date->modify("-$days days");
+		$dateCondition = $db->quote($date->toSql());
+		$query         = $db->getQuery(true)
 			->select(array(
 				$db->quoteName('a.id'),
 				$db->quoteName('a.title'),
@@ -37,7 +39,7 @@ class ArticleModel extends BaseDatabaseModel
 			->from($db->quoteName('#__content', 'a'))
 			->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON (' . $db->quoteName('a.catid') . ' = ' . $db->quoteName('c.id') . ')')
 			->where($db->quoteName('a.state') . ' = 1')
-			->where($db->quoteName('a.created') . ' > ' . $threeMonthsAgo)
+			->where($db->quoteName('a.created') . ' > ' . $dateCondition)
 			->order('a.created DESC');
 		$db->setQuery($query);
 
@@ -50,13 +52,11 @@ class ArticleModel extends BaseDatabaseModel
 		return $articles;
 	}
 
+
 	public function find($id)
 	{
-		$db   = $this->getDatabase();
-		$date = JFactory::getDate();
-		$date->modify('-3 months');
-		$threeMonthsAgo = $db->quote($date->toSql());
-		$query          = $db->getQuery(true)
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true)
 			->select(array(
 				$db->quoteName('a.id'),
 				$db->quoteName('a.title'),
@@ -68,7 +68,6 @@ class ArticleModel extends BaseDatabaseModel
 			->from($db->quoteName('#__content', 'a'))
 			->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON (' . $db->quoteName('a.catid') . ' = ' . $db->quoteName('c.id') . ')')
 			->where($db->quoteName('a.state') . ' = 1')
-			->where($db->quoteName('a.created') . ' > ' . $threeMonthsAgo)
 			->where('a.id = ' . $db->quote($id))
 			->order('a.created DESC');
 		$db->setQuery($query);
@@ -80,16 +79,13 @@ class ArticleModel extends BaseDatabaseModel
 		}
 
 		return $articles;
-
 	}
+
 
 	public function search($searchTerm)
 	{
-		$db   = $this->getDatabase();
-		$date = JFactory::getDate();
-		$date->modify('-12 months');
-		$threeMonthsAgo = $db->quote($date->toSql());
-		$query          = $db->getQuery(true)
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true)
 			->select(array(
 				$db->quoteName('a.id'),
 				$db->quoteName('a.title'),
@@ -101,21 +97,20 @@ class ArticleModel extends BaseDatabaseModel
 			->from($db->quoteName('#__content', 'a'))
 			->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON (' . $db->quoteName('a.catid') . ' = ' . $db->quoteName('c.id') . ')')
 			->where($db->quoteName('a.state') . ' = 1')
-			->where($db->quoteName('a.created') . ' > ' . $threeMonthsAgo)
 			->where($db->quoteName('a.title') . ' LIKE ' . $db->quote('%' . $searchTerm . '%'))
 			->order('a.created DESC');
 
-		$db->setQuery($query);
+		$db->setQuery($query, 0, 25);
 		$articles = $db->loadObjectList();
 		foreach ($articles as $article)
 		{
-			//TODO it should be optimized
 			$article->url = $this->constructArticleUrl($article);
 		}
 
 		return $articles;
-
 	}
+
+
 
 	private function constructArticleUrl($article): string
 	{
@@ -137,23 +132,26 @@ class ArticleModel extends BaseDatabaseModel
 			case 'custom':
 				return '&Itemid=' . $params->get('defined_item_id', 1);
 			case 'smart':
-				$db = $this->getDatabase();
-					$menuQuery = $db->getQuery(true)
-						->select($db->quoteName('id'))
-						->from($db->quoteName('#__menu'))
-						->where($db->quoteName('link') . ' LIKE ' . $db->quote('%option=com_content&view=category&layout=blog&id=' . (int)$article->catid . '%'))
-						->where($db->quoteName('published') . ' = 1')
-						->setLimit(1);
+				$db        = $this->getDatabase();
+				$menuQuery = $db->getQuery(true)
+					->select($db->quoteName('id'))
+					->from($db->quoteName('#__menu'))
+					->where($db->quoteName('link') . ' LIKE ' . $db->quote('%option=com_content&view=category&layout=blog&id=' . (int) $article->catid . '%'))
+					->where($db->quoteName('published') . ' = 1')
+					->setLimit(1);
 
-					$db->setQuery($menuQuery);
-					$itemId = $db->loadResult();
-					if ($itemId) {
-						return '&Itemid=' . $itemId;
-					} else {
-						LogHelper::logWarn('The itemId has not been resolved with the smart option', __CLASS__);
+				$db->setQuery($menuQuery);
+				$itemId = $db->loadResult();
+				if ($itemId)
+				{
+					return '&Itemid=' . $itemId;
+				}
+				else
+				{
+					LogHelper::logWarn('The itemId has not been resolved with the smart option', __CLASS__);
 
-						return '&Itemid=';
-					}
+					return '&Itemid=';
+				}
 			default:
 				return '&Itemid=';
 		}

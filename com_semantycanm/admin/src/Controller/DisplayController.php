@@ -18,11 +18,11 @@ class DisplayController extends BaseController
 		try
 		{
 			$user_group_model   = $this->getModel('UserGroup');
-			$article_model   = $this->getModel('Article');
+			//$article_model   = $this->getModel('Article');
 
 			$view = $this->getView('Dashboard', 'html');
 			$view->set('user_groups', $user_group_model->getList());
-			$view->set('articles',  $article_model->getList());
+			//	$view->set('articles',  $article_model->getList());
 			$view->display();
 		}
 		catch (\Exception $e)

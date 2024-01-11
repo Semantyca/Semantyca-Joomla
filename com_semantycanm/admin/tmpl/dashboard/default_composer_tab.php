@@ -10,17 +10,7 @@
             </div>
             <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles...">
             <ul id="articlesList" class="list-group dragdrop-list-short">
-				<?php
-				foreach ($this->articlesList as $article): ?>
-                    <li class="list-group-item"
-						<?php echo 'id="' . $article->id .
-							'" title="' . $article->title .
-							'"  data-url="' . $article->url .
-							'" data-category="' . $article->category .
-							'" data-intro="' . rawurlencode($article->introtext) . '"'; ?>>
-                        <strong><?php echo $article->category ?></strong><br>'<?php echo $article->title; ?>'
-                    </li>
-				<?php endforeach; ?>
+
             </ul>
         </div>
         <div class="col-md-6">
@@ -47,6 +37,7 @@
     let outputHtml = $('#outputHtml');
 
     $(document).ready(function () {
+        fetchArticles('');
         document.getElementById('resetBtn').addEventListener('click', function () {
             let sourceList = document.querySelectorAll('#selectedArticles li');
             let targetList = document.getElementById('articlesList');
