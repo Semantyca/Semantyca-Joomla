@@ -84,8 +84,13 @@ class ArticleModel extends BaseDatabaseModel
 
 	public function search($searchTerm)
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true)
+		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+		$days   = $params->get('retrieval_gap_in_days', 1);
+		$db     = $this->getDatabase();
+		$date   = JFactory::getDate();
+		$date->modify("-$days days");
+		$dateCondition = $db->quote($date->toSql());
+		$query         = $db->getQuery(true)
 			->select(array(
 				$db->quoteName('a.id'),
 				$db->quoteName('a.title'),
@@ -97,6 +102,7 @@ class ArticleModel extends BaseDatabaseModel
 			->from($db->quoteName('#__content', 'a'))
 			->join('LEFT', $db->quoteName('#__categories', 'c') . ' ON (' . $db->quoteName('a.catid') . ' = ' . $db->quoteName('c.id') . ')')
 			->where($db->quoteName('a.state') . ' = 1')
+			->where($db->quoteName('a.created') . ' > ' . $dateCondition)
 			->where($db->quoteName('a.title') . ' LIKE ' . $db->quote('%' . $searchTerm . '%'))
 			->order('a.created DESC');
 
@@ -109,7 +115,6 @@ class ArticleModel extends BaseDatabaseModel
 
 		return $articles;
 	}
-
 
 
 	private function constructArticleUrl($article): string
