@@ -45,13 +45,12 @@
                                      alt="Refresh" class="refresh-icon">
                             </button>
                         </th>
-                        <th style="width: 20%;"><?php echo JText::_('RECIPIENTS'); ?></th>
+                        <th style="width: 20%;"><?php echo JText::_('NEWSLETTER'); ?></th>
                         <th style="width: 10%;"><?php echo JText::_('STATUS'); ?></th>
                         <th style="width: 15%;"><?php echo JText::_('SEND_TIME'); ?></th>
                         <th style="width: 10%;"><?php echo JText::_('OPENS'); ?></th>
                         <th style="width: 10%;"><?php echo JText::_('CLICKS'); ?></th>
                         <th style="width: 10%;"><?php echo JText::_('UNSUBS'); ?></th>
-                        <th style="width: 20%;"><?php echo JText::_('NEWSLETTER'); ?></th>
                     </tr>
                     </thead>
                     <tbody id="statsList">
@@ -97,13 +96,12 @@
         data.forEach(function (stat) {
             html += '<tr data-groupid="' + stat.id + '">';
             html += '<td style="width: 5%;"><input type="checkbox" name="selectedItems[]" value="' + stat.id + '"></td>';
-            html += '<td style="width: 20%;">' + stat.recipients + '</td>';
+            html += '<td style="width: 20%;">' + stat.newsletter_id + '</td>';
             html += '<td style="width: 10%;">' + getBadge(stat.status) + '</td>';
             html += '<td style="width: 15%;">' + (stat.sent_time ? stat.sent_time : 'N/A') + '</td>';
             html += '<td style="width: 10%;">' + stat.opens + '</td>';
             html += '<td style="width: 10%;">' + stat.clicks + '</td>';
             html += '<td style="width: 10%;">' + stat.unsubs + '</td>';
-            html += '<td style="width: 20%;">' + stat.newsletter_id + '</td>';
             html += '</tr>';
         });
         return html;

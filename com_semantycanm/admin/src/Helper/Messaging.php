@@ -23,6 +23,11 @@ class Messaging
 		$this->baseURL = Uri::root();
 	}
 
+	/**
+	 * @throws MessagingException
+	 * @throws UpdateRecordException
+	 * @since 1.0
+	 */
 	public function sendEmail($body, $subject, $user_or_user_group, $newsletter_id): bool
 	{
 		$mailer = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();

@@ -84,21 +84,17 @@ class MailingListModel extends BaseDatabaseModel
 	}
 
 
-	public function getSubscribers($mailing_list_name)
+	public function getSubscribers()
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
-		$query->select(array($db->quoteName('#__semantyca_nm_subscribers.email')))
-			->from($db->quoteName('#__semantyca_nm_mailing_list'))
-			->join('LEFT',
-				$db->quoteName('#__semantyca_nm_subscribers') . ' ON (' . $db->quoteName('#__semantyca_nm_mailing_list.id') . ' = ' . $db->quoteName('#__semantyca_nm_subscribers.mail_list_id') . ')')
-			->where($db->quoteName('#__semantyca_nm_mailing_list.name') . ' = ' . $db->quote($mailing_list_name))
-			->group($db->quoteName('#__semantyca_nm_mailing_list.id'));
+		$query->select($db->quoteName('email'))
+			->from($db->quoteName('#__semantyca_nm_subscribers'));
 		$db->setQuery($query);
 
 		return $db->loadObjectList();
-
 	}
+
 
 	/**
 	 * @throws RecordNotFoundException
@@ -216,8 +212,8 @@ class MailingListModel extends BaseDatabaseModel
 		$query = $db->getQuery(true);
 		$query
 			->insert($db->quoteName('#__semantyca_nm_subscribers'))
-			->columns(array('name', 'email', 'mail_list_id'))
-			->values($db->quote($user_name) . ', ' . $db->quote($email) . ', NULL');
+			->columns(array('name', 'email'))
+			->values($db->quote($user_name) . ', ' . $db->quote($email));
 
 		$db->setQuery($query);
 		$db->execute();

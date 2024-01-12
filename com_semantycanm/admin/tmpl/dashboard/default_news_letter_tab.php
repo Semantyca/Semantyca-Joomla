@@ -120,6 +120,7 @@
 
         document.querySelector('#nav-newsletters-tab').addEventListener('shown.bs.tab', function () {
             getPageOfMailingList();
+            refreshNewsletters(1);
         });
 
         document.querySelector('#refreshNewsLettersButton').addEventListener('click', function () {
@@ -142,7 +143,7 @@
             });
         });
 
-        document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
+        document.getElementById('sendNewsletterBtn').addEventListener('click', function (e) {
             e.preventDefault();
             const msgContent = document.getElementById('messageContent').value;
             let subj = document.getElementById('subject').value;
@@ -168,28 +169,11 @@
                 return;
             }
 
-            const url = "index.php?option=com_semantycanm&task=service.sendEmail";
-            const headers = new Headers();
-            headers.append("Content-Type", "application/x-www-form-urlencoded");
-            const data = new URLSearchParams();
-            data.append('encoded_body', encodeURIComponent(msgContent));
-            data.append('subject', subj);
-            data.append('user_group', listItems);
-
-            fetch(url, {
-                method: "POST",
-                headers: headers,
-                body: data
-            })
-                .then(response => {
-                    if (response.status === 200) {
-                        alert(JSON.stringify(response.data))
-                        refreshNewsletters(1);
-                    } else {
-                        console.error('Error:', response.status);
-                    }
+            const newsletterRequest = new NewsletterRequest();
+            newsletterRequest.sendEmail(subj, msgContent, listItems)
+                .then(() => {
+                    refreshNewsletters(1);
                 })
-                .catch((error) => console.error(showErrorBar('service.sendEmail', error)));
         });
 
         document.getElementById('saveNewsletterBtn').addEventListener('click', function (e) {
@@ -205,71 +189,61 @@
                 showWarnBar("Subject cannot be empty")
                 return;
             }
-
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=NewsLetter.add',
-                type: 'POST',
-                data: {
-                    'subject': subj,
-                    'msg': encodeURIComponent(msgContent),
-                },
-                success: function (response) {
-                    console.log(JSON.stringify(response.data));
+            const newsletterRequest = new NewsletterRequest();
+            newsletterRequest.addNewsletter(subj, msgContent)
+                .then(() => {
                     refreshNewsletters(1);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    showAlertBar(textStatus + ", " + errorThrown);
-                }
-            });
-        });
-
-        document.getElementById('toggleEditBtn').addEventListener('click', function () {
-            const messageContent = document.getElementById('messageContent');
-            const toggleBtn = document.getElementById('toggleEditBtn');
-            if (messageContent.hasAttribute('readonly')) {
-                messageContent.removeAttribute('readonly');
-                toggleBtn.textContent = 'Read-Only';
-            } else {
-                messageContent.setAttribute('readonly', 'readonly');
-                toggleBtn.textContent = 'Edit';
-            }
-        });
-
-        $('#savedNewslettersList').dblclick(function (event) {
-            const row = event.target.parentNode;
-            const id = row.getAttribute('data-id');
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=NewsLetter.find&id=' + id,
-                type: 'GET',
-                success: function (response) {
-                    console.log(JSON.stringify(response.data));
-                    const respData = response.data[0];
-                    const msgContent = $('#messageContent');
-                    msgContent.prop('readonly', false);
-                    msgContent.val(decodeURIComponent(respData.message_content));
-                    $('#subject').val(respData.subject);
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    showAlertBar(textStatus + ", " + errorThrown);
-                }
-            });
-        });
-
-        $('.removeListBtn').click(function () {
-            const id = $(this).closest('tr').attr('data-id');
-            $.ajax({
-                url: 'index.php?option=com_semantycanm&task=NewsLetter.delete&ids=' + id,
-                type: 'DELETE',
-                success: function (response) {
-                    console.log(id + " " + response);
-                    $('#' + id).remove();
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    showAlertBar(textStatus + ", " + errorThrown);
-                }
-            });
+                })
         });
     });
+
+    document.getElementById('toggleEditBtn').addEventListener('click', function () {
+        const messageContent = document.getElementById('messageContent');
+        const toggleBtn = document.getElementById('toggleEditBtn');
+        if (messageContent.hasAttribute('readonly')) {
+            messageContent.removeAttribute('readonly');
+            toggleBtn.textContent = 'Read-Only';
+        } else {
+            messageContent.setAttribute('readonly', 'readonly');
+            toggleBtn.textContent = 'Edit';
+        }
+    });
+
+    $('#savedNewslettersList').dblclick(function (event) {
+        const row = event.target.parentNode;
+        const id = row.getAttribute('data-id');
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=NewsLetter.find&id=' + id,
+            type: 'GET',
+            success: function (response) {
+                console.log(JSON.stringify(response.data));
+                const respData = response.data[0];
+                const msgContent = $('#messageContent');
+                msgContent.prop('readonly', false);
+                msgContent.val(decodeURIComponent(respData.message_content));
+                $('#subject').val(respData.subject);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showAlertBar(textStatus + ", " + errorThrown);
+            }
+        });
+    });
+
+    $('.removeListBtn').click(function () {
+        const id = $(this).closest('tr').attr('data-id');
+        $.ajax({
+            url: 'index.php?option=com_semantycanm&task=NewsLetter.delete&ids=' + id,
+            type: 'DELETE',
+            success: function (response) {
+                console.log(id + " " + response);
+                $('#' + id).remove();
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                showAlertBar(textStatus + ", " + errorThrown);
+            }
+        });
+    });
+
 
     const receiverElementCreator = function (draggedElement) {
         let newLiEntry = document.createElement('li');
