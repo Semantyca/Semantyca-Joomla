@@ -88,11 +88,7 @@ class MailingListModel extends BaseDatabaseModel
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
-		$query->select(array(
-			$db->quoteName('ml.name', 'mailingListName'),
-			$db->quoteName('u.title', 'userTitle'),
-			$db->quoteName('u.email', 'userEmail')
-		))
+		$query->select('DISTINCT ' . $db->quoteName('u.email'))
 			->from($db->quoteName('#__semantyca_nm_mailing_list', 'ml'))
 			->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups', 'mlr') . ' ON ' . $db->quoteName('ml.id') . ' = ' . $db->quoteName('mlr.mailing_list_id'))
 			->join('INNER', $db->quoteName('#__usergroups', 'ug') . ' ON ' . $db->quoteName('mlr.user_group_id') . ' = ' . $db->quoteName('ug.id'))
@@ -102,8 +98,9 @@ class MailingListModel extends BaseDatabaseModel
 
 		$db->setQuery($query);
 
-		return $db->loadObjectList();
+		return $db->loadColumn();
 	}
+
 
 	public function getSubscribers()
 	{

@@ -65,14 +65,14 @@ class Messaging
 		$stat_rec_id         = $this->statModel->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
 		$allSentSuccessfully = true;
 
-		foreach ($recipients as $recipient)
+		foreach ($recipients as $e_mail)
 		{
 			$mailer->clearAllRecipients();
-			$mailer->addRecipient($recipient);
+			$mailer->addRecipient($e_mail);
 
-			$read_event_token  = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_READ);
-			$unsub_event_token = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_UNSUBSCRIBE);
-			$click_event_token = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_CLICK);
+			$read_event_token  = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_READ);
+			$unsub_event_token = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
+			$click_event_token = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_CLICK);
 			$trackingPixel     = '<img src="' . $this->baseURL . 'index.php?option=com_semantycanm&task=sitestat.postStat&id=' . urlencode($read_event_token) . '" width="1" height="1" alt="" style="display:none;">';
 			$customizedBody    = str_replace('</body>', $trackingPixel . '</body>', $body);
 
