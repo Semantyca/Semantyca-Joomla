@@ -83,6 +83,27 @@ class MailingListModel extends BaseDatabaseModel
 		return $mailingList;
 	}
 
+	public function getEmailAddresses($mailing_list_name)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->select(array(
+			$db->quoteName('ml.name', 'mailingListName'),
+			$db->quoteName('u.title', 'userTitle'),
+			$db->quoteName('u.email', 'userEmail')
+		))
+			->from($db->quoteName('#__semantyca_nm_mailing_list', 'ml'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups', 'mlr') . ' ON ' . $db->quoteName('ml.id') . ' = ' . $db->quoteName('mlr.mailing_list_id'))
+			->join('INNER', $db->quoteName('#__usergroups', 'ug') . ' ON ' . $db->quoteName('mlr.user_group_id') . ' = ' . $db->quoteName('ug.id'))
+			->join('INNER', $db->quoteName('#__user_usergroup_map', 'ugm') . ' ON ' . $db->quoteName('ug.id') . ' = ' . $db->quoteName('ugm.group_id'))
+			->join('INNER', $db->quoteName('#__users', 'u') . ' ON ' . $db->quoteName('ugm.user_id') . ' = ' . $db->quoteName('u.id'))
+			->where($db->quoteName('ml.name') . ' = ' . $db->quote($mailing_list_name));
+
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
+	}
 
 	public function getSubscribers()
 	{
@@ -168,58 +189,6 @@ class MailingListModel extends BaseDatabaseModel
 			$db->transactionRollback();
 			throw $e;
 		}
-	}
-
-
-	public function findByEmail($email)
-	{
-
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-		$query
-			->select($db->quoteName(array('id')))
-			->from($db->quoteName('#__semantyca_nm_subscribers'))
-			->where('email = ' . $db->quote($email));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		return $db->insertid();
-
-	}
-
-	public function upsertSubscriber($user_name, $email): int
-	{
-		$doc = $this->findByEmail($email);
-		if ($doc == null)
-		{
-			$id = $this->addSubscriber($user_name, $email);
-		}
-		else
-		{
-			//TODO should be update instead
-			$id = $doc->id;
-		}
-
-		return $id;
-
-	}
-
-	public function addSubscriber($user_name, $email): int
-	{
-
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-		$query
-			->insert($db->quoteName('#__semantyca_nm_subscribers'))
-			->columns(array('name', 'email'))
-			->values($db->quote($user_name) . ', ' . $db->quote($email));
-
-		$db->setQuery($query);
-		$db->execute();
-
-		return $db->insertid();
-
 	}
 
 	public function remove($ids)

@@ -9,17 +9,20 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
 class Messaging
 {
 	private MailingListModel $mailingListModel;
 	private StatModel $statModel;
+	private SubscriberEventModel $eventModel;
 	private string $baseURL;
 
-	public function __construct(MailingListModel $mailingListModel, StatModel $statModel)
+	public function __construct(MailingListModel $mailingListModel, StatModel $statModel, SubscriberEventModel $eventModel)
 	{
 		$this->mailingListModel = $mailingListModel;
 		$this->statModel        = $statModel;
+		$this->eventModel = $eventModel;
 		$this->baseURL = Uri::root();
 	}
 
@@ -36,16 +39,14 @@ class Messaging
 
 		if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
 		{
-			$this->mailingListModel->upsertSubscriber($user_or_user_group, $user_or_user_group);
-
-			return $this->sendMessage($mailer, $user_or_user_group, $body, $newsletter_id);
+			return $this->sendMessage($mailer, [$user_or_user_group], $body, $newsletter_id);
 		}
 		else
 		{
-			$result      = true;
-			$subscribers = $this->mailingListModel->getSubscribers($user_or_user_group);
+			$result     = true;
+			$recipients = $this->mailingListModel->getEmailAddresses($user_or_user_group);
 
-			if (!$this->sendMessage($mailer, $subscribers, $body, $newsletter_id))
+			if (!$this->sendMessage($mailer, $recipients, $body, $newsletter_id))
 			{
 				$result = false;
 			};
@@ -61,34 +62,46 @@ class Messaging
 	 */
 	function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
 	{
-		$mailer->addRecipient($recipients);
-		$model = $this->statModel;
+		$stat_rec_id         = $this->statModel->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
+		$allSentSuccessfully = true;
 
-		$stat_rec_id = $model->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
-
-		if ($stat_rec_id != 0)
+		foreach ($recipients as $recipient)
 		{
-			$trackingPixel = '<img src="' . $this->baseURL . 'index.php?option=com_semantycanm&task=sitestat.postStat&id=' . urlencode($stat_rec_id) . '" width="1" height="1" alt="" style="display:none;">';
-			$body          = str_replace('</body>', $trackingPixel . '</body>', $body);
+			$mailer->clearAllRecipients();
+			$mailer->addRecipient($recipient);
 
-			$mailer->setBody($body);
+			$read_event_token  = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_READ);
+			$unsub_event_token = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_UNSUBSCRIBE);
+			$click_event_token = $this->eventModel->createSubscriberEvent($recipient, Constants::EVENT_TYPE_CLICK);
+			$trackingPixel     = '<img src="' . $this->baseURL . 'index.php?option=com_semantycanm&task=sitestat.postStat&id=' . urlencode($read_event_token) . '" width="1" height="1" alt="" style="display:none;">';
+			$customizedBody    = str_replace('</body>', $trackingPixel . '</body>', $body);
+
+			$mailer->setBody($customizedBody);
 			$send = $mailer->send();
 
 			if ($send !== true)
 			{
-				$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
-				throw new MessagingException(['Sending of the message was failed']);
+				$allSentSuccessfully = false;
+				$this->eventModel->deleteEventByTriggerToken($read_event_token);
+				$this->eventModel->deleteEventByTriggerToken($unsub_event_token);
+				$this->eventModel->deleteEventByTriggerToken($click_event_token);
+
 			}
+		}
+
+		if ($allSentSuccessfully)
+		{
+			$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
 		}
 		else
 		{
 			$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
-			throw new MessagingException(['Error sending email to ' . $recipients . '. The stat has not not initiated correctly']);
+			throw new MessagingException(['Error occurred in sending emails. Not all recipients will get the message']);
 		}
-		$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
 
-		return true;
+		return $allSentSuccessfully;
 	}
+
 
 }
 

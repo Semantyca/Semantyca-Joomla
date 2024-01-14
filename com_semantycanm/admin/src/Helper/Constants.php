@@ -15,6 +15,12 @@ class Constants
 	const HAS_BEEN_SENT = 2;
 	const HAS_BEEN_READ = 3;
 
+	const EVENT_TYPE_READ = 101;
+	const EVENT_TYPE_UNSUBSCRIBE = 102;
+	const EVENT_TYPE_CLICK = 101;
+
+
+
 	public static function getStatusText($status) {
 		$status_dict = array(
 			self::MESSAGING_ERROR => JText::_('MESSAGING_ERROR'),

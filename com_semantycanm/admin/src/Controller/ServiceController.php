@@ -46,10 +46,11 @@ class ServiceController extends BaseController
 			$mailingListModel = $this->getModel('MailingList');
 			$statModel        = $this->getModel('Stat');
 			$newLetterModel   = $this->getModel('NewsLetter');
+			$eventModel = $this->getModel('SubscriberEvent');
 
 			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
 
-			$messagingHelper = new Messaging($mailingListModel, $statModel);
+			$messagingHelper = new Messaging($mailingListModel, $statModel, $eventModel);
 			$result          = $messagingHelper->sendEmail(urldecode($encodedBody), $subject, $user_group, $newsLetterUpsertResults);
 			if ($result)
 			{
