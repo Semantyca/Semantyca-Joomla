@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS `#__semantyca_nm_newsletter_mailing_list`; #deprecated
 DROP TABLE IF EXISTS `#__semantyca_nm_newsletters`;
 DROP TABLE IF EXISTS `#__semantyca_nm_subscribers`; #deprecated
 DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list`;
+DROP TABLE IF EXISTS `#__semantyca_nm_templates`;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list`
 (
@@ -30,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscriber_events`
 (
     id               INT AUTO_INCREMENT,
     reg_date         DATETIME DEFAULT CURRENT_TIMESTAMP,
+    newsletter_id INT,
     subscriber_email VARCHAR(255),
     event_type       INT,
     expected         BOOLEAN,
@@ -64,4 +66,14 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
     sent_time     DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
+(
+    id              INT AUTO_INCREMENT,
+    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type            INT      DEFAULT 1,
+    name            VARCHAR(255),
+    message_content MEDIUMTEXT,
+    PRIMARY KEY (id)
 ) ENGINE = InnoDB;

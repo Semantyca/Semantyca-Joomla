@@ -55,18 +55,24 @@ $this->selectedLetters = [];
             <button class="nav-link active" id="nav-list-tab" data-bs-toggle="tab" data-bs-target="#nav-list"
                     type="button"
                     role="tab" aria-controls="nav-list"
-                    aria-selected="true"><?php echo JText::_('COM_SEMANTYCANM_LISTS'); ?></button>
+                    aria-selected="true"><?php echo JText::_('LISTS_TAB'); ?></button>
             <button class="nav-link" id="nav-composer-tab" data-bs-toggle="tab" data-bs-target="#nav-composer"
                     type="button"
                     role="tab" aria-controls="nav-composer"
-                    aria-selected="false"><?php echo JText::_('COM_SEMANTYCANM_COMPOSER'); ?></button>
+                    aria-selected="false"><?php echo JText::_('COMPOSER_TAB'); ?></button>
             <button class="nav-link" id="nav-newsletters-tab" data-bs-toggle="tab" data-bs-target="#nav-newsletters"
                     type="button"
                     role="tab" aria-controls="nav-newsletters"
-                    aria-selected="false"><?php echo JText::_('COM_SEMANTYCANM_NEWSLETTERS'); ?></button>
+                    aria-selected="false"><?php echo JText::_('NEWSLETTERS_TAB'); ?></button>
             <button class="nav-link" id="nav-stats-tab" data-bs-toggle="tab" data-bs-target="#nav-stats" type="button"
                     role="tab" aria-controls="nav-stats"
-                    aria-selected="false"><?php echo JText::_('COM_SEMANTYCANM_STATS'); ?></button>
+                    aria-selected="false"><?php echo JText::_('STATS_TAB'); ?></button>
+            <button class="nav-link" id="nav-template-tab" data-bs-toggle="tab" data-bs-target="#nav-template"
+                    type="button"
+                    role="tab" aria-controls="nav-template"
+                    aria-selected="false"><?php echo JText::_('TEMPLATES_TAB'); ?></button>
+
+
         </div>
     </nav>
     <div class="tab-content" id="nav-tabContent">
@@ -81,6 +87,9 @@ $this->selectedLetters = [];
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
 			<?php echo $this->loadTemplate('stats_tab'); ?>
+        </div>
+        <div class="tab-pane fade" id="nav-template" role="tabpanel" aria-labelledby="nav-template-tab">
+		    <?php echo $this->loadTemplate('template_tab'); ?>
         </div>
     </div>
 </div>

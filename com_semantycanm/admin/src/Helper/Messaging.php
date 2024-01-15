@@ -17,7 +17,7 @@ class Messaging
 	private StatModel $statModel;
 	private SubscriberEventModel $eventModel;
 	private string $baseURL;
-
+	const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=sitesubsciberevent.postevent&id=%s" width="1" height="1" alt="" style="display:none;">';
 	public function __construct(MailingListModel $mailingListModel, StatModel $statModel, SubscriberEventModel $eventModel)
 	{
 		$this->mailingListModel = $mailingListModel;
@@ -70,10 +70,10 @@ class Messaging
 			$mailer->clearAllRecipients();
 			$mailer->addRecipient($e_mail);
 
-			$read_event_token  = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_READ);
-			$unsub_event_token = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
-			$click_event_token = $this->eventModel->createSubscriberEvent($e_mail, Constants::EVENT_TYPE_CLICK);
-			$trackingPixel     = '<img src="' . $this->baseURL . 'index.php?option=com_semantycanm&task=sitestat.postStat&id=' . urlencode($read_event_token) . '" width="1" height="1" alt="" style="display:none;">';
+			$read_event_token  = $this->eventModel->createSubscriberEvent($newsletter_id, $e_mail, Constants::EVENT_TYPE_READ);
+			$unsub_event_token = $this->eventModel->createSubscriberEvent($newsletter_id, $e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
+			$click_event_token = $this->eventModel->createSubscriberEvent($newsletter_id, $e_mail, Constants::EVENT_TYPE_CLICK);
+			$trackingPixel     = sprintf(Messaging::TRACKING_PIXEL_TEMPLATE, $this->baseURL, urlencode($read_event_token));
 			$customizedBody    = str_replace('</body>', $trackingPixel . '</body>', $body);
 
 			$mailer->setBody($customizedBody);

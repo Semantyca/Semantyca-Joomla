@@ -213,7 +213,7 @@ class MailingListModel extends BaseDatabaseModel
 	private function insertUserGroups($mailing_list_id, $user_group_ids)
 	{
 		$db = $this->getDatabase();
-
+		//TODO FE can send empty element
 		foreach (array_unique($user_group_ids) as $id)
 		{
 			$query = $db->getQuery(true);

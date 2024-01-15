@@ -9,16 +9,16 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Site\Helper\SiteConsts;
 
-class SiteStatController extends BaseController
+class SiteSubscriberEventController extends BaseController
 {
-	public function postStat()
+	public function postEvent()
 	{
 		try
 		{
-			$id        = $this->input->getString('id');
-			$statModel = $this->getModel('SiteStat');
-			$statModel->updateOpens($id);
-			header("Content-type: image/png");
+			$token     = $this->input->getString('id');
+			$statModel = $this->getModel('SiteSubscriberEvent');
+			$statModel->updateSubscriberEvent($token, SiteConsts::EVENT_TYPE_READ);
+			header(SiteConsts::IMAGE_CONTENT_TYPE);
 			echo base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/wcAAwAB/wHtRbk7AAA=");
 		}
 		catch

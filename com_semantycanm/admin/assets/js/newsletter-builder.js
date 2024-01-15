@@ -13,6 +13,7 @@ function updateNewsletterContent() {
         if (!$this.data('trumbowyg')) {
             $this.trumbowyg({
                 btns: [
+                    ['viewHTML'],
                     ['strong', 'em', 'link'],
                     ['formatting'],
                     ['unorderedList', 'orderedList'],
@@ -108,16 +109,16 @@ function generateContent(currentDateFormatted, currentYear) {
 function getStyledEntries(index, title, url, intro, category) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(intro, "text/html");
-    const imgTags = doc.getElementsByTagName("img");
-    for (let i = 0; i < imgTags.length; i++) {
-        imgTags[i].removeAttribute("height");
-        imgTags[i].setAttribute("width", "100%");
-        imgTags[i].setAttribute("style", "margin-bottom: 2%;");
-    }
-    const pTags = doc.getElementsByTagName("p");
-    for (let i = 0; i < pTags.length; i++) {
-        pTags[i].setAttribute("style", "font-size: 18px;");
-    }
+    /* const imgTags = doc.getElementsByTagName("img");
+     for (let i = 0; i < imgTags.length; i++) {
+         imgTags[i].removeAttribute("height");
+         imgTags[i].setAttribute("width", "100%");
+         imgTags[i].setAttribute("style", "margin-bottom: 2%;");
+     }
+     const pTags = doc.getElementsByTagName("p");
+     for (let i = 0; i < pTags.length; i++) {
+         pTags[i].setAttribute("style", "font-size: 18px;");
+     }*/
 
     intro = doc.body.innerHTML;
     if (templates[index]) {

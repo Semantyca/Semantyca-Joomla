@@ -12,7 +12,7 @@
 
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>
 
-    <files folder="site/">
+    <files folder="../site/">
         <folder>language</folder>
         <folder>src</folder>
         <folder>tmpl</folder>
