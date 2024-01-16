@@ -17,7 +17,7 @@ class Messaging
 	private StatModel $statModel;
 	private SubscriberEventModel $eventModel;
 	private string $baseURL;
-	const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=sitesubsciberevent.postevent&id=%s" width="1" height="1" alt="" style="display:none;">';
+	const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
 	public function __construct(MailingListModel $mailingListModel, StatModel $statModel, SubscriberEventModel $eventModel)
 	{
 		$this->mailingListModel = $mailingListModel;
