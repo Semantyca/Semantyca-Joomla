@@ -25,6 +25,12 @@ class StatModel extends BaseDatabaseModel
 		$db->setQuery($query);
 		$stats = $db->loadObjectList();
 
+		// TODO database capability is not leveraged ((
+		foreach ($stats as $stat)
+		{
+			$stat->recipients = json_decode($stat->recipients, true);
+		}
+
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
 			->from($db->quoteName('#__semantyca_nm_stats'));

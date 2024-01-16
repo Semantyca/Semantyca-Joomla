@@ -34,5 +34,18 @@ class SiteSubscriberEventModel extends BaseDatabaseModel
 		return $db->execute();
 	}
 
+	public function getForStatRecord($newsletter_id)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query->select(array($db->quoteName('event_type'), 'COUNT(' . $db->quoteName('event_type') . ')'))
+			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
+			->where($db->quoteName('newsletter_id') . ' = ' . $db->quote($newsletter_id))
+			->where($db->quoteName('expected') . ' = 0')
+			->group($db->quoteName('event_type'));
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
+	}
 
 }
