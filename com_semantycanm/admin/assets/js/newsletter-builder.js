@@ -33,6 +33,35 @@ function updateNewsletterContent() {
     });
 }
 
+function updNewsletterContent() {
+    const currentYear = new Date().getFullYear();
+    const currentMonth = new Date().toLocaleString('default', {month: 'long'}).toUpperCase();
+    const currentDateFormatted = currentMonth + ' ' + currentYear;
+    const content = generateContent(currentDateFormatted, currentYear);
+
+    let composerEditor = tinyMCE.get('outputHtml');
+
+    if (composerEditor) {
+        composerEditor.setContent(content);
+    } else {
+        tinyMCE.init({
+            selector: '#outputHtml',
+            plugins: 'code',
+            toolbar: 'code paste removeformat bold italic underline indent outdent',
+            menubar: '',
+            statusbar: false,
+            setup: function (editor) {
+                composerEditor = editor;
+                editor.on('blur', function (e) {
+                    const editedContent = editor.getContent();
+                    const articleId = editor.getElement().dataset.id;
+                    editedContentStore[articleId] = editedContent;
+                });
+            }
+        });
+    }
+}
+
 
 function generateContent(currentDateFormatted, currentYear) {
     $('#selectedArticles .list-group-item').map(function () {
@@ -42,7 +71,7 @@ function generateContent(currentDateFormatted, currentYear) {
     let articlesContent = '';
     let selectedArticlesLi = $('#selectedArticles li')
     const totalArticles = selectedArticlesLi.length;
-
+    debugger;
     selectedArticlesLi.each(function (index, article) {
         const articleId = article.id;
         const title = article.title;
@@ -56,77 +85,54 @@ function generateContent(currentDateFormatted, currentYear) {
             intro = makeImageUrlsAbsolute(htmlContent);
         }
         const category = article.dataset.category;
-        articlesContent += getStyledEntries(index, title, url, intro, category);
-
-        if (index === 4 && index < totalArticles - 1) {
-            articlesContent += window.templates.placeholder();
-        }
+        articlesContent += getDynamicEntry(index, title, url, intro, category);
     });
 
-
-    return `
-      <table width="100%" cellspacing="0" cellpadding="0" border="0">
-      <tr>
-      <td width="10">
-      &nbsp;
-      <td>
-      <table width="100%" cellspacing="0" cellpadding="0" border="0">
-      <!-- Image row -->
-      <tr>
-      <td>
-        <img src=${bannerUrl} alt="banner">
-      </td>
-      </tr>
-      <tr>
-      <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;">
-      ${currentDateFormatted}
-      </td>
-      </tr>
-      <tr>
-      <td>
-      ${articlesContent}
-      </td>
-      </tr>
-      <!-- Footer content row -->
-      <tr>
-      <td>
-      <table width="100%" cellspacing="0" cellpadding="0" border="0">
-      <tr><td style="padding:5px;">&nbsp;</td></tr>
-      <tr><td style="font-size: 14px; border-top: 1px solid #003399;">&copy; ${currentYear}, European Maritime Safety Agency</td></tr>
-      </table>
-      </td>
-      </tr>
-      </table>
-      </td>
-      <td width="10">
-      &nbsp;
-      </td>
-      </tr>
-      </table>
-      `;
+    let template = Handlebars.compile(window.myVueState.main);
+    let data = {
+        bannerUrl: "/joomla/images/2020/EMSA_logo_full_600-ed.png",
+        currentDateFormatted: currentDateFormatted,
+        currentYear: currentYear,
+        articlesContent: articlesContent
+    };
+    let cont = template(data);
+    cont = cont += getEnding();
+    return cont;
 }
 
-function getStyledEntries(index, title, url, intro, category) {
+function getDynamicEntry(index, title, url, intro, category) {
     const parser = new DOMParser();
-    const doc = parser.parseFromString(intro, "text/html");
-    /* const imgTags = doc.getElementsByTagName("img");
-     for (let i = 0; i < imgTags.length; i++) {
-         imgTags[i].removeAttribute("height");
-         imgTags[i].setAttribute("width", "100%");
-         imgTags[i].setAttribute("style", "margin-bottom: 2%;");
-     }
-     const pTags = doc.getElementsByTagName("p");
-     for (let i = 0; i < pTags.length; i++) {
-         pTags[i].setAttribute("style", "font-size: 18px;");
-     }*/
-
-    intro = doc.body.innerHTML;
-    if (templates[index]) {
-        return templates[index](title, url, intro, category);
-    } else {
-        return templates.default(title, url, intro, category);
-    }
+    const introDoc = parser.parseFromString(intro, "text/html");
+    console.log('dynamic: ', window.myVueState.dynamic);
+    let template = Handlebars.compile(window.myVueState.dynamic);
+    let data = {
+        spacerWidth: '100%',
+        spacerCellSpacing: '0',
+        spacerCellPadding: '0',
+        spacerBorder: '0',
+        spacerHeight: '10',
+        titleFontSize: '25px',
+        titleFontFamily: 'Arial, Helvetica, sans-serif',
+        title: title,
+        url: url,
+        intro: introDoc.body.innerHTML,
+        category: category
+    };
+    return template(data);
 }
+
+function getEnding() {
+    let template = Handlebars.compile(window.myVueState.ending);
+    let data = {
+        spacerWidth: '100%',
+        spacerCellSpacing: '0',
+        spacerCellPadding: '0',
+        spacerBorder: '0',
+        spacerHeight: '10'
+    };
+    return template(data);
+}
+
 
 function makeImageUrlsAbsolute(articleHtml) {
     let parser = new DOMParser();

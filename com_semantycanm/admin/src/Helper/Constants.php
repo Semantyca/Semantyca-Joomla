@@ -2,8 +2,6 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
-use JText;
-
 class Constants
 {
 	public const JSON_CONTENT_TYPE = 'Content-Type: application/json; charset=UTF-8';
@@ -19,16 +17,13 @@ class Constants
 	const EVENT_TYPE_UNSUBSCRIBE = 102;
 	const EVENT_TYPE_CLICK = 101;
 
+	const TMPL_HEADER = 31;
+	const TMPL_DYNAMIC = 32;
+	const TMPL_FOOTER = 33;
+	const TMPL_MAIN = 34;
+	const TMPL_ENDING = 35;
+	const TMPL_WRAPPER = 36;
+	const TMPL_DYNAMIC_SHORT = 37;
 
 
-	public static function getStatusText($status) {
-		$status_dict = array(
-			self::MESSAGING_ERROR => JText::_('MESSAGING_ERROR'),
-			self::UNDEFINED => JText::_('UNDEFINED'),
-			self::SENDING_ATTEMPT => JText::_('SENDING_ATTEMPT'),
-			self::HAS_BEEN_SENT => JText::_('HAS_BEEN_SENT'),
-			self::HAS_BEEN_READ => JText::_('HAS_BEEN_READ')
-		);
-		return $status_dict[$status];
-	}
 }

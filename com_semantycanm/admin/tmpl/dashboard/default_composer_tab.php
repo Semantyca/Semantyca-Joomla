@@ -100,7 +100,7 @@
         return createElement(draggedObj.id, draggedObj.title, draggedObj.dataset.url, draggedObj.dataset.category, draggedObj.dataset.intro);
     }
 
-    dragAndDropSet(document.getElementById('articlesList'), document.getElementById('selectedArticles'), articleElementCreator, updateNewsletterContent);
+    dragAndDropSet(document.getElementById('articlesList'), document.getElementById('selectedArticles'), articleElementCreator, updNewsletterContent);
 
     function fetchArticles(searchTerm) {
         showSpinner('composerSpinner');

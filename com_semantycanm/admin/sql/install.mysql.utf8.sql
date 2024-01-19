@@ -5,7 +5,8 @@ DROP TABLE IF EXISTS `#__semantyca_nm_newsletter_mailing_list`; #deprecated
 DROP TABLE IF EXISTS `#__semantyca_nm_newsletters`;
 DROP TABLE IF EXISTS `#__semantyca_nm_subscribers`; #deprecated
 DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list`;
-DROP TABLE IF EXISTS `#__semantyca_nm_templates`;
+DROP TABLE IF EXISTS `#__semantyca_nm_template_components`;
+DROP TABLE IF EXISTS `#__semantyca_nm_sections`;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list`
 (
@@ -70,10 +71,21 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
-    id              INT AUTO_INCREMENT,
-    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
-    type            INT      DEFAULT 1,
-    name            VARCHAR(255),
-    message_content MEDIUMTEXT,
+    id                 INT AUTO_INCREMENT,
+    reg_date           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    name               VARCHAR(255),
+    max_articles       INT,
+    max_articles_short INT,
     PRIMARY KEY (id)
+) ENGINE = InnoDB;
+
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_template_sections`
+(
+    id          INT AUTO_INCREMENT,
+    reg_date    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    template_id INT,
+    type        INT      DEFAULT 30,
+    content     MEDIUMTEXT,
+    PRIMARY KEY (id),
+    FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;

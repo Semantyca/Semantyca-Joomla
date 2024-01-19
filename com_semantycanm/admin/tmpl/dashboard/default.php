@@ -7,31 +7,36 @@ use Semantyca\Component\SemantycaNM\Site\Helper\SiteConsts;
 
 HTMLHelper::_('form.csrf', '_csrf');
 HTMLHelper::_('jquery.framework');
+HTMLHelper::_('script', 'tinymce/tinymce.min.js', ['version' => 'auto', 'relative' => true]);
 
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
-global $media;
+global $smtca_assets;
 
 
-$media = "administrator/components/com_semantycanm/assets/";
-$rootUrl = JUri::root();
+$smtca_assets = "administrator/components/com_semantycanm/assets/";
+$rootUrl      = JUri::root();
 $bannerImageUrl = $rootUrl . "images/2020/EMSA_logo_full_600-ed.png";
-$host = JUri::getInstance()->toString(['host']);
-$doc->addScript($rootUrl . $media . "js/Pagination.js");
-$doc->addScript($rootUrl . $media . "js/MailingListRequest.js");
-$doc->addScript($rootUrl . $media . "js/NewsletterRequest.js");
-$doc->addScript($rootUrl . $media . "js/Sortable.min.js");
-$doc->addScript($rootUrl . $media . "js/trumbowyg.min.js");
-$doc->addScript($rootUrl . $media . "js/bootstrap.min.js");
-$doc->addScript($rootUrl . $media . "js/templates.js");
-$doc->addScript($rootUrl . $media . "js/typeahead.bundle.js");
-$doc->addScript($rootUrl . $media . "js/common.js");
-$doc->addScript($rootUrl . $media . "js/dragdrop.js");
-$doc->addScript($rootUrl . $media . "js/newsletter-builder.js");
-$doc->addStyleSheet($rootUrl . $media . "css/trumbowyg.min.css");
-$doc->addStyleSheet($rootUrl . $media . "css/default.css");
-$doc->addStyleSheet($rootUrl . $media . "css/dragdrop.css");
+$host         = JUri::getInstance()->toString(['host']);
+$doc->addScript($rootUrl . $smtca_assets . "js/Pagination.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/MailingListRequest.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/NewsletterRequest.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg/trumbowyg.template.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/templates.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/common.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/newsletter-builder.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/vue/vue3.4.14.global.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/template-tab.js");
 
+$doc->addStyleSheet($rootUrl . $smtca_assets . "css/trumbowyg.min.css");
+$doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
+$doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
 
 
 try
@@ -45,6 +50,7 @@ catch (Exception $e)
 
 $this->usergroups      = $this->user_groups;
 $this->selectedLetters = [];
+
 
 ?>
 
@@ -89,7 +95,7 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('stats_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-template" role="tabpanel" aria-labelledby="nav-template-tab">
-		    <?php echo $this->loadTemplate('template_tab'); ?>
+	        <?php echo $this->loadTemplate('template_tab'); ?>
         </div>
     </div>
 </div>
