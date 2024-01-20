@@ -7,7 +7,7 @@ use Semantyca\Component\SemantycaNM\Site\Helper\SiteConsts;
 
 HTMLHelper::_('form.csrf', '_csrf');
 HTMLHelper::_('jquery.framework');
-HTMLHelper::_('script', 'tinymce/tinymce.min.js', ['version' => 'auto', 'relative' => true]);
+//HTMLHelper::_('script', 'tinymce/tinymce.min.js', ['version' => 'auto', 'relative' => true]);
 
 $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
@@ -22,10 +22,8 @@ $doc->addScript($rootUrl . $smtca_assets . "js/Pagination.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/MailingListRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/NewsletterRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg/trumbowyg.template.min.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/tinymce/tinymce.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
-//$doc->addScript($rootUrl . $smtca_assets . "js/templates.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
@@ -35,7 +33,6 @@ $doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/template-tab.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/composer-tab.js");
 
-$doc->addStyleSheet($rootUrl . $smtca_assets . "css/trumbowyg.min.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
 
