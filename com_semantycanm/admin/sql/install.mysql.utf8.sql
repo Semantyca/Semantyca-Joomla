@@ -73,6 +73,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
     id                 INT AUTO_INCREMENT,
     reg_date           DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(20),
     name               VARCHAR(255),
     max_articles       INT,
     max_articles_short INT,

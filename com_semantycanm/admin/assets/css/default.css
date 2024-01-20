@@ -1,3 +1,20 @@
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+#composerSection {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+#outputHtml {
+    flex-grow: 1;
+    margin-bottom: 10px;
+    border: 1px solid gray;
+}
+
 #reset-button {
     background-color: #152E52;
     color: white;
@@ -65,13 +82,26 @@
     transition: opacity 1s ease-in-out;
 }
 
+#composerSection {
+    position: relative; /* Ensure parent is positioned relatively */
+}
 
+.loading-spinner {
+    display: none;
+    height: 2px;
+    background-color: #7a8ae5;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    animation: moveLine 1s linear infinite;
+}
 
-
-
-
-
-
-
-
-
+@keyframes moveLine {
+    0% {
+        transform: translateX(-100%);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}

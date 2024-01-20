@@ -4,3 +4,4 @@
         <div ref="templateRef" style="border: 1px solid gray">
         </div>
     </div>
+</div>

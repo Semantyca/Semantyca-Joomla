@@ -71,6 +71,9 @@ class TemplateModel extends BaseDatabaseModel
 
 			switch ($row->type)
 			{
+				case Constants::TMPL_HTML:
+					$template->html = $row->content;
+					break;
 				case Constants::TMPL_DYNAMIC:
 					$template->dynamic = $row->content;
 					break;

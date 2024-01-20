@@ -9,6 +9,7 @@ class TemplateDTO
 	public $name;
 	public $maxArticles;
 	public $maxArticlesShort;
+	public $html;
 	public $dynamic;
 	public $main;
 	public $ending;
@@ -22,6 +23,7 @@ class TemplateDTO
 			'name'             => $this->name,
 			'maxArticles'      => $this->maxArticles,
 			'maxArticlesShort' => $this->maxArticlesShort,
+			'html' => $this->html,
 			'dynamic'          => $this->dynamic,
 			'main'             => $this->main,
 			'ending'           => $this->ending,

@@ -17,6 +17,7 @@ class Constants
 	const EVENT_TYPE_UNSUBSCRIBE = 102;
 	const EVENT_TYPE_CLICK = 101;
 
+	const TMPL_HTML = 30;
 	const TMPL_HEADER = 31;
 	const TMPL_DYNAMIC = 32;
 	const TMPL_FOOTER = 33;

@@ -1,65 +1,51 @@
 let editedContentStore = {};
 
-function updateNewsletterContent() {
-    const currentYear = new Date().getFullYear()
-    const currentMonth = new Date().toLocaleString('default', {month: 'long'}).toUpperCase()
-    const currentDateFormatted = currentMonth + ' ' + currentYear
-    const content = generateContent(currentDateFormatted, currentYear);
+function buildContent(currentDateFormatted, currentYear) {
+    let selectedArticlesLi = $('#selectedArticles li')
+    let articles = [];
 
-    outputHtml.val(content);
-    outputHtml.trumbowyg('html', content);
-    outputHtml.each(function () {
-        const $this = $(this);
-        if (!$this.data('trumbowyg')) {
-            $this.trumbowyg({
-                btns: [
-                    ['viewHTML'],
-                    ['strong', 'em', 'link'],
-                    ['formatting'],
-                    ['unorderedList', 'orderedList'],
-                    ['removeformat'],
-                    ['fullscreen']
-                ],
-                removeformatPasted: false
-            })
-                .on('tbwblur', function () {
-                    const editedContent = $this.trumbowyg('html');
-                    const articleId = $this.data('id');
-                    editedContentStore[articleId] = editedContent;
-                    $this.html(editedContent);
-                    $this.data('intro', encodeURIComponent(editedContent));
-                });
-        }
+    selectedArticlesLi.each(function (index, article) {
+        const articleId = article.id;
+        const title = article.title;
+        const url = normalizeUrl(article.dataset.url);
+        let htmlContent = decodeURIComponent(article.dataset.intro);
+        let intro = makeImageUrlsAbsolute(htmlContent);
+        const category = article.dataset.category;
+        let articleObj = {
+            id: articleId,
+            title: title,
+            url: url,
+            intro: intro,
+            category: category,
+            backgroundColor: getRandomWebSafeColor()
+        };
+        articles.push(articleObj);
     });
+
+    Handlebars.registerHelper('lt', function (value1, value2) {
+        return value1 < value2;
+    });
+
+    let template = Handlebars.compile(window.myVueState.html);
+    let data = {
+        bannerUrl: "/joomla/images/2020/EMSA_logo_full_600-ed.png",
+        currentDateFormatted: currentDateFormatted,
+        currentYear: currentYear,
+        articles: articles
+    };
+    let cont = template(data);
+    cont += getEnding();
+    return cont;
 }
 
-function updNewsletterContent() {
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().toLocaleString('default', {month: 'long'}).toUpperCase();
-    const currentDateFormatted = currentMonth + ' ' + currentYear;
-    const content = generateContent(currentDateFormatted, currentYear);
+function getRandomWebSafeColor() {
+    const safeValues = [0, 51, 102, 153, 204, 255]; // Web-safe values for each color channel
+    const red = safeValues[Math.floor(Math.random() * safeValues.length)];
+    const green = safeValues[Math.floor(Math.random() * safeValues.length)];
+    const blue = safeValues[Math.floor(Math.random() * safeValues.length)];
 
-    let composerEditor = tinyMCE.get('outputHtml');
-
-    if (composerEditor) {
-        composerEditor.setContent(content);
-    } else {
-        tinyMCE.init({
-            selector: '#outputHtml',
-            plugins: 'code',
-            toolbar: 'code paste removeformat bold italic underline indent outdent',
-            menubar: '',
-            statusbar: false,
-            setup: function (editor) {
-                composerEditor = editor;
-                editor.on('blur', function (e) {
-                    const editedContent = editor.getContent();
-                    const articleId = editor.getElement().dataset.id;
-                    editedContentStore[articleId] = editedContent;
-                });
-            }
-        });
-    }
+    // Convert each color component to a two-digit hexadecimal value and concatenate
+    return `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`;
 }
 
 
@@ -71,7 +57,6 @@ function generateContent(currentDateFormatted, currentYear) {
     let articlesContent = '';
     let selectedArticlesLi = $('#selectedArticles li')
     const totalArticles = selectedArticlesLi.length;
-    debugger;
     selectedArticlesLi.each(function (index, article) {
         const articleId = article.id;
         const title = article.title;
@@ -129,6 +114,14 @@ function getEnding() {
         spacerCellPadding: '0',
         spacerBorder: '0',
         spacerHeight: '10'
+    };
+    return template(data);
+}
+
+function getWrappedContent(content) {
+    let template = Handlebars.compile(window.myVueState.wrapper);
+    let data = {
+        content: content
     };
     return template(data);
 }

@@ -25,7 +25,7 @@ $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/trumbowyg/trumbowyg.template.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/templates.js");
+//$doc->addScript($rootUrl . $smtca_assets . "js/templates.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
@@ -33,6 +33,7 @@ $doc->addScript($rootUrl . $smtca_assets . "js/newsletter-builder.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/vue/vue3.4.14.global.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/template-tab.js");
+$doc->addScript($rootUrl . $smtca_assets . "js/composer-tab.js");
 
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/trumbowyg.min.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
@@ -53,7 +54,6 @@ $this->selectedLetters = [];
 
 
 ?>
-
 <div id="alertPlaceholder"></div>
 <div class="bd-example">
     <nav>

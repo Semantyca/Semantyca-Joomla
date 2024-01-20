@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const {createApp, ref, onMounted, reactive, nextTick, watch} = Vue;
+    const {createApp, ref, onMounted, reactive, watch} = Vue;
 
     createApp({
         setup() {
@@ -10,30 +10,30 @@ document.addEventListener('DOMContentLoaded', function () {
                 name: '',
                 maxArticles: '',
                 maxArticlesShort: '',
+                html: '',
                 main: '',
                 dynamic: '',
                 ending: '',
-                dynamicShort: ''
+                dynamicShort: '',
+                wrapper: ''
             });
 
             window.myVueState = state;
 
             const initializeTemplateEditor = async () => {
-                await nextTick();
                 templateEditor = tinymce.init({
                     target: templateRef.value,
                     plugins: 'code',
                     toolbar: 'code',
                     menubar: '',
                     statusbar: false,
-                    height: 300,
+                    height: 500,
                     setup: function (editor) {
                         editor.on('init', function () {
-                            editor.setContent(state['main']);
-
+                            editor.setContent(state['html']);
                         });
                         editor.on('change', function () {
-                            state['main'] = editor.getContent();
+                            state['html'] = editor.getContent();
                         });
 
                     }
@@ -51,28 +51,27 @@ document.addEventListener('DOMContentLoaded', function () {
                     state['name'] = data.name;
                     state['maxArticles'] = data.maxArticles;
                     state['maxArticlesShort'] = data.maxArticlesShort;
+                    state['html'] = data.html;
                     state['main'] = data.main;
                     state['dynamic'] = data.dynamic;
                     state['ending'] = data.ending;
                     state['dynamicShort'] = data.dynamicShort;
+                    state['wrapper'] = data.wrapper;
                 } catch (error) {
                     console.error(`Problem fetching content for type ${name}:`, error);
                 }
             };
 
 
-            watch(() => state['main'], (newContent) => {
+            watch(() => state['html'], (newContent) => {
                 if (templateEditor && templateEditor.activeEditor) {
-                    const contentToSet = newContent ?? '';
-                    if (templateEditor.activeEditor.getContent() !== contentToSet) {
-                        templateEditor.activeEditor.setContent(contentToSet);
-                    }
+                    templateEditor.activeEditor.setContent(newContent || '');
                 }
             });
 
 
-            onMounted(() => {
-                loadContent('classic');
+            onMounted(async () => {
+                await loadContent('classic');
                 initializeTemplateEditor();
             });
 
