@@ -85,7 +85,7 @@ class ArticleModel extends BaseDatabaseModel
 	public function search($searchTerm)
 	{
 		$params = ComponentHelper::getParams(Constants::COMPONENT_NAME);
-		$days = $params->get('retrieval_gap_in_days', 90);
+		$days = $params->get('retrieval_gap_in_days', 365);
 		$db     = $this->getDatabase();
 		$date   = JFactory::getDate();
 		$date->modify("-$days days");
