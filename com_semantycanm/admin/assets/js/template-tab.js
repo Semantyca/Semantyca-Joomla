@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const loadContent = async (name) => {
                 try {
-                    const url = `/joomla/administrator/index.php?option=com_semantycanm&task=Template.find&name=${name}`;
+                    const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
                     const response = await fetch(url);
                     if (!response.ok) {
                         throw new Error(`Network response was not ok for name ${name}`);
