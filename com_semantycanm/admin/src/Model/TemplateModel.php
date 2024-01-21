@@ -5,7 +5,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\TemplateDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class TemplateModel extends BaseDatabaseModel
 {
@@ -44,53 +43,26 @@ class TemplateModel extends BaseDatabaseModel
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true)
-			->select('t.*, ts.type, ts.content')
-			->from($db->quoteName('#__semantyca_nm_templates', 't'))
-			->leftJoin($db->quoteName('#__semantyca_nm_template_sections', 'ts') . ' ON t.id = ts.template_id')
-			->where('t.name = ' . $db->quote($name));
+			->select('id, reg_date, name, content, max_articles, max_articles_short, wrapper')
+			->from($db->quoteName('#__semantyca_nm_templates'))
+			->where('name = ' . $db->quote($name));
 
 		$db->setQuery($query);
-		$rows = $db->loadObjectList();
+		$row = $db->loadObject();
 
-		if (empty($rows))
+		if (empty($row))
 		{
 			throw new RecordNotFoundException("The template has not been found");
 		}
 
-		$template = new TemplateDTO();
-		foreach ($rows as $row)
-		{
-			if (!isset($template->id))
-			{
-				$template->id               = $row->id;
-				$template->regDate          = $row->reg_date;
-				$template->name             = $row->name;
-				$template->maxArticles      = $row->max_articles;
-				$template->maxArticlesShort = $row->max_articles_short;
-			}
-
-			switch ($row->type)
-			{
-				case Constants::TMPL_HTML:
-					$template->html = $row->content;
-					break;
-				case Constants::TMPL_DYNAMIC:
-					$template->dynamic = $row->content;
-					break;
-				case Constants::TMPL_MAIN:
-					$template->main = $row->content;
-					break;
-				case Constants::TMPL_ENDING:
-					$template->ending = $row->content;
-					break;
-				case Constants::TMPL_WRAPPER:
-					$template->wrapper = $row->content;
-					break;
-				case Constants::TMPL_DYNAMIC_SHORT:
-					$template->dynamicShort = $row->content;
-					break;
-			}
-		}
+		$template                   = new TemplateDTO();
+		$template->id               = $row->id;
+		$template->regDate          = $row->reg_date;
+		$template->content          = $row->content;
+		$template->name             = $row->name;
+		$template->maxArticles      = $row->max_articles;
+		$template->maxArticlesShort = $row->max_articles_short;
+		$template->wrapper          = $row->wrapper;
 
 		return $template;
 	}
@@ -126,13 +98,12 @@ class TemplateModel extends BaseDatabaseModel
 		return $db->insertid();
 	}
 
-	public function updateTemplate($id, $name, $messageContent)
+	public function update($id, $messageContent)
 	{
 		$db         = $this->getDatabase();
 		$query      = $db->getQuery(true);
 		$fields     = array(
-			$db->quoteName('name') . ' = ' . $db->quote($name),
-			$db->quoteName('message_content') . ' = ' . $db->quote($messageContent)
+			$db->quoteName('content') . ' = ' . $db->quote($messageContent)
 		);
 		$conditions = array(
 			$db->quoteName('id') . ' = ' . (int) $id

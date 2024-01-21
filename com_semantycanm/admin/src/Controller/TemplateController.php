@@ -4,9 +4,12 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 
 class TemplateController extends BaseController
 {
@@ -27,5 +30,43 @@ class TemplateController extends BaseController
 			Factory::getApplication()->close();
 		}
 	}
+
+	public function update()
+	{
+		$app = Factory::getApplication();
+		try
+		{
+			$id = $this->input->getString('id');
+
+			$inputJSON = file_get_contents('php://input');
+			$inputData = json_decode($inputJSON, true);
+
+			$html = $inputData['html'] ?? '';
+
+			if (empty($id))
+			{
+				throw new ValidationErrorException(['id is required']);
+			}
+
+			$model   = $this->getModel('Template');
+			$results = $model->update($id, $html);
+			echo new JsonResponse($results);
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getMessage(), 'validationError', true);
+		}
+		catch (Exception $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			$app->close();
+		}
+	}
+
 
 }

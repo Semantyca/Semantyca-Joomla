@@ -23,6 +23,8 @@ $doc->addScript($rootUrl . $smtca_assets . "js/MailingListRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/NewsletterRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/tinymce/tinymce.min.js");
+#$doc->addScript($rootUrl . $smtca_assets . "js/monaco/editor.main.js");
+#$doc->addScript($rootUrl . $smtca_assets . "js/require.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");

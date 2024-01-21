@@ -10,6 +10,14 @@ function hideSpinner(spinnerId) {
     spinner.style.opacity = '0';
 }
 
+function startLoading(loadingSpinnerId) {
+    document.getElementById(loadingSpinnerId).style.display = 'block';
+}
+
+function stopLoading(loadingSpinnerId) {
+    document.getElementById(loadingSpinnerId).style.display = 'none';
+}
+
 function createRowButton(buttonText, buttonClass, eventHandler) {
     const button = document.createElement('button');
     button.className = buttonClass;

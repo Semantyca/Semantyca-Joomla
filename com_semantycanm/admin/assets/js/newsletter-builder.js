@@ -1,7 +1,5 @@
-let editedContentStore = {};
-
-function buildContent(currentDateFormatted, currentYear) {
-    let selectedArticlesLi = $('#selectedArticles li')
+function buildContent(currentDateFormatted, currentYear, banner) {
+    const selectedArticlesLi = $('#selectedArticles li');
     let articles = [];
 
     selectedArticlesLi.each(function (index, article) {
@@ -28,10 +26,12 @@ function buildContent(currentDateFormatted, currentYear) {
 
     let template = Handlebars.compile(window.myVueState.html);
     let data = {
-        bannerUrl: "/joomla/images/2020/EMSA_logo_full_600-ed.png",
+        bannerUrl: banner,
         currentDateFormatted: currentDateFormatted,
         currentYear: currentYear,
-        articles: articles
+        articles: articles,
+        maxArticles: window.myVueState.maxArticles,
+        maxArticlesShort: window.myVueState.maxArticlesShort
     };
     return template(data);
 }

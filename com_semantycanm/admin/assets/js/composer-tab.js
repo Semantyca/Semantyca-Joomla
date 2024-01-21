@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const fetchArticles = async (searchTerm) => {
-                startLoading();
+                startLoading('loadingSpinner');
                 try {
                     const url = 'index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm);
                     const response = await fetch(url);
@@ -60,10 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         category: a.category,
                         intro: encodeURIComponent(a.introtext)
                     }));
-                    stopLoading();
+                    stopLoading('loadingSpinner');
                 } catch (error) {
                     console.error(`Problem fetching articles:`, error);
-                    stopLoading();
+                    stopLoading('loadingSpinner');
                 }
             };
 
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const updateComposerContent = () => {
-                composerEditor.setContent(buildContent(currentDateFormatted, currentYear));
+                composerEditor.setContent(buildContent(currentDateFormatted, currentYear, "/joomla/images/2020/EMSA_logo_full_600-ed.png"));
             };
 
             onMounted(async () => {
@@ -133,13 +133,3 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }).mount('#composerSection');
 });
-
-function startLoading() {
-    document.getElementById('loadingSpinner').style.display = 'block';
-}
-
-function stopLoading() {
-    document.getElementById('loadingSpinner').style.display = 'none';
-}
-
-
