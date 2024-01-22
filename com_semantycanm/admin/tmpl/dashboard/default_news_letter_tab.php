@@ -257,7 +257,7 @@
 
     function getPageOfMailingList() {
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=1&limit=' + ITEMS_PER_PAGE,
+            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=1&limit=10',
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
@@ -281,7 +281,7 @@
     function refreshNewsletters(currentPage) {
         showSpinner('newsletterSpinner');
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
+            url: 'index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + currentPage + '&limit=10',
             type: 'GET',
             success: function (response) {
                 console.log(response);
