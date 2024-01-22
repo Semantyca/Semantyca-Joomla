@@ -9,4 +9,7 @@
                 style="margin-right: 10px;"><?php echo JText::_('SAVE'); ?></button> <!-- Added margin-right -->
 
     </div>
+    <div ref="codeEditorRef" id="codeEditor"></div>
+
+
 </div>

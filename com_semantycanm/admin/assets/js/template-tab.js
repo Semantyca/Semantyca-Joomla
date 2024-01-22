@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', function () {
     createApp({
         setup() {
             const templateRef = ref(null);
+            const codeEditorRef = ref(null);
+            let codeEditor = null;
             let templateEditor = null;
 
             const state = reactive({
@@ -17,6 +19,40 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             window.myVueState = state;
+
+            const initializeEditor = async () => {
+                /* let editor = monaco.editor.create(document.getElementById('codeEditor'), {
+                     value: `function x() {
+   console.log("Hello world!");
+ }`,
+                     language: 'javascript',
+                     theme: 'vs-dark',
+                 });*/
+                /*         let editor;
+
+                         require.config({ paths: {
+                             'vs': 'http://localhost/joomla/administrator/components/com_semantycanm/assets/js/monaco/vs'
+                         },
+                             shim: {
+                                 'jquery': {
+                                     exports: 'jQuery'
+                                 }
+                             }
+                         });
+                         require(['http://localhost/joomla/administrator/components/com_semantycanm/assets/js/monaco/vs/editor/editor.main.js'], function() {
+                             editor = monaco.editor.create(document.getElementById('codeEditor'), {
+                                 value: [
+                                     '<h1>{{title}}</h1>',
+                                     '<ul>',
+                                     '  {{#each items}}',
+                                     '    <li>{{this}}</li>',
+                                     '  {{/each}}',
+                                     '</ul>'
+                                 ].join('\n'),
+                                 language: 'html'
+                             });
+                         });*/
+            };
 
             const initializeTemplateEditor = async () => {
                 templateEditor = tinymce.init({
@@ -111,14 +147,18 @@ document.addEventListener('DOMContentLoaded', function () {
             onMounted(async () => {
                 await loadContent('classic');
                 initializeTemplateEditor();
+                initializeEditor();
                 addSaveButtonListener();
+
             });
 
             return {
                 state,
                 templateRef,
-                initializeTemplateEditor
+                initializeTemplateEditor,
+                codeEditorRef
             };
         }
     }).mount('#vueSection');
-});
+})
+;

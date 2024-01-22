@@ -100,8 +100,8 @@ $this->selectedLetters = [];
 </div>
 
 
-<script>
-    const ITEMS_PER_PAGE = 5;
+<script type="module">
+    //const ITEMS_PER_PAGE = 5;
     const host = window.location.protocol + '//' + window.location.hostname;
     const port = window.location.port;
     const joomlaHost = host + (port ? ':' + port : '');

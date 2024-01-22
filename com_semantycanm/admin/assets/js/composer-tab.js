@@ -94,8 +94,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 await nextTick();
                 composerEditor = tinymce.init({
                     target: composerRef.value,
-                    plugins: 'code',
-                    toolbar: 'code paste removeformat bold italic underline indent outdent',
+                    plugins: 'table',
+                    toolbar: 'paste removeformat bold italic underline indent outdent tablecellbackgroundcolor ',
+                    table_advtab: false,
+                    table_cell_advtab: false,
+                    table_row_advtab: false,
+                    table_resize_bars: false,
+                    table_background_color_map: [
+                        {title: 'Red', value: 'FF0000'},
+                        {title: 'White', value: 'FFFFFF'},
+                        {title: 'Yellow', value: 'F1C40F'}
+                    ],
                     menubar: '',
                     statusbar: false,
                     height: 300,

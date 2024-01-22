@@ -72,11 +72,10 @@
         showSpinner('statSpinner');
 
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
+            url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=10',
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {
-                    console.log(response.data);
                     document.getElementById('totalStatList').value = response.data.count;
                     document.getElementById('currentStatList').value = response.data.current;
                     document.getElementById('maxStatList').value = response.data.maxPage;

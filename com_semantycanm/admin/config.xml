@@ -32,7 +32,7 @@
                 name="retrieval_gap_in_days"
                 type="number"
                 label="ARTICLE_RETRIEVAL_PERIOD"
-                default="90"
+                default="365"
                 extension="com_semantycanm"
         />
 

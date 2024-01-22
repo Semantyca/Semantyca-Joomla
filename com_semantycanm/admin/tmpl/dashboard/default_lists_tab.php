@@ -153,7 +153,7 @@
         showSpinner('listSpinner');
 
         $.ajax({
-            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=' + ITEMS_PER_PAGE,
+            url: 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=10',
             type: 'GET',
             success: function (response) {
                 if (response.success && response.data) {

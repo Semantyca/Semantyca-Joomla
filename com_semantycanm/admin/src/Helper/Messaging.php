@@ -3,7 +3,6 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Mail\MailerFactoryInterface;
 use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
@@ -33,7 +32,9 @@ class Messaging
 	 */
 	public function sendEmail($body, $subject, $user_or_user_group, $newsletter_id): bool
 	{
-		$mailer = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();
+		//$mailer = Factory::getContainer()->get(MailerFactoryInterface::class)->createMailer();
+		$mailer = Factory::getMailer();
+
 		$mailer->setSubject($subject);
 		$mailer->isHtml(true);
 
