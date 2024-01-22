@@ -85,7 +85,8 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const updateComposerContent = () => {
-                composerEditor.setContent(buildContent(currentDateFormatted, currentYear, "/joomla/images/2020/EMSA_logo_full_600-ed.png"));
+                const content = buildContent(currentDateFormatted, currentYear, "/joomla/images/2020/EMSA_logo_full_600-ed.png");
+                composerEditor.setContent(content);
             };
 
             onMounted(async () => {
@@ -94,8 +95,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 await nextTick();
                 composerEditor = tinymce.init({
                     target: composerRef.value,
-                    plugins: 'table',
-                    toolbar: 'paste removeformat bold italic underline indent outdent tablecellbackgroundcolor ',
+                    relative_urls: false,
+                    remove_script_host: false,
+                    plugins: 'table code',
+                    toolbar: 'code paste removeformat bold italic underline indent outdent tablecellbackgroundcolor ',
                     table_advtab: false,
                     table_cell_advtab: false,
                     table_row_advtab: false,

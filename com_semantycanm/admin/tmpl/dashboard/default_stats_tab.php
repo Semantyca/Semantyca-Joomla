@@ -62,7 +62,7 @@
 </div>
 
 <script>
-    $(document).ready(function () {
+    document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('nav-stats-tab').addEventListener('shown.bs.tab', () => refreshStats(1));
         document.getElementById('refreshStatsButton').addEventListener('click', () => refreshStats(1));
         new Pagination('StatList', refreshStats);
@@ -71,24 +71,22 @@
     function refreshStats(currentPage) {
         showSpinner('statSpinner');
 
-        $.ajax({
-            url: 'index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=10',
-            type: 'GET',
-            success: function (response) {
-                if (response.success && response.data) {
-                    document.getElementById('totalStatList').value = response.data.count;
-                    document.getElementById('currentStatList').value = response.data.current;
-                    document.getElementById('maxStatList').value = response.data.maxPage;
-                    document.getElementById('statsList').innerHTML = composeStatsContent(response.data.docs);
+        fetch('index.php?option=com_semantycanm&task=Stat.findAll&page=' + currentPage + '&limit=10')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    document.getElementById('totalStatList').value = data.data.count;
+                    document.getElementById('currentStatList').value = data.data.current;
+                    document.getElementById('maxStatList').value = data.data.maxPage;
+                    document.getElementById('statsList').innerHTML = composeStatsContent(data.data.docs);
                 }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showAlertBar(textStatus + ", " + errorThrown);
-            },
-            complete: function () {
+            })
+            .catch(error => {
+                showAlertBar("Error: " + error);
+            })
+            .finally(() => {
                 hideSpinner('statSpinner');
-            }
-        });
+            });
     }
 
     function composeStatsContent(data) {
@@ -108,19 +106,19 @@
         return html;
     }
 
-
     function getBadge(status) {
         switch (status) {
             case -1:
-                return '<span class="badge bg-danger">error</span>'
+                return '<span class="badge bg-danger">error</span>';
             case 1:
-                return '<span class="badge bg-warning text-dark">sending</span>'
+                return '<span class="badge bg-warning text-dark">sending</span>';
             case 2:
-                return '<span class="badge bg-info text-light">sent</span>'
+                return '<span class="badge bg-info text-light">sent</span>';
             case 3:
-                return '<span class="badge bg-success">read</span>'
+                return '<span class="badge bg-success">read</span>';
             default:
-                return '<span class="badge bg-secondary">unknown</span>'
+                return '<span class="badge bg-secondary">unknown</span>';
         }
     }
+
 </script>

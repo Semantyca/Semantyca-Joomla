@@ -2776,3 +2776,5 @@
 /vendor/nikic/php-parser/lib/PhpParser/Token.php
 /vendor/nikic/php-parser/lib/PhpParser/Internal/TokenPolyfill.php
 /vendor/nikic/php-parser/lib/PhpParser/Node/UseItem.php
+node_modules/
+
