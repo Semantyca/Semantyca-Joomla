@@ -2777,4 +2777,5 @@
 /vendor/nikic/php-parser/lib/PhpParser/Internal/TokenPolyfill.php
 /vendor/nikic/php-parser/lib/PhpParser/Node/UseItem.php
 node_modules/
-
+.env
+.env.production

@@ -18,11 +18,11 @@ class DisplayController extends BaseController
 		try
 		{
 			$user_group_model   = $this->getModel('UserGroup');
-			//$article_model   = $this->getModel('Article');
 
 			$view = $this->getView('Dashboard', 'html');
 			$view->set('user_groups', $user_group_model->getList());
-			//	$view->set('articles',  $article_model->getList());
+			$view->set('js_bundle', $this->getDynamicScriptUrl('js'));
+			//$view->set('css_bundle', $this->getDynamicScriptUrl('css'));
 			$view->display();
 		}
 		catch (\Exception $e)
@@ -31,4 +31,28 @@ class DisplayController extends BaseController
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 		}
 	}
+
+	private function getDynamicScriptUrl($type): ?string
+	{
+		$relativeDirectory = "/components/com_semantycanm/assets/bundle";
+		$directory         = JPATH_ADMINISTRATOR . $relativeDirectory;
+		$prefix            = "bundle-";
+
+		if (!file_exists($directory) || !is_dir($directory))
+		{
+			return null;
+		}
+
+		$files = scandir($directory);
+		foreach ($files as $file)
+		{
+			if (strpos($file, $prefix) === 0 && pathinfo($file, PATHINFO_EXTENSION) === $type)
+			{
+				return "bundle/" . $file;
+			}
+		}
+
+		return null;
+	}
+
 }

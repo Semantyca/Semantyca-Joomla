@@ -22,22 +22,14 @@ $doc->addScript($rootUrl . $smtca_assets . "js/Pagination.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/MailingListRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/NewsletterRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/tinymce/tinymce.min.js");
-#$doc->addScript($rootUrl . $smtca_assets . "js/monaco/editor.main.js");
-#$doc->addScript($rootUrl . $smtca_assets . "js/require.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/newsletter-builder.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/vue/vue3.4.14.global.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/template-tab.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/composer-tab.js");
-
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
-
 
 try
 {
@@ -85,7 +77,7 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('lists_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-composer" role="tabpanel" aria-labelledby="nav-composer-tab">
-			<?php echo $this->loadTemplate('composer_tab'); ?>
+            <div class="container mt-5" id="composerSection">Composer is not available</div>
         </div>
         <div class="tab-pane fade" id="nav-newsletters" role="tabpanel" aria-labelledby="nav-newsletters-tab">
 			<?php echo $this->loadTemplate('news_letter_tab'); ?>
@@ -94,14 +86,17 @@ $this->selectedLetters = [];
 			<?php echo $this->loadTemplate('stats_tab'); ?>
         </div>
         <div class="tab-pane fade" id="nav-template" role="tabpanel" aria-labelledby="nav-template-tab">
-	        <?php echo $this->loadTemplate('template_tab'); ?>
+            <div class="container mt-5" id="templateSection">Template editor is not available</div>
         </div>
     </div>
 </div>
 
+<?php if (isset($this->js_bundle) && $this->js_bundle): ?>
+    <script type="module" src="<?php echo $rootUrl . $smtca_assets . $this->js_bundle; ?>"></script>
+<?php endif; ?>
+
 
 <script type="module">
-    //const ITEMS_PER_PAGE = 5;
     const host = window.location.protocol + '//' + window.location.hostname;
     const port = window.location.port;
     const joomlaHost = host + (port ? ':' + port : '');
