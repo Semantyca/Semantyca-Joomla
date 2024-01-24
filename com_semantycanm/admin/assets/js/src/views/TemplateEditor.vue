@@ -34,9 +34,9 @@ export default {
     window.myVueState = state;
 
     const templateEditorConfig = {
-      model_url: '/joomla/administrator/components/com_semantycanm/assets/bundle/models/dom/model.js',
-      skin_url: '/joomla/administrator/components/com_semantycanm/assets/bundle/skins/ui/oxide',
-      content_css: '/joomla/administrator/components/com_semantycanm/assets/bundle/skins/content/default/content.css',
+      model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
+      skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
+      content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
       menubar: false,
       statusbar: false,
       plugins: 'code',
