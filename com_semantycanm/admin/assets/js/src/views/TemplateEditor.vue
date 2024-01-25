@@ -1,6 +1,7 @@
 <template>
   <div id="templateSpinner" class="loading-spinner"></div>
   <editor
+      :api-key="store.tinyMceLic"
       :init="templateEditorConfig"
       v-model="state.html"></editor>
 
@@ -12,6 +13,7 @@
 <script>
 import {onMounted, reactive} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
+import {useGlobalStore} from "../stores/globalStore";
 
 const TEMPLATE_SPINNER = 'templateSpinner';
 export default {
@@ -29,9 +31,9 @@ export default {
     });
 
     window.myVueState = state;
+    const store = useGlobalStore();
 
     const templateEditorConfig = {
-      apiKey: window.tinymceLic,
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
       skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
       content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
@@ -95,10 +97,10 @@ export default {
 
     onMounted(async () => {
       await loadContent('classic');
-      // addSaveButtonListener();
     });
 
     return {
+      store,
       state,
       templateEditorConfig,
       saveTemplate

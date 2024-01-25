@@ -1,16 +1,17 @@
 <template>
   <div id="loadingSpinner" class="loading-spinner"></div>
-  <div class="container">
+  <div class="container mt-1">
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">
-          <h3>{{ AVAILABLE_ARTICLES }}</h3>
+          <h3>{{ store.translations.AVAILABLE_ARTICLES }}</h3>
           <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
                style="display: none;">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
-        <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles...">
+        <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
+               @input="debouncedFetchArticles">
         <ul ref="articlesListRef" id="articles" class="list-group dragdrop-list-short">
           <li v-for="article in articles" :key="article.id" class="list-group-item"
               :id="article.id" :title="article.title" :data-url="article.url"
@@ -21,7 +22,7 @@
       </div>
       <div class="col-md-6">
         <div class="header-container">
-          <h3>{{ SELECTED_ARTICLES }}</h3>
+          <h3>{{ store.translations.SELECTED_ARTICLES }}</h3>
         </div>
         <ul ref="selectedArticlesListRef" id="selectedArticles" class="list-group dragdrop-list">
           <li v-for="selectedArticle in state.selectedArticles" :key="selectedArticle.id"
@@ -36,11 +37,14 @@
     <div class="row mt-4">
       <div class="col-md-12">
         <div class="btn-group">
-          <button @click="resetFunction" class="btn" style="background-color: #152E52; color: white;">RESET</button>
-          <button @click="copyContentToClipboard" class="btn btn-info mb-2">COPY_CODE</button>
-          <button @click="next" class="btn btn-info mb-2">NEXT</button>
+          <button @click="resetFunction" class="btn" style="background-color: #152E52; color: white;">
+            {{ store.translations.RESET }}
+          </button>
+          <button @click="copyContentToClipboard" class="btn btn-info mb-2">{{ store.translations.COPY_CODE }}</button>
+          <button @click="next" class="btn btn-info mb-2">{{ store.translations.NEXT }}</button>
         </div>
         <editor
+            :api-key="store.tinyMceLic"
             :init="composerEditorConfig"
             v-model="state.editorCont"></editor>
       </div>
@@ -51,30 +55,26 @@
 <script>
 import {nextTick, onMounted, reactive, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
-
+import {useGlobalStore} from "../stores/globalStore";
+import {debounce} from 'lodash';
 
 export default {
   components: {
     Editor
   },
-  props: {
-    AVAILABLE_ARTICLES: String,
-    SELECTED_ARTICLES: String,
-    RESET: String,
-    COPY_CODE: String,
-    NEXT: String,
-  },
+
   setup() {
     const articles = ref([]);
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
-
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().toLocaleString('default', {
       month: 'long'
     }).toUpperCase();
     const currentDateFormatted = `${currentMonth} ${currentYear}`;
+    const store = useGlobalStore();
+
 
     const state = reactive({
       editorCont: '',
@@ -82,7 +82,7 @@ export default {
     });
 
     const composerEditorConfig = {
-      apiKey: window.tinymceLic,
+      apiKey: store.tinymceLic,
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
       skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
       content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
@@ -130,6 +130,7 @@ export default {
       $('#nav-newsletters-tab').tab('show');
     };
 
+
     const fetchArticles = async (searchTerm) => {
       startLoading('loadingSpinner');
       try {
@@ -151,6 +152,11 @@ export default {
         console.error(`Problem fetching articles:`, error);
         stopLoading('loadingSpinner');
       }
+    };
+
+    const fetchArticlesDebounced = debounce(fetchArticles, 300);
+    const debouncedFetchArticles = (event) => {
+      fetchArticlesDebounced(event.target.value);
     };
 
     const applyAndDropSet = (lists) => {
@@ -181,24 +187,20 @@ export default {
       });
     });
 
-
     return {
       articles,
       state,
+      store,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
       composerEditorConfig,
+      debouncedFetchArticles,
 
       resetFunction,
       copyContentToClipboard,
       next,
     };
-  },
-
-  mounted() {
-    console.log('CSS Bundle URL:', window.cssBundleName);
   }
-
 };
 </script>

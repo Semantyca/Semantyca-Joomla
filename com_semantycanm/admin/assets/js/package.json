@@ -4,7 +4,7 @@
   "description": "",
   "main": "bootstrap.min.js",
   "scripts": {
-    "predev": "node clean-directory.js",
+    "predev": "node webpack/clean-directory.js",
     "build": "cross-env NODE_ENV=production dotenv -e .env.production webpack --mode production",
     "dev": "cross-env NODE_ENV=development dotenv -e .env webpack --mode development"
   },
@@ -13,6 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "@tinymce/tinymce-vue": "^5.1.1",
+    "lodash": "^4.17.21",
+    "monaco-editor-vue3": "^0.1.10",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "pinia": "^2.1.7",
     "tinymce": "^6.8.2",
     "vue": "^3.4.15"
   },

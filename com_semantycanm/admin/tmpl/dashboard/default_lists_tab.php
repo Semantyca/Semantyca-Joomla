@@ -63,7 +63,7 @@
                     <label for="maxMailingList">of</label><input type="text" id="maxMailingList" value="1" readonly
                                                                  style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
                 </div>
-                <div class="pagination-container mb-3 me-2">
+                <div class="pagination-container mb-3 me-2" style="padding-right: 10px;">
                     <a class="btn btn-primary btn-sm" href="#"
                        id="firstPageMailingList"><?php echo JText::_('FIRST'); ?></a>
                     <a class="btn btn-primary btn-sm" href="#"

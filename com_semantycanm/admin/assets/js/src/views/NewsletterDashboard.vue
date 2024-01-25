@@ -3,7 +3,7 @@
     <div class="row">
       <div class="col-md-6 ">
         <div class="header-container">
-          <h3><?php echo JText::_('AVAILABLE_LISTS'); ?></h3>
+          <h3>{{ stor.translations.AVAILABLE_LISTS }}</h3>
         </div>
         <div class="col-md-12 dragdrop-list">
           <ul class="list-group" id="availableListsUL">
@@ -11,7 +11,7 @@
         </div>
       </div>
       <div class="col-md-6">
-        <h3><?php echo JText::_('SELECTED_LISTS'); ?></h3>
+        <h3>{{ stor.translations.SELECTED_LISTS }}</h3>
         <div class="col-md-12 dragdrop-list">
           <ul class="dropzone list-group" id="selectedLists"></ul>
         </div>
@@ -117,17 +117,13 @@
 
 <script>
 import {defineComponent, onMounted, reactive} from 'vue';
+import {useGlobalStore} from "../stores/globalStore";
 
 export default defineComponent({
   name: 'NewsletterComponent',
-  props: {
-    // Example props. Replace with actual props you need.
-    AVAILABLE_LISTS: String,
-    selectedListsText: String,
-    testAddressText: String,
-    NEWSLETTERS_LIST: String,
-  },
-  setup(props) {
+
+  setup() {
+    const store = useGlobalStore();
     const state = reactive({
       currentNewsletterId: '',
       testEmails: '',
@@ -149,11 +145,11 @@ export default defineComponent({
       // Example: Load initial data, set up event listeners, etc.
     });
 
-    // Return data and methods to the template
+
     return {
+      store,
       state,
-      sendNewsletter,
-      // ... other methods and computed properties ...
+      sendNewsletter
     };
   },
 });
