@@ -43,6 +43,13 @@ catch (Exception $e)
 $this->usergroups      = $this->user_groups;
 $this->selectedLetters = [];
 
+$js = <<<JS
+<script type="text/javascript">
+    window.tinymceLic = '{$this->tinymce_lic}';
+</script>
+JS;
+
+$doc->addScriptDeclaration($js);
 
 ?>
 <div id="alertPlaceholder"></div>
@@ -100,8 +107,6 @@ $this->selectedLetters = [];
     const host = window.location.protocol + '//' + window.location.hostname;
     const port = window.location.port;
     const joomlaHost = host + (port ? ':' + port : '');
-    const bannerUrl = "<?php echo htmlspecialchars($bannerImageUrl); ?>"
-    const removeButtonText = "<?php echo JText::_('REMOVE'); ?>";
 </script>
 
 

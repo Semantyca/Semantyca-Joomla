@@ -1,7 +1,6 @@
 <template>
   <div id="templateSpinner" class="loading-spinner"></div>
   <editor
-      api-key="fj3ut1c5sv7m3b46h1o6hsfym8omlfux20ksth5ckbihtbaf"
       :init="templateEditorConfig"
       v-model="state.html"></editor>
 
@@ -32,6 +31,7 @@ export default {
     window.myVueState = state;
 
     const templateEditorConfig = {
+      apiKey: window.tinymceLic,
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
       skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
       content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',

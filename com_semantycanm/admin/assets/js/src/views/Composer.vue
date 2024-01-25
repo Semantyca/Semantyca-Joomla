@@ -41,7 +41,6 @@
           <button @click="next" class="btn btn-info mb-2">NEXT</button>
         </div>
         <editor
-            api-key="fj3ut1c5sv7m3b46h1o6hsfym8omlfux20ksth5ckbihtbaf"
             :init="composerEditorConfig"
             v-model="state.editorCont"></editor>
       </div>
@@ -83,6 +82,7 @@ export default {
     });
 
     const composerEditorConfig = {
+      apiKey: window.tinymceLic,
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
       skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
       content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
