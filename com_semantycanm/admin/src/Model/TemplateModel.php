@@ -2,9 +2,12 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
+use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\TemplateDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class TemplateModel extends BaseDatabaseModel
 {
@@ -43,7 +46,7 @@ class TemplateModel extends BaseDatabaseModel
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true)
-			->select('id, reg_date, name, content, max_articles, max_articles_short, wrapper')
+			->select('id, reg_date, name, content, banner, max_articles, max_articles_short, wrapper')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->where('name = ' . $db->quote($name));
 
@@ -52,17 +55,27 @@ class TemplateModel extends BaseDatabaseModel
 
 		if (empty($row))
 		{
-			throw new RecordNotFoundException("The template has not been found");
+			throw new RecordNotFoundException(["The template has not been found"]);
 		}
 
 		$template                   = new TemplateDTO();
 		$template->id               = $row->id;
 		$template->regDate          = $row->reg_date;
 		$template->content          = $row->content;
+		$template->banner = $row->banner;
 		$template->name             = $row->name;
 		$template->maxArticles      = $row->max_articles;
 		$template->maxArticlesShort = $row->max_articles_short;
 		$template->wrapper          = $row->wrapper;
+
+		if (empty($template->banner))
+		{
+			$params           = ComponentHelper::getParams(Constants::COMPONENT_NAME);
+			$defaultBanner    = $params->get('default_banner', '');
+			$imagePath        = explode('#', $defaultBanner)[0];
+			$template->banner = Uri::root() . $imagePath;
+		}
+
 
 		return $template;
 	}

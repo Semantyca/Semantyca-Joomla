@@ -4,7 +4,7 @@
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">
-          <h3>AVAILABLE_ARTICLES11</h3>
+          <h3>{{ AVAILABLE_ARTICLES }}</h3>
           <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
                style="display: none;">
             <span class="visually-hidden">Loading...</span>
@@ -21,7 +21,7 @@
       </div>
       <div class="col-md-6">
         <div class="header-container">
-          <h3>SELECTED_ARTICLES</h3>
+          <h3>{{ SELECTED_ARTICLES }}</h3>
         </div>
         <ul ref="selectedArticlesListRef" id="selectedArticles" class="list-group dragdrop-list">
           <li v-for="selectedArticle in state.selectedArticles" :key="selectedArticle.id"
@@ -57,6 +57,13 @@ import Editor from '@tinymce/tinymce-vue';
 export default {
   components: {
     Editor
+  },
+  props: {
+    AVAILABLE_ARTICLES: String,
+    SELECTED_ARTICLES: String,
+    RESET: String,
+    COPY_CODE: String,
+    NEXT: String,
   },
   setup() {
     const articles = ref([]);
@@ -164,7 +171,7 @@ export default {
     };
 
     const updateComposerContent = () => {
-      state.editorCont = buildContent(currentDateFormatted, currentYear, "/joomla/images/2020/EMSA_logo_full_600-ed.png");
+      state.editorCont = buildContent(currentDateFormatted, currentYear);
     };
 
     onMounted(async () => {

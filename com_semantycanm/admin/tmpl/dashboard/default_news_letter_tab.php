@@ -195,28 +195,28 @@
                 })
         });
 
-        document.getElementById('savedNewslettersList').addEventListener('dblclick', function (event) {
-            let target = event.target;
-            while (target && target.nodeName !== 'TR') {
-                target = target.parentNode;
-            }
-            if (target) {
-                const id = target.getAttribute('data-id');
-                fetch('index.php?option=com_semantycanm&task=NewsLetter.find&id=' + id)
-                    .then(response => response.json())
-                    .then(data => {
-                        console.log(JSON.stringify(data.data));
-                        const respData = data.data[0];
-                        const msgContent = document.getElementById('messageContent');
-                        msgContent.removeAttribute('readonly');
-                        msgContent.value = decodeURIComponent(respData.message_content);
-                        document.getElementById('subject').value = respData.subject;
-                    })
-                    .catch(error => {
-                        showAlertBar("Error: " + error);
-                    });
-            }
-        });
+        /*   document.getElementById('savedNewslettersList').addEventListener('dblclick', function (event) {
+			   let target = event.target;
+			   while (target && target.nodeName !== 'TR') {
+				   target = target.parentNode;
+			   }
+			   if (target) {
+				   const id = target.getAttribute('data-id');
+				   fetch('index.php?option=com_semantycanm&task=NewsLetter.find&id=' + id)
+					   .then(response => response.json())
+					   .then(data => {
+						   console.log(JSON.stringify(data.data));
+						   const respData = data.data[0];
+						   const msgContent = document.getElementById('messageContent');
+						   msgContent.removeAttribute('readonly');
+						   msgContent.value = decodeURIComponent(respData.message_content);
+						   document.getElementById('subject').value = respData.subject;
+					   })
+					   .catch(error => {
+						   showAlertBar("Error: " + error);
+					   });
+			   }
+		   });*/
 
         document.getElementById('toggleEditBtn').addEventListener('click', function () {
             const messageContent = document.getElementById('messageContent');

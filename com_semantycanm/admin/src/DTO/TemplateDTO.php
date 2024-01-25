@@ -10,6 +10,7 @@ class TemplateDTO
 	public $maxArticles;
 	public $maxArticlesShort;
 	public $content;
+	public $banner;
 	public $wrapper;
 
 	public function toArray()
@@ -20,6 +21,7 @@ class TemplateDTO
 			'maxArticles'      => $this->maxArticles,
 			'maxArticlesShort' => $this->maxArticlesShort,
 			'content' => $this->content,
+			'banner'  => $this->banner,
 			'wrapper' => $this->wrapper
 		];
 	}

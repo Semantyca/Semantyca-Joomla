@@ -36,6 +36,12 @@
                 extension="com_semantycanm"
         />
 
+        <field
+                name="default_banner"
+                type="media"
+                label="DEFAULT_BANNER"
+        />
+
     </fieldset>
 
     <fieldset
@@ -54,4 +60,6 @@
         />
 
     </fieldset>
+
+
 </config>

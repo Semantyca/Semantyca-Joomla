@@ -59,6 +59,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
     FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id)
 ) ENGINE = InnoDB;
 
+
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
     id                 INT AUTO_INCREMENT,
@@ -67,7 +68,9 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
     name               VARCHAR(255),
     content            MEDIUMTEXT,
     wrapper            MEDIUMTEXT,
+    banner VARCHAR(255),
     max_articles       INT,
     max_articles_short INT,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
+

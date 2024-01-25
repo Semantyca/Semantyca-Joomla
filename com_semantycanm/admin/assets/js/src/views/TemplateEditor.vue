@@ -1,16 +1,13 @@
 <template>
   <div id="templateSpinner" class="loading-spinner"></div>
-  <div class="col-md-12 d-flex flex-column">
-    <div ref="templateRef" style="border: 1px solid gray"></div>
-  </div>
-  <div class="col-mt-3" style="margin-top: 10px;">
-    <button id="saveTemplate" class="btn btn-success" style="margin-right: 10px;">Save</button>
-  </div>
   <editor
       api-key="fj3ut1c5sv7m3b46h1o6hsfym8omlfux20ksth5ckbihtbaf"
       :init="templateEditorConfig"
       v-model="state.html"></editor>
 
+  <div class="col-mt-3" style="margin-top: 10px;">
+    <button class="btn btn-success" style="margin-right: 10px;" @click="saveTemplate">Save</button>
+  </div>
 </template>
 
 <script>
@@ -28,6 +25,7 @@ export default {
       maxArticles: '',
       maxArticlesShort: '',
       html: '',
+      banner: '',
       wrapper: ''
     });
 
@@ -49,7 +47,7 @@ export default {
         const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
         const response = await fetch(url);
         if (!response.ok) {
-          throw new Error(`Network response was not ok for name ${name}`);
+          throw new Error(`Network response was not 200 for name ${name}`);
         }
         const {data} = await response.json();
         state['id'] = data.id;
@@ -57,10 +55,12 @@ export default {
         state['maxArticles'] = data.maxArticles;
         state['maxArticlesShort'] = data.maxArticlesShort;
         state['html'] = data.content;
+        state['banner'] = data.banner;
         state['wrapper'] = data.wrapper;
         stopLoading(TEMPLATE_SPINNER);
       } catch (error) {
         console.error(`Problem fetching content for type ${name}:`, error);
+        showErrorBar('Template.find&name', error.message);
         stopLoading(TEMPLATE_SPINNER);
       }
     };
@@ -93,21 +93,15 @@ export default {
       }
     };
 
-    const addSaveButtonListener = () => {
-      const saveButton = document.getElementById('saveTemplate');
-      if (saveButton) {
-        saveButton.addEventListener('click', saveTemplate);
-      }
-    };
-
     onMounted(async () => {
       await loadContent('classic');
-      addSaveButtonListener();
+      // addSaveButtonListener();
     });
 
     return {
       state,
-      templateEditorConfig
+      templateEditorConfig,
+      saveTemplate
     };
   }
 }

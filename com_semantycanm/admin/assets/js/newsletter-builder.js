@@ -1,4 +1,4 @@
-function buildContent(currentDateFormatted, currentYear, banner) {
+function buildContent(currentDateFormatted, currentYear) {
     const selectedArticlesLi = $('#selectedArticles li');
     let articles = [];
 
@@ -26,7 +26,7 @@ function buildContent(currentDateFormatted, currentYear, banner) {
 
     let template = Handlebars.compile(window.myVueState.html);
     let data = {
-        bannerUrl: banner,
+        bannerUrl: window.myVueState.banner,
         currentDateFormatted: currentDateFormatted,
         currentYear: currentYear,
         articles: articles,
