@@ -35,11 +35,11 @@ class NewsletterRequest {
         }
     }
 
-    sendEmail(subj, msgContent, listItems) {
+    sendEmail(subj, msgContent, listOfUserGroups) {
         const data = {
             'encoded_body': encodeURIComponent(msgContent),
             'subject': subj,
-            'user_group': listItems
+            'user_group': listOfUserGroups
         };
         return this.makeRequest('Service.sendEmail', data);
     }

@@ -12,7 +12,7 @@
         </div>
         <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
                @input="debouncedFetchArticles">
-        <ul ref="articlesListRef" id="articles" class="list-group dragdrop-list-short">
+        <ul ref="articlesListRef" id="articlesUlElement" class="list-group dragdrop-list-short">
           <li v-for="article in articles" :key="article.id" class="list-group-item"
               :id="article.id" :title="article.title" :data-url="article.url"
               :data-category="article.category" :data-intro="article.intro">
@@ -59,6 +59,7 @@ import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 
 export default {
+  name: 'Composer',
   components: {
     Editor
   },
@@ -169,7 +170,7 @@ export default {
           },
           animation: 150,
           sort: false,
-          onEnd: (evt) => {
+          onEnd: () => {
             updateComposerContent();
           }
         });
@@ -181,7 +182,7 @@ export default {
     };
 
     onMounted(async () => {
-      await fetchArticles('');
+      fetchArticles('');
       nextTick(() => {
         applyAndDropSet([articlesListRef.value, selectedArticlesListRef.value]);
       });

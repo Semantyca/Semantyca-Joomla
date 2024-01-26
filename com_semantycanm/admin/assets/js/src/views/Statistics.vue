@@ -68,19 +68,29 @@
             </tbody>
           </table>
         </div>
+        <n-data-table
+            :columns="columns"
+            :data="store.statisticView.docs"
+            :bordered="false"
+            :pagination="pagination"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {defineComponent, onMounted} from 'vue';
+import {defineComponent, onMounted, reactive} from 'vue';
 import {useGlobalStore} from '../stores/globalStore';
+import {NDataTable} from 'naive-ui';
 
 export default defineComponent({
 
   props: {
     spinnerIconUrl: String
+  },
+  components: {
+    NDataTable,
   },
 
   setup() {
@@ -110,9 +120,59 @@ export default defineComponent({
       refreshStats(1);
     });
 
+    const createColumns = () => {
+      return [
+        {
+          title: 'News letter',
+          key: 'news_let'
+        },
+        {
+          title: 'Status',
+          key: 'status'
+        },
+        {
+          title: 'Send time',
+          key: 'time'
+        },
+        {
+          title: 'Recipients',
+          key: 'recipients'
+        },
+        {
+          title: 'Opens',
+          key: 'opens'
+        },
+        {
+          title: 'Read',
+          key: 'read'
+        },
+        {
+          title: 'Unsubs.',
+          key: 'unsubs'
+        }
+      ]
+    }
+
+    const paginationReactive = reactive({
+      page: 2,
+      pageSize: 5,
+      showSizePicker: true,
+      pageSizes: [3, 5, 7],
+      onChange: (page) => {
+        paginationReactive.page = page;
+      },
+      onUpdatePageSize: (pageSize) => {
+        paginationReactive.pageSize = pageSize;
+        paginationReactive.page = 1;
+      }
+    });
+
     return {
       refreshStats,
       getBadge,
+      columns: createColumns(),
+      data: [],
+      pagination: paginationReactive,
       store,
     };
   },

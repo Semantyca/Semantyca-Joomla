@@ -19,7 +19,7 @@ module.exports = {
         path: path.resolve(__dirname, outputDir),
         filename: 'bundle-[fullhash].js'
     },
-    watch: true,
+    watch: process.env.NODE_ENV === 'development',
     watchOptions: {
         ignored: /node_modules/,
         aggregateTimeout: 300,

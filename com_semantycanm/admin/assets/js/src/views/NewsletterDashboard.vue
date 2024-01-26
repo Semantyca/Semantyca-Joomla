@@ -1,66 +1,97 @@
 <template>
-  <div class="container mt-5">
+  <div class="container">
     <div class="row">
       <div class="col-md-6 ">
         <div class="header-container">
-          <h3>{{ stor.translations.AVAILABLE_LISTS }}</h3>
+          <h3>{{ store.translations.AVAILABLE_LISTS }}</h3>
         </div>
         <div class="col-md-12 dragdrop-list">
-          <ul class="list-group" id="availableListsUL">
+          <ul ref="availableListsUlRef" class="list-group">
+            <li v-for="ml in store.mailingList.docs" :key="ml.id" class="list-group-item"
+                :id="ml.id">{{ ml.name }}
+            </li>
           </ul>
         </div>
       </div>
       <div class="col-md-6">
-        <h3>{{ stor.translations.SELECTED_LISTS }}</h3>
+        <h3>{{ store.translations.SELECTED_LISTS }}</h3>
         <div class="col-md-12 dragdrop-list">
-          <ul class="dropzone list-group" id="selectedLists"></ul>
+          <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
         </div>
       </div>
     </div>
 
     <div class="row justify-content-center mt-5 submitarea">
       <div class="col-md-12">
-        <?php if (!empty($response)): ?>
-        <div class="alert alert-info">
-          <?= htmlspecialchars($response, ENT_QUOTES, 'UTF-8'); ?>
-        </div>
-        <?php endif; ?>
-        <h2 class="mb-4"><?php echo JText::_('SEND_NEWSLETTER'); ?></h2>
+        <h2 class="mb-4">{{ store.translations.SEND_NEWSLETTER }}</h2>
         <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
         <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
         <div class="form-group">
-          <label for="testEmails"><?php echo JText::_('TEST_ADDRESS'); ?></label>
+          <label for="testEmails">{{ store.translations.TEST_ADDRESS }}</label>
           <input type="text" class="form-control" id="testEmails" name="testEmails">
         </div>
         <div class="form-group">
           <div class="input-group mb-3">
-            <input type="text" class="form-control" id="subject" name="subject" required placeholder="Subject"
-                   aria-label="Subject" aria-describedby="button-addon2">
-            <button class="btn btn-outline-secondary" type="button" id="addSubjectBtn"
-                    style="margin: 5px;"><?php echo JText::_('FETCH_SUBJECT'); ?>
+            <input type="text"
+                   class="form-control"
+                   id="subject"
+                   name="subject"
+                   required
+                   placeholder="Subject"
+                   aria-label="Subject"
+                   v-model="state.subject"
+            >
+            <button class="btn btn-outline-secondary"
+                    type="button"
+                    id="addSubjectBtn"
+                    @click="setSubject"
+                    style="margin: 5px;">{{ store.translations.FETCH_SUBJECT }}
             </button>
           </div>
         </div>
         <div class="form-group">
-          <label for="messageContent"><?php echo JText::_('MESSAGE_CONTENT'); ?></label>
-          <textarea class="form-control" id="messageContent" name="messageContent" rows="10" required
+          <label for="messageContent">{{ store.translations.MESSAGE_CONTENT }}</label>
+          <textarea class="form-control"
+                    id="messageContent"
+                    name="messageContent"
+                    rows="10"
+                    required
                     readonly></textarea>
         </div>
-        <button @click="sendNewsletter">Send Newsletter</button>
-        <button type="button" class="btn btn-secondary"
-                id="saveNewsletterBtn"><?php echo JText::_('SAVE_NEWSLETTER'); ?></button>
-        <button type="button" class="btn btn-secondary" id="toggleEditBtn"><?php echo JText::_('EDIT'); ?></button>
+        <div class="send-actions-container">
+          <button type="button"
+                  class="btn btn-secondary"
+                  @click="sendNewsletter">{{ store.translations.SEND_NEWSLETTER }}
+          </button>
 
+          <n-switch :round="false" :rail-style="railStyle">
+            <template #checked>
+              Activated
+            </template>
+            <template #unchecked>
+              Test
+            </template>
+          </n-switch>
+
+          <button type="button"
+                  class="btn btn-secondary"
+                  id="saveNewsletterBtn"
+                  @click="saveNewsletter">{{ store.translations.SAVE_NEWSLETTER }}
+          </button>
+          <button type="button"
+                  class="btn btn-secondary"
+                  id="toggleEditBtn"
+                  @click="editContent">{{ store.translations.EDIT }}
+          </button>
+        </div>
       </div>
     </div>
     <div class="row justify-content-center mt-5">
       <div class="col-md-12">
         <div class="header-container d-flex justify-content-between align-items-center">
-          <h3 class="mb-4"><?php echo JText::_('NEWSLETTERS_LIST'); ?></h3>
+          <h3 class="mb-4">{{ store.translations.NEWSLETTERS_LIST }}</h3>
           <div id="newsletterSpinner" class="spinner">
-            <img
-                src="<?php echo \Joomla\CMS\Uri\Uri::root(); ?>administrator/components/com_semantycanm/assets/images/spinner.svg"
-                alt="Loading" class="spinner-icon">
+            <img src="components/com_semantycanm/assets/images/spinner.svg" alt="Loading" class="spinner-icon">
           </div>
           <div style="display: flex; justify-content: space-between; align-items: start;">
             <div style="color: gray; display: flex; gap: 5px; align-items: center;">
@@ -76,13 +107,13 @@
             </div>
             <div class="pagination-container mb-3 me-2">
               <a class="btn btn-primary btn-sm" href="#"
-                 id="firstPageNewsletterList"><?php echo JText::_('FIRST'); ?></a>
+                 id="firstPageNewsletterList">{{ store.translations.FIRST }}</a>
               <a class="btn btn-primary btn-sm" href="#"
-                 id="previousPageNewsletterList"><?php echo JText::_('PREVIOUS'); ?></a>
+                 id="previousPageNewsletterList">{{ store.translations.PREVIOUS }}</a>
               <a class="btn btn-primary btn-sm" href="#"
-                 id="nextPageNewsletterList"><?php echo JText::_('NEXT'); ?></a>
+                 id="nextPageNewsletterList">{{ store.translations.NEXT }}</a>
               <a class="btn btn-primary btn-sm" href="#"
-                 id="lastPageNewsletterList"><?php echo JText::_('LAST'); ?></a>
+                 id="lastPageNewsletterList">{{ store.translations.LAST }}</a>
             </div>
           </div>
 
@@ -90,22 +121,26 @@
         <div class="table-responsive" style="height: 200px;">
           <table class="table table-fixed">
             <thead>
-            <?php
-                    $refreshIconUrl = \Joomla\CMS\Uri\Uri::root() . "administrator/components/com_semantycanm/assets/images/refresh.png";
-                    ?>
 
             <tr>
               <th class="col-1">
-                <button class="btn btn-outline-secondary refresh-button" type="button"
-                        id="refreshNewsLettersButton">
-                  <img src="<?php echo $refreshIconUrl; ?>" alt="Refresh" class="refresh-icon">
+                <button class="btn btn-outline-secondary refresh-button"
+                        type="button"
+                        id="refreshNewsLettersButton"
+                        @click="store.fetchNewsletters(1)">
+                  <img src="components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
                 </button>
               </th>
-              <th><?php echo JText::_('SUBJECT'); ?></th>
-              <th><?php echo JText::_('REGISTERED'); ?></th>
+              <th>{{ store.translations.SUBJECT }}</th>
+              <th>{{ store.translations.REGISTERED }}</th>
             </tr>
             </thead>
             <tbody id="newsLettersList">
+            <tr v-for="entry in store.newsLetterDocsView.docs" :key="entry.id">
+              <td style="width: 5%;"><input type="checkbox" :value="entry.id"></td>
+              <td style="width: 15%;">{{ entry.subject }}</td>
+              <td style="width: 10%;">{{ entry.reg_date }}</td>
+            </tr>
             </tbody>
           </table>
         </div>
@@ -116,45 +151,167 @@
 </template>
 
 <script>
-import {defineComponent, onMounted, reactive} from 'vue';
+import {defineComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
+import {NSwitch} from "naive-ui";
 
 export default defineComponent({
   name: 'NewsletterComponent',
+  components: {
+    NSwitch,
+  },
 
   setup() {
+    const availableListsUlRef = ref(null);
+    const selectedListsUlRef = ref(null);
     const store = useGlobalStore();
+    const newsletterRequest = new NewsletterRequest();
     const state = reactive({
       currentNewsletterId: '',
       testEmails: '',
       subject: '',
       messageContent: '',
-      // ... other data properties ...
+      isTest: false
     });
 
-    // Methods
+    const validateNewsletterInputs = () => {
+      const msgContent = document.getElementById('messageContent').value.trim();
+      const subj = document.getElementById('subject').value.trim();
+
+      if (msgContent === '') {
+        showWarnBar("Message content is empty. It cannot be saved");
+        return false;
+      }
+      if (subj === '') {
+        showWarnBar("Subject cannot be empty");
+        return false;
+      }
+      state.messageContent = msgContent;
+      state.subject = subj;
+      return true;
+    };
+    const validateEmailFormat = (email) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+    const setSubject = () => {
+      fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random')
+          .then(response => response.json())
+          .then(data => {
+            state.subject = data.data;
+          })
+          .catch(error => {
+            showAlertBar("Error: " + error);
+          });
+    }
     const sendNewsletter = async () => {
-      // Implement your send newsletter logic here
-      console.log('Sending newsletter...');
+      if (!validateNewsletterInputs()) return;
+      const testEmails = state.testEmails.trim();
+
+      if (testEmails && !validateEmailFormat(testEmails)) {
+        showWarnBar('Invalid email format in test emails');
+        return;
+      }
+      let listItems;
+      if (testEmails !== "") {
+        listItems = [testEmails];
+      } else {
+        listItems = Array.from(document.querySelectorAll('#selectedLists li'))
+            .map(li => li.textContent.trim());
+        if (listItems.length === 0) {
+          showWarnBar('The list is empty');
+          return;
+        }
+      }
+
+      try {
+        await newsletterRequest.sendEmail(state.subject, state.messageContent, listItems);
+      } catch (error) {
+        showAlertBar("Error: " + error);
+      }
     };
 
-    // onMounted lifecycle hook
+    const saveNewsletter = () => {
+      if (!validateNewsletterInputs()) return;
+      const newsletterRequest = new NewsletterRequest();
+      newsletterRequest.addNewsletter(state.subject, state.messageContent)
+          .then(() => {
+            refreshNewsletters(1);
+          })
+    };
+
+    const editContent = () => {
+      const messageContent = document.getElementById('messageContent');
+      const toggleBtn = document.getElementById('toggleEditBtn');
+      if (messageContent.hasAttribute('readonly')) {
+        messageContent.removeAttribute('readonly');
+        toggleBtn.textContent = 'Read-Only';
+      } else {
+        messageContent.setAttribute('readonly', 'readonly');
+        toggleBtn.textContent = 'Edit';
+      }
+    };
+
+    const applyAndDropSet = (lists) => {
+      lists.forEach(list => {
+        Sortable.create(list, {
+          group: {
+            name: 'shared',
+            pull: true,
+            put: true
+          },
+          animation: 150,
+          sort: false
+        });
+      });
+    };
+
     onMounted(() => {
-      // Your on mounted logic here
-      console.log('Component mounted');
-      // Example: Load initial data, set up event listeners, etc.
+      store.getPageOfMailingList(1);
+      store.fetchNewsletters(1);
+      nextTick(() => {
+        applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
+      });
     });
 
 
     return {
       store,
       state,
-      sendNewsletter
+      sendNewsletter,
+      saveNewsletter,
+      editContent,
+      setSubject,
+      availableListsUlRef,
+      selectedListsUlRef,
+      NSwitch,
+      railStyle: ({
+                    focused,
+                    checked
+                  }) => {
+        const style = {};
+        if (checked) {
+          style.background = "#06792a";
+          if (focused) {
+            style.boxShadow = "0 0 0 2px #d0305040";
+          }
+        } else {
+          style.background = "#2080f0";
+          if (focused) {
+            style.boxShadow = "0 0 0 2px #2080f040";
+          }
+        }
+        style.marginRight = "20px";
+        return style;
+      }
     };
   },
 });
 </script>
 
-<style scoped>
-/* Your component-specific styles here */
+<style>
+.send-actions-container button.btn {
+  margin-right: 5px;
+}
+
 </style>

@@ -45,7 +45,19 @@ $translations     = array(
 	'STATISTICS'         => JText::_('STATISTICS'),
 	'RESET'              => JText::_('RESET'),
 	'COPY_CODE'          => JText::_('COPY_CODE'),
-	'SAVE'               => JText::_('SAVE')
+	'SAVE'             => JText::_('SAVE'),
+	'AVAILABLE_LISTS'  => JText::_('AVAILABLE_LISTS'),
+	'SELECTED_LISTS'   => JText::_('SELECTED_LISTS'),
+	'SEND_NEWSLETTER'  => JText::_('SEND_NEWSLETTER'),
+	'TEST_ADDRESS'     => JText::_('TEST_ADDRESS'),
+	'FETCH_SUBJECT'    => JText::_('FETCH_SUBJECT'),
+	'MESSAGE_CONTENT'  => JText::_('MESSAGE_CONTENT'),
+	'SAVE_NEWSLETTER'  => JText::_('SAVE_NEWSLETTER'),
+	'EDIT'             => JText::_('EDIT'),
+	'NEWSLETTERS_LIST' => JText::_('NEWSLETTERS_LIST'),
+	'SUBJECT'          => JText::_('SUBJECT'),
+	'REGISTERED'       => JText::_('REGISTERED'),
+
 );
 $jsonTranslations = json_encode($translations);
 
@@ -105,7 +117,7 @@ $this->selectedLetters = [];
             <div class="container mt-2" id="composerSection">Composer is not available</div>
         </div>
         <div class="tab-pane fade" id="nav-newsletters" role="tabpanel" aria-labelledby="nav-newsletters-tab">
-			<?php echo $this->loadTemplate('news_letter_tab'); ?>
+            <div class="container mt-2" id="newletterSection">Newsletter dashboard is not available</div>
         </div>
         <div class="tab-pane fade" id="nav-stats" role="tabpanel" aria-labelledby="nav-stats-tab">
             <div class="container mt-2" id="statSection">Stat is not available</div>
