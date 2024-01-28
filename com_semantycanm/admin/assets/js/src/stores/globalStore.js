@@ -4,6 +4,15 @@ export const useGlobalStore = defineStore('global', {
     state: () => ({
         translations: window.globalTranslations || {},
         tinyMceLic: window.tinymceLic,
+        template: {
+            id: 0,
+            name: '',
+            maxArticles: '',
+            maxArticlesShort: '',
+            html: '',
+            banner: '',
+            wrapper: ''
+        },
         statisticView: {
             totalStatList: 0,
             currentStatList: 1,
@@ -24,6 +33,25 @@ export const useGlobalStore = defineStore('global', {
         }
     }),
     actions: {
+        async getTemplate(name) {
+            try {
+                const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not 200 for name ${name}`);
+                }
+                const {data} = await response.json();
+                this.template.id = data.id;
+                this.template.name = data.name;
+                this.template.maxArticles = data.maxArticles;
+                this.template.maxArticlesShort = data.maxArticlesShort;
+                this.template.html = data.content;
+                this.template.banner = data.banner;
+                this.template.wrapper = data.wrapper;
+            } catch (error) {
+                showErrorBar('Template.find&name', error.message);
+            }
+        },
         async fetchStatisticsData(page) {
             try {
                 const response = await fetch('index.php?option=com_semantycanm&task=Stat.findAll&page=' + page + '&limit=10');
@@ -37,7 +65,7 @@ export const useGlobalStore = defineStore('global', {
             } catch (error) {
                 showAlertBar("Error: " + error);
             } finally {
-                hideSpinner('statSpinner');
+                // hideSpinner('statSpinner');
             }
         },
         async getPageOfMailingList(page) {
@@ -55,7 +83,7 @@ export const useGlobalStore = defineStore('global', {
             }
         },
         async fetchNewsletters(page) {
-            showSpinner('newsletterSpinner');
+            //   showSpinner('newsletterSpinner');
             try {
                 const response = await fetch('index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + page + '&limit=10');
 
@@ -71,9 +99,9 @@ export const useGlobalStore = defineStore('global', {
                 }
             } catch (error) {
                 console.error(error);
-                showErrorBar('NewsLetter.findAll', error.message);
+                //  showErrorBar('NewsLetter.findAll', error.message);
             } finally {
-                hideSpinner('newsletterSpinner');
+                //  hideSpinner('newsletterSpinner');
             }
         }
 

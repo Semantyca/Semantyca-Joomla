@@ -28,7 +28,11 @@
         <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
         <div class="form-group">
           <label for="testEmails">{{ store.translations.TEST_ADDRESS }}</label>
-          <input type="text" class="form-control" id="testEmails" name="testEmails">
+          <input v-model="state.testEmails"
+                 type="text"
+                 class="form-control"
+                 id="testEmails"
+                 name="testEmails">
         </div>
         <div class="form-group">
           <div class="input-group mb-3">
@@ -153,7 +157,7 @@
 <script>
 import {defineComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
-import {NSwitch} from "naive-ui";
+import {NSwitch, useMessage} from "naive-ui";
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -166,6 +170,7 @@ export default defineComponent({
     const selectedListsUlRef = ref(null);
     const store = useGlobalStore();
     const newsletterRequest = new NewsletterRequest();
+    //   const message = useMessage();
     const state = reactive({
       currentNewsletterId: '',
       testEmails: '',
@@ -219,7 +224,9 @@ export default defineComponent({
         listItems = Array.from(document.querySelectorAll('#selectedLists li'))
             .map(li => li.textContent.trim());
         if (listItems.length === 0) {
-          showWarnBar('The list is empty');
+          const message = useMessage();
+          message.warning("The list is empty");
+          //showWarnBar('The list is empty');
           return;
         }
       }

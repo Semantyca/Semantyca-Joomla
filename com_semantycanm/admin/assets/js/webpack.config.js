@@ -1,9 +1,9 @@
 const {VueLoaderPlugin} = require('vue-loader');
 const webpack = require('webpack');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
 const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
+const fs = require('fs');
 
 require('dotenv').config();
 
@@ -47,44 +47,20 @@ module.exports = {
     },
     plugins: [
         new VueLoaderPlugin(),
-        new CleanWebpackPlugin(),
         new CopyPlugin({
             patterns: [
-                {
-                    from: 'node_modules/tinymce/models',
-                    to: 'models',
-                    noErrorOnMissing: true
-                },
-                {
-                    from: 'node_modules/tinymce/themes',
-                    to: 'themes',
-                    noErrorOnMissing: true
-                },
-                {
-                    from: 'node_modules/tinymce/skins',
-                    to: 'skins',
-                    noErrorOnMissing: true,
-                    globOptions: {
-                        ignore: [
-                            '**/skins/ui/tinymce-5/**',
-                            '**/skins/ui/tinymce-5-dark/**',
-                            '**/skins/ui/oxide-dark/**',
-                            '**/skins/content/tinymce-5/**',
-                            '**/skins/content/tinymce-5-dark/**',
-                            '**/skins/content/dark/**',
-                        ],
-                    }
-                },
-                {
-                    from: 'node_modules/tinymce/plugins/table',
-                    to: 'plugins/table',
-                    noErrorOnMissing: true
-                },
+                //... other patterns
                 {
                     from: 'node_modules/tinymce/plugins/code',
                     to: 'plugins/code',
-                    noErrorOnMissing: true
-                }
+                    noErrorOnMissing: true,
+                    filter: async (resourcePath) => {
+                        // Copy files only if they don't exist in the destination
+                        const destPath = path.resolve(__dirname, outputDir, path.relative('node_modules/tinymce', resourcePath));
+                        return !fs.existsSync(destPath);
+                    },
+                },
+                //... other patterns
             ],
         }),
         new webpack.DefinePlugin({
@@ -92,9 +68,7 @@ module.exports = {
             __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
             __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false)
         }),
-        /*new MonacoEditorPlugin({
-            languages: ['html']
-        })*/
+        //... other plugins
     ],
     resolve: {
         alias: {

@@ -24,7 +24,7 @@ $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/newsletter-builder.js");
+//$doc->addScript($rootUrl . $smtca_assets . "js/newsletter-builder.js", ['type' => 'module']);
 $doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
@@ -100,7 +100,8 @@ $this->selectedLetters = [];
                     aria-selected="false"><?php echo JText::_('NEWSLETTERS_TAB'); ?></button>
             <button class="nav-link" id="nav-stats-tab" data-bs-toggle="tab" data-bs-target="#nav-stats" type="button"
                     role="tab" aria-controls="nav-stats"
-                    aria-selected="false"><?php echo JText::_('STATS_TAB'); ?></button>
+                    aria-selected="false"
+                    ref="statsTabRef"><?php echo JText::_('STATS_TAB'); ?></button>
             <button class="nav-link" id="nav-template-tab" data-bs-toggle="tab" data-bs-target="#nav-template"
                     type="button"
                     role="tab" aria-controls="nav-template"

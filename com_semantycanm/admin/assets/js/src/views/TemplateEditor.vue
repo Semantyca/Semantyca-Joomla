@@ -3,7 +3,7 @@
   <editor
       :api-key="store.tinyMceLic"
       :init="templateEditorConfig"
-      v-model="state.html"></editor>
+      v-model="store.template.html"></editor>
 
   <div class="col-mt-3" style="margin-top: 10px;">
     <button class="btn btn-success" style="margin-right: 10px;" @click="saveTemplate">Save</button>
@@ -11,26 +11,16 @@
 </template>
 
 <script>
-import {onMounted, reactive} from 'vue';
+import {onMounted} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 
 const TEMPLATE_SPINNER = 'templateSpinner';
 export default {
+  name: 'TemplateEditor',
   components: {Editor},
 
   setup() {
-    const state = reactive({
-      id: 0,
-      name: '',
-      maxArticles: '',
-      maxArticlesShort: '',
-      html: '',
-      banner: '',
-      wrapper: ''
-    });
-
-    window.myVueState = state;
     const store = useGlobalStore();
 
     const templateEditorConfig = {
@@ -43,35 +33,11 @@ export default {
       toolbar: 'code'
     };
 
-    const loadContent = async (name) => {
-      startLoading(TEMPLATE_SPINNER);
-      try {
-        const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Network response was not 200 for name ${name}`);
-        }
-        const {data} = await response.json();
-        state['id'] = data.id;
-        state['name'] = data.name;
-        state['maxArticles'] = data.maxArticles;
-        state['maxArticlesShort'] = data.maxArticlesShort;
-        state['html'] = data.content;
-        state['banner'] = data.banner;
-        state['wrapper'] = data.wrapper;
-        stopLoading(TEMPLATE_SPINNER);
-      } catch (error) {
-        console.error(`Problem fetching content for type ${name}:`, error);
-        showErrorBar('Template.find&name', error.message);
-        stopLoading(TEMPLATE_SPINNER);
-      }
-    };
-
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
-      const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(state['id'])}`;
+      const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(store.template.id)}`;
       const data = {
-        html: state['html']
+        // html: state['html']
       };
 
       try {
@@ -96,12 +62,11 @@ export default {
     };
 
     onMounted(async () => {
-      await loadContent('classic');
+      await store.getTemplate('classic');
     });
 
     return {
       store,
-      state,
       templateEditorConfig,
       saveTemplate
     };

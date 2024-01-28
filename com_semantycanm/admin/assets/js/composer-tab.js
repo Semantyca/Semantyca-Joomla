@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
             };
 
             const updateComposerContent = () => {
-                const content = buildContent(currentDateFormatted, currentYear, "/joomla/images/2020/EMSA_logo_full_600-ed.png");
+                const content = buildContent(currentDateFormatted, currentYear);
                 composerEditor.setContent(content);
             };
 
