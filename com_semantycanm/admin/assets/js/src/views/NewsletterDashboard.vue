@@ -26,173 +26,113 @@
         <h2 class="mb-4">{{ store.translations.SEND_NEWSLETTER }}</h2>
         <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
         <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-        <div class="form-group">
-          <label for="testEmails">{{ store.translations.TEST_ADDRESS }}</label>
-          <input v-model="state.testEmails"
+
+        <label for="testEmails">{{ store.translations.TEST_ADDRESS }}</label>
+        <n-input v-model="state.testEmails"
+                 placeholder="E-mail address"
                  type="text"
-                 class="form-control"
                  id="testEmails"
-                 name="testEmails">
-        </div>
-        <div class="form-group">
-          <div class="input-group mb-3">
-            <input type="text"
-                   class="form-control"
+                 name="testEmails"/>
+
+        <div class="input-group mb-3 mt-3">
+          <n-input v-model="state.subject"
+                   type="text"
                    id="subject"
-                   name="subject"
-                   required
                    placeholder="Subject"
-                   aria-label="Subject"
-                   v-model="state.subject"
-            >
-            <button class="btn btn-outline-secondary"
-                    type="button"
-                    id="addSubjectBtn"
-                    @click="setSubject"
-                    style="margin: 5px;">{{ store.translations.FETCH_SUBJECT }}
-            </button>
-          </div>
+                   aria-label="Subject"/>
+          <!--          <n-button class="btn btn-outline-secondary"
+                              id="addSubjectBtn"
+                              @click="setSubject"
+                              style="margin: 5px;">{{ store.translations.FETCH_SUBJECT }}
+                    </n-button>-->
         </div>
+
         <div class="form-group">
           <label for="messageContent">{{ store.translations.MESSAGE_CONTENT }}</label>
-          <textarea class="form-control"
-                    id="messageContent"
-                    name="messageContent"
-                    rows="10"
-                    required
-                    readonly></textarea>
+          <n-input
+              v-model:value="ownStore.messageContent"
+              type="textarea"
+              rows="10"
+              placeholder=""
+          />
         </div>
-        <div class="send-actions-container">
-          <button type="button"
-                  class="btn btn-secondary"
-                  @click="sendNewsletter">{{ store.translations.SEND_NEWSLETTER }}
-          </button>
-
+        <n-space>
+          <n-button type="primary"
+                    @click="sendNewsletter">{{ store.translations.SEND_NEWSLETTER }}
+          </n-button>
           <n-switch :round="false" :rail-style="railStyle">
             <template #checked>
-              Activated
+              On
             </template>
             <template #unchecked>
-              Test
+              Off
             </template>
           </n-switch>
-
-          <button type="button"
-                  class="btn btn-secondary"
-                  id="saveNewsletterBtn"
-                  @click="saveNewsletter">{{ store.translations.SAVE_NEWSLETTER }}
-          </button>
-          <button type="button"
-                  class="btn btn-secondary"
-                  id="toggleEditBtn"
-                  @click="editContent">{{ store.translations.EDIT }}
-          </button>
-        </div>
-      </div>
-    </div>
-    <div class="row justify-content-center mt-5">
-      <div class="col-md-12">
-        <div class="header-container d-flex justify-content-between align-items-center">
-          <h3 class="mb-4">{{ store.translations.NEWSLETTERS_LIST }}</h3>
-          <div id="newsletterSpinner" class="spinner">
-            <img src="components/com_semantycanm/assets/images/spinner.svg" alt="Loading" class="spinner-icon">
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: start;">
-            <div style="color: gray; display: flex; gap: 5px; align-items: center;">
-              <label for="totalNewsletterList">Total:</label><input type="text" id="totalNewsletterList"
-                                                                    value="0" readonly
-                                                                    style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
-              <label for="currentNewsletterList">Page:</label><input type="text" id="currentNewsletterList"
-                                                                     value="1" readonly
-                                                                     style="width: 20px; border: none; background-color: transparent; color: inherit;"/>
-              <label for="maxNewsletterList">of</label><input type="text" id="maxNewsletterList" value="1"
-                                                              readonly
-                                                              style="width: 30px; border: none; background-color: transparent; color: inherit;"/>
-            </div>
-            <div class="pagination-container mb-3 me-2">
-              <a class="btn btn-primary btn-sm" href="#"
-                 id="firstPageNewsletterList">{{ store.translations.FIRST }}</a>
-              <a class="btn btn-primary btn-sm" href="#"
-                 id="previousPageNewsletterList">{{ store.translations.PREVIOUS }}</a>
-              <a class="btn btn-primary btn-sm" href="#"
-                 id="nextPageNewsletterList">{{ store.translations.NEXT }}</a>
-              <a class="btn btn-primary btn-sm" href="#"
-                 id="lastPageNewsletterList">{{ store.translations.LAST }}</a>
-            </div>
-          </div>
-
-        </div>
-        <div class="table-responsive" style="height: 200px;">
-          <table class="table table-fixed">
-            <thead>
-
-            <tr>
-              <th class="col-1">
-                <button class="btn btn-outline-secondary refresh-button"
-                        type="button"
-                        id="refreshNewsLettersButton"
-                        @click="store.fetchNewsletters(1)">
-                  <img src="components/com_semantycanm/assets/images/refresh.png" alt="Refresh" class="refresh-icon">
-                </button>
-              </th>
-              <th>{{ store.translations.SUBJECT }}</th>
-              <th>{{ store.translations.REGISTERED }}</th>
-            </tr>
-            </thead>
-            <tbody id="newsLettersList">
-            <tr v-for="entry in store.newsLetterDocsView.docs" :key="entry.id">
-              <td style="width: 5%;"><input type="checkbox" :value="entry.id"></td>
-              <td style="width: 15%;">{{ entry.subject }}</td>
-              <td style="width: 10%;">{{ entry.reg_date }}</td>
-            </tr>
-            </tbody>
-          </table>
-        </div>
+          <n-button id="saveNewsletterBtn"
+                    type="primary"
+                    @click="saveNewsletter">{{ store.translations.SAVE_NEWSLETTER }}
+          </n-button>
+          <n-button id="toggleEditBtn"
+                    type="primary"
+                    @click="editContent">{{ store.translations.EDIT }}
+          </n-button>
+        </n-space>
       </div>
     </div>
 
+    <div style="margin-top: 20px">
+      <h3 class="mb-4">{{ store.translations.NEWSLETTERS_LIST }}</h3>
+    </div>
+    <div>
+      <n-data-table
+          :columns="columns"
+          :data="ownStore.newsLetterDocsView.docs"
+          :bordered="false"
+          :pagination="pagination"
+      />
+    </div>
   </div>
+
 </template>
 
 <script>
 import {defineComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
-import {NSwitch, useMessage} from "naive-ui";
+import {NButton, NDataTable, NInput, NSpace, NSwitch} from "naive-ui";
+import {useNewsletterStore} from "../stores/newsletterStore";
 
 export default defineComponent({
   name: 'NewsletterComponent',
   components: {
+    NInput,
+    NButton,
+    NSpace,
     NSwitch,
+    NDataTable
   },
 
   setup() {
     const availableListsUlRef = ref(null);
     const selectedListsUlRef = ref(null);
     const store = useGlobalStore();
+    const ownStore = useNewsletterStore();
     const newsletterRequest = new NewsletterRequest();
-    //   const message = useMessage();
     const state = reactive({
       currentNewsletterId: '',
       testEmails: '',
       subject: '',
-      messageContent: '',
       isTest: false
     });
 
     const validateNewsletterInputs = () => {
-      const msgContent = document.getElementById('messageContent').value.trim();
-      const subj = document.getElementById('subject').value.trim();
-
-      if (msgContent === '') {
+      if (ownStore.messageContent === '') {
         showWarnBar("Message content is empty. It cannot be saved");
         return false;
       }
-      if (subj === '') {
+      if (state.subject === '') {
         showWarnBar("Subject cannot be empty");
         return false;
       }
-      state.messageContent = msgContent;
-      state.subject = subj;
       return true;
     };
     const validateEmailFormat = (email) => {
@@ -206,6 +146,7 @@ export default defineComponent({
             state.subject = data.data;
           })
           .catch(error => {
+            console.log(error);
             showAlertBar("Error: " + error);
           });
     }
@@ -224,9 +165,7 @@ export default defineComponent({
         listItems = Array.from(document.querySelectorAll('#selectedLists li'))
             .map(li => li.textContent.trim());
         if (listItems.length === 0) {
-          const message = useMessage();
-          message.warning("The list is empty");
-          //showWarnBar('The list is empty');
+          showWarnBar('The list is empty');
           return;
         }
       }
@@ -275,15 +214,40 @@ export default defineComponent({
 
     onMounted(() => {
       store.getPageOfMailingList(1);
-      store.fetchNewsletters(1);
+      ownStore.fetchNewsletters(1);
       nextTick(() => {
         applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
       });
     });
 
+    const createColumns = () => {
+      return [
+        {
+          title: 'Subject',
+          key: 'subject'
+        },
+        {
+          title: 'Created',
+          key: 'reg_date'
+        }
+      ]
+    }
+
+    const pagination = reactive({
+      page: 1,
+      pageSize: 10,
+      onChange: (page) => {
+        paginationReactive.page = page;
+      },
+      onUpdatePageSize: (pageSize) => {
+        paginationReactive.pageSize = pageSize;
+        paginationReactive.page = 1;
+      }
+    });
 
     return {
       store,
+      ownStore,
       state,
       sendNewsletter,
       saveNewsletter,
@@ -292,6 +256,8 @@ export default defineComponent({
       availableListsUlRef,
       selectedListsUlRef,
       NSwitch,
+      columns: createColumns(),
+      pagination,
       railStyle: ({
                     focused,
                     checked
@@ -301,11 +267,6 @@ export default defineComponent({
           style.background = "#06792a";
           if (focused) {
             style.boxShadow = "0 0 0 2px #d0305040";
-          }
-        } else {
-          style.background = "#2080f0";
-          if (focused) {
-            style.boxShadow = "0 0 0 2px #2080f040";
           }
         }
         style.marginRight = "20px";

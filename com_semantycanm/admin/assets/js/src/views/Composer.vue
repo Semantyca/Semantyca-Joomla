@@ -5,14 +5,20 @@
       <div class="col-md-6">
         <div class="header-container">
           <h3>{{ store.translations.AVAILABLE_ARTICLES }}</h3>
-          <div id="composerSpinner" class="spinner-border text-info spinner-grow-sm mb-2" role="status"
+          <div id="composerSpinner"
+               class="spinner-border text-info spinner-grow-sm mb-2"
+               role="status"
                style="display: none;">
             <span class="visually-hidden">Loading...</span>
           </div>
         </div>
         <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
                @input="debouncedFetchArticles">
-        <ul ref="articlesListRef" id="articlesUlElement" class="list-group dragdrop-list-short">
+        <div v-if="isLoading">
+          <n-skeleton text :repeat="4" size="medium"/>
+          <n-skeleton text style="width: 60%" size="medium"/>
+        </div>
+        <ul v-else ref="articlesListRef" id="articlesUlElement" class="list-group dragdrop-list-short">
           <li v-for="article in articles" :key="article.id" class="list-group-item"
               :id="article.id" :title="article.title" :data-url="article.url"
               :data-category="article.category" :data-intro="article.intro">
@@ -40,7 +46,10 @@
           <button @click="resetFunction" class="btn" style="background-color: #152E52; color: white;">
             {{ store.translations.RESET }}
           </button>
-          <button @click="copyContentToClipboard" class="btn btn-info mb-2">{{ store.translations.COPY_CODE }}</button>
+          <button @click="copyContentToClipboard" class="btn btn-info mb-2">{{
+              store.translations.COPY_CODE
+            }}
+          </button>
           <button @click="next" class="btn btn-info mb-2">{{ store.translations.NEXT }}</button>
         </div>
         <editor
@@ -57,24 +66,30 @@ import {nextTick, onMounted, reactive, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
+import {useNewsletterStore} from "../stores/newsletterStore";
+import {NSkeleton} from "naive-ui";
 
 export default {
   name: 'Composer',
   components: {
-    Editor
+    Editor,
+    NSkeleton
   },
 
   setup() {
     const articles = ref([]);
+    const isLoading = ref(true);
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
+    const activeTabName = ref('Composer');
     const currentYear = new Date().getFullYear();
     const currentMonth = new Date().toLocaleString('default', {
       month: 'long'
     }).toUpperCase();
     const currentDateFormatted = `${currentMonth} ${currentYear}`;
     const store = useGlobalStore();
+    const newsletterStore = useNewsletterStore();
     const state = reactive({
       editorCont: '',
       selectedArticles: []
@@ -124,14 +139,14 @@ export default {
     };
 
     const next = () => {
-      const messageContent = document.getElementById('messageContent');
-      messageContent.value = getWrappedContent(state.editorCont);
-      $('#nav-newsletters-tab').tab('show');
+      newsletterStore.messageContent = getWrappedContent(state.editorCont);
+      activeTabName.value = 'Newsletter';
     };
 
 
     const fetchArticles = async (searchTerm) => {
       startLoading('loadingSpinner');
+      isLoading.value = true;
       try {
         const url = 'index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm);
         const response = await fetch(url);
@@ -147,9 +162,11 @@ export default {
           intro: encodeURIComponent(a.introtext)
         }));
         stopLoading('loadingSpinner');
+        isLoading.value = false;
       } catch (error) {
         console.error(`Problem fetching articles:`, error);
         stopLoading('loadingSpinner');
+        isLoading.value = false;
       }
     };
 
@@ -175,6 +192,12 @@ export default {
       });
     };
 
+    const updateComposerContent = () => {
+      const v = buildContent(currentDateFormatted, currentYear);
+      console.log(v);
+      state.editorCont = v;
+    };
+
     const getWrappedContent = (content) => {
       let template = Handlebars.compile(store.template.wrapper);
       let data = {
@@ -184,16 +207,16 @@ export default {
     }
 
     const buildContent = (currentDateFormatted, currentYear) => {
-      const selectedArticlesLi = $('#selectedArticles li');
+      const selectedArticlesLi = document.querySelectorAll('#selectedArticles li');
       let articles = [];
-
-      selectedArticlesLi.each(function (index, article) {
+      selectedArticlesLi.forEach((article) => {
         const articleId = article.id;
         const title = article.title;
         const url = normalizeUrl(article.dataset.url);
         let htmlContent = decodeURIComponent(article.dataset.intro);
         let intro = makeImageUrlsAbsolute(htmlContent);
         const category = article.dataset.category;
+
         let articleObj = {
           id: articleId,
           title: title,
@@ -251,27 +274,27 @@ export default {
       return url;
     }
 
-    const updateComposerContent = () => {
-      state.editorCont = buildContent(currentDateFormatted, currentYear);
-    };
 
     onMounted(async () => {
-      fetchArticles('');
-      nextTick(() => {
+      await fetchArticles('');
+      await store.getTemplate('classic');
+      await nextTick(() => {
         applyAndDropSet([articlesListRef.value, selectedArticlesListRef.value]);
       });
     });
 
     return {
       articles,
+      isLoading,
       state,
       store,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
       composerEditorConfig,
+      activeTabName,
       debouncedFetchArticles,
-
+      getWrappedContent,
       resetFunction,
       copyContentToClipboard,
       next,

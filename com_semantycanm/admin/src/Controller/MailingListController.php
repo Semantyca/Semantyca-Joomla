@@ -20,7 +20,7 @@ class MailingListController extends BaseController
 	 */
 	public function findAll()
 	{
-		header(Constants::JSON_CONTENT_TYPE);
+
 		$app = Factory::getApplication();
 		try
 		{

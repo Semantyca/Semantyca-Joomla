@@ -1,25 +1,49 @@
 import {createApp} from 'vue';
-import TemplateEditor from './views/TemplateEditor.vue';
-import Composer from './views/Composer.vue';
-import Statistics from "./views/Statistics.vue";
 import {createPinia} from 'pinia';
-import NewsletterDashboard from "./views/NewsletterDashboard.vue";
+import Workspace from "./views/Workspace.vue";
+import {NConfigProvider, NGlobalStyle} from "naive-ui";
+
+const smtcaTheme = {
+    common: {
+        //  fontSize: "18px",
+        //  fontSizeSmall: "18px",
+        //  fontSizeMedium: "18px",
+        //  fontSizeLarge: "22px",
+        //   fontSizeHuge: "22px",
+        primaryColor: "#152E52FF"
+    }
+};
 
 const pinia = createPinia();
 
-const composerApp = createApp(Composer);
-composerApp.use(pinia);
-composerApp.mount('#composerSection');
+const app = createApp({
+    components: {
+        NGlobalStyle,
+        NConfigProvider,
+        Workspace,
+    },
+    template: `
 
-const newsletterApp = createApp(NewsletterDashboard);
-newsletterApp.use(pinia);
-newsletterApp.mount('#newletterSection');
+      <div>
+        <n-config-provider :theme-overrides="smtcaTheme">
+          <!-- <n-global-style />-->
+          <Workspace/>
+        </n-config-provider>
 
-const statApp = createApp(Statistics);
-statApp.use(pinia);
-statApp.mount('#statSection');
+      </div>
 
-const app = createApp(TemplateEditor);
-app.mount('#templateSection');
+    `,
+    setup() {
+        return {
+            smtcaTheme,
+        };
+    },
+});
+
+app.use(pinia);
+app.mount('#app');
+
+
+
 
 

@@ -1,4 +1,4 @@
-<!-- Main -->
+{{log 'Value of maxArticles is: ' maxArticles}}
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
     <tr>
         <td width="10">
@@ -19,7 +19,8 @@
                 <tr>
                     <td>
                         {{#each articles}}
-                            {{#if (lt @index maxArticles)}}
+                            {{log 'Value of  @index is: '  @index}}
+                            {{#if (lt @index ../maxArticles)}}
                                 <!-- Dynamic  -->
                                 <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#152E52">
                                     <tr>

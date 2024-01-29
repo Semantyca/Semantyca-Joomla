@@ -4,6 +4,18 @@ export const useGlobalStore = defineStore('global', {
     state: () => ({
         translations: window.globalTranslations || {},
         tinyMceLic: window.tinymceLic,
+        userGroupDocsView: {
+            total: 0,
+            current: 1,
+            maxPage: 0,
+            docs: []
+        },
+        mailingListDocsView: {
+            total: 0,
+            current: 1,
+            maxPage: 0,
+            docs: []
+        },
         template: {
             id: 0,
             name: '',
@@ -14,9 +26,9 @@ export const useGlobalStore = defineStore('global', {
             wrapper: ''
         },
         statisticView: {
-            totalStatList: 0,
-            currentStatList: 1,
-            maxStatList: 0,
+            total: 0,
+            current: 1,
+            maxPage: 0,
             docs: []
         },
         mailingList: {
@@ -24,15 +36,38 @@ export const useGlobalStore = defineStore('global', {
             currentStatList: 1,
             maxStatList: 0,
             docs: []
-        },
-        newsLetterDocsView: {
-            total: 0,
-            current: 1,
-            maxPage: 0,
-            docs: []
         }
     }),
     actions: {
+        async refreshMailingList(currentPage) {
+            //showSpinner('listSpinner');
+
+            const url = 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=10';
+
+            fetch(url, {
+                method: 'GET',
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok: ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success && data.data) {
+                        this.mailingListDocsView.total = data.data.count;
+                        this.mailingListDocsView.current = data.data.current;
+                        this.mailingListDocsView.maxPage = data.data.maxPage;
+                        this.mailingListDocsView.docs = data.data.docs;
+                    }
+                })
+                .catch(error => {
+                    showErrorBar('MailingList.findall', error.message);
+                })
+                .finally(() => {
+                    //hideSpinner('listSpinner');
+                });
+        },
         async getTemplate(name) {
             try {
                 const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
@@ -57,9 +92,9 @@ export const useGlobalStore = defineStore('global', {
                 const response = await fetch('index.php?option=com_semantycanm&task=Stat.findAll&page=' + page + '&limit=10');
                 const viewData = await response.json();
                 if (viewData.success && viewData.data) {
-                    this.statisticView.totalStatList = viewData.data.count;
-                    this.statisticView.currentStatList = viewData.data.current;
-                    this.statisticView.maxStatList = viewData.data.maxPage;
+                    this.statisticView.total = viewData.data.count;
+                    this.statisticView.current = viewData.data.current;
+                    this.statisticView.maxPage = viewData.data.maxPage;
                     this.statisticView.docs = viewData.data.docs;
                 }
             } catch (error) {
@@ -81,29 +116,6 @@ export const useGlobalStore = defineStore('global', {
             } catch (error) {
                 showErrorBar('MailingList.findall', error);
             }
-        },
-        async fetchNewsletters(page) {
-            //   showSpinner('newsletterSpinner');
-            try {
-                const response = await fetch('index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + page + '&limit=10');
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error, status = ${response.status}`);
-                }
-                const responseData = await response.json();
-                if (responseData.success && responseData.data) {
-                    this.newsLetterDocsView.total = responseData.data.count;
-                    this.newsLetterDocsView.current = responseData.data.current;
-                    this.newsLetterDocsView.maxPage = responseData.data.maxPage;
-                    this.newsLetterDocsView.docs = responseData.data.docs;
-                }
-            } catch (error) {
-                console.error(error);
-                //  showErrorBar('NewsLetter.findAll', error.message);
-            } finally {
-                //  hideSpinner('newsletterSpinner');
-            }
         }
-
     }
 });

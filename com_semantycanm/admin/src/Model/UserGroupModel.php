@@ -2,22 +2,38 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-defined('_JEXEC') or die;
-
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class UserGroupModel extends BaseDatabaseModel
 {
-	public function getList()
+
+	public function getList($currentPage, $itemsPerPage)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
-		$query->select($db->quoteName(array('id', 'title')))
-			->from($db->quoteName('#__usergroups'));
+		$offset = ($currentPage - 1) * $itemsPerPage;
+
+		$query
+			->select($db->quoteName(array('id', 'title')))
+			->from($db->quoteName('#__usergroups'))
+			->setLimit($itemsPerPage, $offset);
+
 		$db->setQuery($query);
+		$documents = $db->loadObjectList();
 
-		return $db->loadObjectList();
+		$queryCount = $db->getQuery(true)
+			->select('COUNT(' . $db->quoteName('id') . ')')
+			->from($db->quoteName('#__usergroups'));
+		$db->setQuery($queryCount);
+		$count   = $db->loadResult();
+		$maxPage = (int) ceil($count / $itemsPerPage);
 
+		return [
+			'docs'    => $documents,
+			'count'   => $count,
+			'current' => $currentPage,
+			'maxPage' => $maxPage
+		];
 	}
 
 }

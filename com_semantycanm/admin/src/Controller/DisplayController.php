@@ -18,12 +18,8 @@ class DisplayController extends BaseController
 	{
 		try
 		{
-			$user_group_model = $this->getModel('UserGroup');
-
 			$view = $this->getView('Dashboard', 'html');
-			$view->set('user_groups', $user_group_model->getList());
 			$view->set('js_bundle', $this->getDynamicScriptUrl('js'));
-			//$view->set('css_bundle', $this->getDynamicScriptUrl('css'));
 			$view->set('tinymce_lic', $this->getTinyMCELic());
 			$view->display();
 		}

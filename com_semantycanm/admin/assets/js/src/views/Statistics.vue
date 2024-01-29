@@ -19,7 +19,7 @@
 </template>
 
 <script>
-import {defineComponent, h, onBeforeUnmount, onMounted, reactive, ref} from 'vue';
+import {defineComponent, h, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from '../stores/globalStore';
 import {NDataTable, NTag} from 'naive-ui';
 
@@ -41,19 +41,8 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      if (statsTabRef.value) {
-        statsTabRef.value.addEventListener('shown.bs.tab', onListTabShown);
-      }
+      store.fetchStatisticsData(1);
     });
-
-    onBeforeUnmount(() => {
-      if (statsTabRef.value) {
-        statsTabRef.value.removeEventListener('shown.bs.tab', onListTabShown);
-      }
-    });
-    const onListTabShown = () => {
-      refreshStats(1);
-    };
 
     const createColumns = () => {
       return [
