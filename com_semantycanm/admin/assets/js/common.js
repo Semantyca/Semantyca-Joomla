@@ -11,11 +11,11 @@ function hideSpinner(spinnerId) {
 }
 
 function startLoading(loadingSpinnerId) {
-    document.getElementById(loadingSpinnerId).style.display = 'block';
+    document.getElementById(loadingSpinnerId).style.visibility = 'visible';
 }
 
 function stopLoading(loadingSpinnerId) {
-    document.getElementById(loadingSpinnerId).style.display = 'none';
+    document.getElementById(loadingSpinnerId).style.visibility = 'hidden';
 }
 
 function createRowButton(buttonText, buttonClass, eventHandler) {

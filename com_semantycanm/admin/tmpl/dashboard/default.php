@@ -57,6 +57,7 @@ $translations     = array(
 	'AVAILABLE_USER_GROUPS' => JText::_('AVAILABLE_USER_GROUPS'),
 	'SELECTED_USER_GROUPS'  => JText::_('SELECTED_USER_GROUPS'),
 	'CANCEL'                => JText::_('CANCEL'),
+	'TEMPLATE' => JText::_('TEMPLATE'),
 
 );
 $jsonTranslations = json_encode($translations);
@@ -67,6 +68,7 @@ $jsonTranslations = json_encode($translations);
     window.globalTranslations = <?php echo $jsonTranslations; ?>;
 </script>
 
+<div id="loadingSpinner" class="loading-spinner"></div>
 <div id="app">Loading...</div>
 
 

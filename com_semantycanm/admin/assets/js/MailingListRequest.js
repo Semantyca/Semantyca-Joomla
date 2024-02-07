@@ -8,7 +8,7 @@ class MailingListRequest {
     }
 
     process(mailingListName, listItems) {
-        showSpinner('listSpinner');
+        // showSpinner('listSpinner');
 
         fetch(MailingListRequest.BASE_URL + this.operation, {
             method: this.httpMethod,
@@ -38,15 +38,15 @@ class MailingListRequest {
                 showErrorBar('MailingList.' + this.operation, error.message);
             })
             .finally(() => {
-                refreshMailingList(1);
+                //  refreshMailingList(1);
                 if (this.id === '') {
-                    getPageOfMailingList();
+                    // getPageOfMailingList();
                 } else {
                     this.id = '';
                     document.getElementById('mailingListMode').value = '';
                 }
                 document.getElementById('mailingListName').value = '';
-                hideSpinner('listSpinner');
+                //   hideSpinner('listSpinner');
             });
     }
 

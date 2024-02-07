@@ -23,15 +23,12 @@ const app = createApp({
         Workspace,
     },
     template: `
-
       <div>
         <n-config-provider :theme-overrides="smtcaTheme">
           <!-- <n-global-style />-->
           <Workspace/>
         </n-config-provider>
-
       </div>
-
     `,
     setup() {
         return {

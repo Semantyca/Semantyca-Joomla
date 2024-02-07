@@ -5,16 +5,16 @@
       <div class="col-md-12">
         <div class="header-container d-flex justify-content-between align-items-center">
           <h3>{{ store.translations.STATISTICS }}</h3>
-          </div>
         </div>
-        <n-data-table
-            :columns="columns"
-            :data="store.statisticView.docs"
-            :bordered="false"
-            :pagination="pagination"
-        />
       </div>
+      <n-data-table
+          :columns="columns"
+          :data="store.statisticView.docs"
+          :bordered="false"
+          :pagination="pagination"
+      />
     </div>
+  </div>
 
 </template>
 

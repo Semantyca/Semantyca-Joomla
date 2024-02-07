@@ -1,12 +1,20 @@
 <template>
-  <div id="templateSpinner" class="loading-spinner"></div>
-  <editor
-      :api-key="store.tinyMceLic"
-      :init="templateEditorConfig"
-      v-model="store.template.html"></editor>
+  <div class="container mt-3">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="header-container">
+          <h3>{{ store.translations.TEMPLATE }}</h3>
+        </div>
+        <editor
+            :api-key="store.tinyMceLic"
+            :init="templateEditorConfig"
+            v-model="store.template.html"></editor>
 
-  <div class="col-mt-3" style="margin-top: 10px;">
-    <button class="btn btn-success" style="margin-right: 10px;" @click="saveTemplate">Save</button>
+        <div class="col-mt-3" style="margin-top: 10px;">
+          <button class="btn btn-success" style="margin-right: 10px;" @click="saveTemplate">Save</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 

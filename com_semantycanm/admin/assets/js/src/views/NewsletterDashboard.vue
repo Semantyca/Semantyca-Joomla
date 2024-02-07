@@ -7,7 +7,7 @@
         </div>
         <div class="col-md-12 dragdrop-list">
           <ul ref="availableListsUlRef" class="list-group">
-            <li v-for="ml in store.mailingList.docs" :key="ml.id" class="list-group-item"
+            <li v-for="ml in mailingListStore.mailingList.docs" :key="ml.id" class="list-group-item"
                 :id="ml.id">{{ ml.name }}
             </li>
           </ul>
@@ -28,14 +28,14 @@
         <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
 
         <label for="testEmails">{{ store.translations.TEST_ADDRESS }}</label>
-        <n-input v-model="state.testEmails"
+        <n-input v-model:value="state.testEmails"
                  placeholder="E-mail address"
                  type="text"
                  id="testEmails"
                  name="testEmails"/>
 
         <div class="input-group mb-3 mt-3">
-          <n-input v-model="state.subject"
+          <n-input v-model:value="state.subject"
                    type="text"
                    id="subject"
                    placeholder="Subject"
@@ -100,6 +100,7 @@ import {defineComponent, nextTick, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {NButton, NDataTable, NInput, NSpace, NSwitch} from "naive-ui";
 import {useNewsletterStore} from "../stores/newsletterStore";
+import {useMailingListStore} from "../stores/mailinglistStore";
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -115,6 +116,7 @@ export default defineComponent({
     const availableListsUlRef = ref(null);
     const selectedListsUlRef = ref(null);
     const store = useGlobalStore();
+    const mailingListStore = useMailingListStore();
     const ownStore = useNewsletterStore();
     const newsletterRequest = new NewsletterRequest();
     const state = reactive({
@@ -213,7 +215,7 @@ export default defineComponent({
     };
 
     onMounted(() => {
-      store.getPageOfMailingList(1);
+      mailingListStore.getPageOfMailingList(1);
       ownStore.fetchNewsletters(1);
       nextTick(() => {
         applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
@@ -247,6 +249,7 @@ export default defineComponent({
 
     return {
       store,
+      mailingListStore,
       ownStore,
       state,
       sendNewsletter,

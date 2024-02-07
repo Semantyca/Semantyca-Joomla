@@ -26,6 +26,22 @@ export const useUserGroupStore = defineStore('userGroup', {
                 console.log(error);
                 //  showErrorBar('UserGroup.find', error.message);
             }
+        },
+        async saveList(state) {
+            startLoading('loadingSpinner');
+            console.log('Mailing List Name:', state.groupName);
+            const mailingListName = state.groupName;
+            const listItems = state.selectedGroups.map(group => group.id);
+            if (mailingListName === '') {
+                //   showWarnBar("Mailing list name cannot be empty");
+            } else if (listItems.length === 0) {
+                //     showWarnBar('The list is empty');
+            } else {
+                let mode = document.getElementById('mailingListMode').value;
+                const mailingListRequest = new MailingListRequest(mode);
+                mailingListRequest.process(mailingListName, listItems);
+            }
+            stopLoading('loadingSpinner');
         }
     }
 });

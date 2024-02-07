@@ -1,6 +1,5 @@
 <template>
-  <div id="loadingSpinner" class="loading-spinner"></div>
-  <div class="container mt-1">
+  <div class="container mt-3">
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">

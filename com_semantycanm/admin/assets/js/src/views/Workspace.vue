@@ -1,6 +1,5 @@
 <template>
   <div id="alertPlaceholder"></div>
-  <div id="loadingSpinner" class="loading-spinner">yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy</div>
   <n-tabs>
     <n-tab-pane name="Lists">
       <Lists></Lists>
