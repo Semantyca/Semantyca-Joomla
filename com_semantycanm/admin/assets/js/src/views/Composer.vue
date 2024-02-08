@@ -39,18 +39,26 @@
         </ul>
       </div>
     </div>
-    <div class="row mt-4">
-      <div class="col-md-12">
-        <div class="btn-group">
-          <button @click="resetFunction" class="btn" style="background-color: #152E52; color: white;">
-            {{ store.translations.RESET }}
-          </button>
-          <button @click="copyContentToClipboard" class="btn btn-info mb-2">{{
-              store.translations.COPY_CODE
-            }}
-          </button>
-          <button @click="next" class="btn btn-info mb-2">{{ store.translations.NEXT }}</button>
-        </div>
+    <div class="row mt-3">
+      <div class="col  d-flex align-items-center">
+        <n-button-group>
+          <n-button id="saveGroup"
+                    strong
+                    error
+                    seconadry
+                    @click="resetFunction">{{ store.translations.RESET }}
+          </n-button>
+          <n-button id="cancelEditing"
+                    type="primary"
+                    @click="copyContentToClipboard">{{ store.translations.COPY_CODE }}
+          </n-button>
+          <n-button id="cancelEditing"
+                    type="primary"
+                    @click="next">{{ store.translations.NEXT }}
+          </n-button>
+        </n-button-group>
+      </div>
+      <div class="row mt-3">
         <editor
             :api-key="store.tinyMceLic"
             :init="composerEditorConfig"
@@ -66,16 +74,18 @@ import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
-import {NSkeleton} from "naive-ui";
+import {NButton, NButtonGroup, NSkeleton, useMessage} from "naive-ui";
 
 export default {
   name: 'Composer',
   components: {
     Editor,
-    NSkeleton
+    NSkeleton,
+    NButton,
+    NButtonGroup
   },
 
-  setup() {
+  setup(props, {emit}) {
     const articles = ref([]);
     const isLoading = ref(true);
     const articlesListRef = ref(null);
@@ -93,6 +103,7 @@ export default {
       editorCont: '',
       selectedArticles: []
     });
+    const message = useMessage();
 
     const composerEditorConfig = {
       apiKey: store.tinymceLic,
@@ -130,18 +141,17 @@ export default {
       tempTextArea.select();
       const successful = document.execCommand('copy');
       if (successful) {
-        showAlertBar('HTML code copied to clipboard!', "info");
+        message.info('HTML code copied to clipboard!');
       } else {
-        showAlertBar('Failed to copy. Please try again.', "warning");
+        message.warning('Failed to copy. Please try again.');
       }
       document.body.removeChild(tempTextArea);
     };
 
     const next = () => {
       newsletterStore.messageContent = getWrappedContent(state.editorCont);
-      activeTabName.value = 'Newsletter';
+      emit('change-tab', 'Newsletter');
     };
-
 
     const fetchArticles = async (searchTerm) => {
       startLoading('loadingSpinner');

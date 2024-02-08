@@ -1,7 +1,7 @@
 import {createApp} from 'vue';
 import {createPinia} from 'pinia';
 import Workspace from "./views/Workspace.vue";
-import {NConfigProvider, NGlobalStyle} from "naive-ui";
+import {NConfigProvider, NGlobalStyle, NMessageProvider} from "naive-ui";
 
 const smtcaTheme = {
     common: {
@@ -21,13 +21,16 @@ const app = createApp({
         NGlobalStyle,
         NConfigProvider,
         Workspace,
+        NMessageProvider
     },
     template: `
       <div>
-        <n-config-provider :theme-overrides="smtcaTheme">
-          <!-- <n-global-style />-->
-          <Workspace/>
-        </n-config-provider>
+        <n-message-provider>
+          <n-config-provider :theme-overrides="smtcaTheme">
+            <!-- <n-global-style />-->
+            <Workspace/>
+          </n-config-provider>
+        </n-message-provider>
       </div>
     `,
     setup() {

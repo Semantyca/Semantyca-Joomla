@@ -1,10 +1,10 @@
 <template>
-  <div class="container mt-3">
-    <n-grid :cols="24">
-      <n-grid-item :span="11">
-        <h3>{{ store.translations.AVAILABLE_USER_GROUPS }}</h3>
-        <div class="dragdrop-list">
-          <draggable v-model="state.availableGroups" class="list-group" group="shared" itemKey="id">
+  <n-form inline ref="formRef" :rules="rules" :model="formValue">
+    <div class="container mt-3">
+      <div class="row">
+        <div class="col">
+          <h3>{{ store.translations.AVAILABLE_USER_GROUPS }}</h3>
+          <draggable v-model="formValue.availableGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
                 {{ element.title }}
@@ -12,73 +12,77 @@
             </template>
           </draggable>
         </div>
-      </n-grid-item>
-      <n-grid-item :span="2">
-      </n-grid-item>
-      <n-grid-item :span="11">
-        <h3>{{ store.translations.SELECTED_USER_GROUPS }}</h3>
-        <div class="dragdrop-list">
-          <draggable v-model="state.selectedGroups" class="list-group" group="shared" itemKey="id">
+        <div class="col">
+          <h3>{{ store.translations.SELECTED_USER_GROUPS }}</h3>
+          <!--          <n-form-item-gi path="selectedGroups" :show-feedback=false>-->
+          <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
                 {{ element.title }}
               </div>
             </template>
           </draggable>
+          <!--          </n-form-item-gi>-->
         </div>
-      </n-grid-item>
-    </n-grid>
-    <div class="mt-3">
-      <n-form
-          inline
-          ref="formRef"
-          :rules="rules"
-          :model="formValue">
-        <n-grid :cols="24" x-gap="12">
-          <n-grid-item :span="14">
-            <n-form-item label="Mailing List Name" path="groupName">
-              <n-input v-model:value="state.groupName"
-                       id="mailingListName"
-                       type="text"
-                       placeholder="Mailing List Name"/>
-            </n-form-item>
-          </n-grid-item>
-          <n-grid-item :span="10">
-            <n-space>
-              <n-button id="saveGroup"
-                        type="primary"
-                        @click="validateAndSave">{{ store.translations.SAVE }}
-              </n-button>
-              <n-button id="cancelEditing"
-                        type="success"
-                        @click="cancelList">{{ store.translations.CANCEL }}
-              </n-button>
-            </n-space>
-          </n-grid-item>
-        </n-grid>
-      </n-form>
-    </div>
-    <n-grid :cols="24" class="mt-4">
-      <n-grid-item :span="24">
-        <div class="header-container d-flex justify-content-between align-items-center">
+      </div>
+      <div class="row mt-3">
+        <div class="col-3 d-flex align-items-center">
+          <n-form-item label="Mailing List Name" path="groupName" class="w-100">
+            <n-input v-model:value="formValue.groupName"
+                     style="width: 100%"
+                     id="mailingListName"
+                     type="text"
+                     placeholder="Mailing List Name"/>
+          </n-form-item>
+        </div>
+        <div class="col  d-flex align-items-center">
+          <n-button-group>
+            <n-button id="saveGroup"
+                      type="primary"
+                      @click="validateAndSave">{{ store.translations.SAVE }}
+            </n-button>
+            <n-button id="cancelEditing"
+                      type="success"
+                      @click="cancelList">{{ store.translations.CANCEL }}
+            </n-button>
+          </n-button-group>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col">
           <h3>{{ store.translations.MAILING_LISTS }}</h3>
         </div>
-      </n-grid-item>
-      <n-grid-item :span="24">
-        <n-data-table
-            :columns="columns"
-            :data="mailingListStore.mailingListDocsView.docs"
-            :pagination="pagination"
-        />
-        <input type="hidden" id="mailingListMode" value=""/>
-      </n-grid-item>
-    </n-grid>
-  </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <n-data-table
+              :columns="columns"
+              :data="mailingListStore.mailingListDocsView.docs"
+              :pagination="pagination"
+          />
+          <input type="hidden" id="mailingListMode" value=""/>
+        </div>
+      </div>
+    </div>
+  </n-form>
+
 </template>
 
 <script>
 import {onMounted, reactive, ref} from 'vue';
-import {NButton, NDataTable, NForm, NFormItem, NGrid, NGridItem, NInput, NSpace} from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NDataTable,
+  NForm,
+  NFormItem,
+  NFormItemGi,
+  NGrid,
+  NGridItem,
+  NInput,
+  NSpace,
+  useMessage
+} from "naive-ui";
 import {useUserGroupStore} from "../stores/userGroupStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
 import {useGlobalStore} from "../stores/globalStore";
@@ -90,11 +94,13 @@ export default {
     NGrid,
     NGridItem,
     NButton,
+    NButtonGroup,
     NSpace,
     NInput,
     NDataTable,
     NForm,
     NFormItem,
+    NFormItemGi,
     draggable
   },
   setup() {
@@ -102,57 +108,66 @@ export default {
     const store = useGlobalStore();
     const userGroupStore = useUserGroupStore();
     const mailingListStore = useMailingListStore();
+    const message = useMessage();
 
     const state = reactive({
-      mailingListMode: '',
-      groupName: '',
-      availableGroups: [],
-      selectedGroups: []
+      mailingListMode: ''
     });
 
     const validateAndSave = (e) => {
       e.preventDefault();
-      console.log(formRef.value);
-      //    nextTick(() => {
-      if (formRef.value) {
-        formRef.value.validate((errors) => {
-          if (!errors) {
-            userGroupStore.saveList(state);
-          } else {
-            console.log('Validation Failed', errors);
-            // Handle validation failure (show messages, etc.)
-          }
-        });
+
+      const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
+      if (!selectedGroupsValidation) {
+        message.error(rules.selectedGroups.message);
+        return;
       }
-      //    });
+
+      formRef.value.validate((errors) => {
+        if (!errors) {
+          userGroupStore.saveList(formRef.value.model, '').then(() => {
+            state.mailingListMode = '';
+            formValue.value.groupName = '';
+            formValue.value.selectedGroups = [];
+          }).catch((error) => {
+            console.error("Error saving the list:", error);
+            message.error("Failed to save the list.");
+          });
+        } else {
+          Object.keys(errors).forEach(fieldName => {
+            const fieldError = errors[fieldName];
+            if (fieldError && fieldError.length > 0) {
+              message.error(fieldError[0].message);
+            }
+          });
+        }
+      });
     };
 
     const cancelList = () => {
-      state.selectedGroups = [];
-      state.availableGroups = userGroupStore.documentsPage.docs;
+      formValue.value.groupName = '';
+      formValue.value.selectedGroups = [];
+      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
       state.mailingListMode = '';
-      state.groupName = '';
     };
 
-    onMounted(async () => {
-      console.log(formRef.value);
-      await userGroupStore.getList();
-      await mailingListStore.refreshMailingList(1);
-      state.availableGroups = userGroupStore.documentsPage.docs;
-    });
-
     const rules = {
-      groupName: [
-        {
-          required: true,
-          message: 'Mailing list name cannot be empty',
-          trigger: ['input']
-        }
-      ]
+      groupName: {
+        required: true,
+        message: 'Mailing list name cannot be empty'
+      },
+      selectedGroups: {
+        validator(rule, value) {
+          return value && value.length > 0;
+        },
+        message: 'At least one group should be selected'
+      }
     };
 
     const formValue = ref({
-      groupName: undefined
+      groupName: '',
+      availableGroups: [],
+      selectedGroups: []
     });
 
     const createColumns = () => {
@@ -180,6 +195,12 @@ export default {
       }
     });
 
+    onMounted(async () => {
+      await userGroupStore.getList();
+      await mailingListStore.refreshMailingList(1);
+      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
+    });
+
     return {
       state,
       store,
@@ -190,7 +211,9 @@ export default {
       rules,
       columns: createColumns(),
       pagination: paginationReactive,
-      formValue
+      formValue,
+      formRef,
+      message
     };
   }
 };

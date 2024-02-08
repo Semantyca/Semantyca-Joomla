@@ -7,9 +7,7 @@ class MailingListRequest {
         this.httpMethod = 'POST';
     }
 
-    process(mailingListName, listItems) {
-        // showSpinner('listSpinner');
-
+    process(mailingListName, listItems, onSuccess) {
         fetch(MailingListRequest.BASE_URL + this.operation, {
             method: this.httpMethod,
             headers: {
@@ -31,24 +29,13 @@ class MailingListRequest {
                 if (!data.success) {
                     throw new Error(data.message || 'Unknown error occurred');
                 }
-                //showInfoBar("The mailing list updated successfully");
+                if (typeof onSuccess === 'function') {
+                    onSuccess(data);
+                }
             })
             .catch(error => {
                 console.log('MailingList.' + this.operation + ':', error);
                 showErrorBar('MailingList.' + this.operation, error.message);
-            })
-            .finally(() => {
-                //  refreshMailingList(1);
-                if (this.id === '') {
-                    // getPageOfMailingList();
-                } else {
-                    this.id = '';
-                    document.getElementById('mailingListMode').value = '';
-                }
-                document.getElementById('mailingListName').value = '';
-                //   hideSpinner('listSpinner');
             });
     }
-
-
 }
