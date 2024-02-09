@@ -14,7 +14,6 @@
         </div>
         <div class="col">
           <h3>{{ store.translations.SELECTED_USER_GROUPS }}</h3>
-          <!--          <n-form-item-gi path="selectedGroups" :show-feedback=false>-->
           <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">

@@ -2,7 +2,6 @@ import {defineStore} from 'pinia';
 
 export const useNewsletterStore = defineStore('newsletter', {
     state: () => ({
-        messageContent: '',
         newsLetterDocsView: {
             total: 0,
             current: 1,

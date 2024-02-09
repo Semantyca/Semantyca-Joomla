@@ -29,7 +29,6 @@ class NewsletterRequest {
 
             return await response.json();
         } catch (error) {
-            // console.error(`${endpoint}:`, error);
             showErrorBar(`${endpoint}`, error.message);
             throw error;
         }
