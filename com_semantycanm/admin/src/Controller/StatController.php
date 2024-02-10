@@ -36,4 +36,28 @@ class StatController extends BaseController
 		}
 	}
 
+	public function findAllByNewsLetter()
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
+
+		try
+		{
+			$currentPage  = $app->input->getInt('newsletterid', 0);
+			$itemsPerPage = $app->input->getInt('limit', 10);
+
+			$model = $this->getModel('Stat');
+			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
+		}
+		catch (\Exception $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			$app->close();
+		}
+	}
+
 }

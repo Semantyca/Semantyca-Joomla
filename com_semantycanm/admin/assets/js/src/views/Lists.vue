@@ -3,7 +3,7 @@
     <div class="container mt-3">
       <div class="row">
         <div class="col">
-          <h3>{{ store.translations.AVAILABLE_USER_GROUPS }}</h3>
+          <h3>{{ globalStore.translations.AVAILABLE_USER_GROUPS }}</h3>
           <draggable v-model="formValue.availableGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -13,7 +13,7 @@
           </draggable>
         </div>
         <div class="col">
-          <h3>{{ store.translations.SELECTED_USER_GROUPS }}</h3>
+          <h3>{{ globalStore.translations.SELECTED_USER_GROUPS }}</h3>
           <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -21,13 +21,13 @@
               </div>
             </template>
           </draggable>
-          <!--          </n-form-item-gi>-->
         </div>
       </div>
       <div class="row mt-3">
         <div class="col-3 d-flex align-items-center">
           <n-form-item label="Mailing List Name" path="groupName" class="w-100">
             <n-input v-model:value="formValue.groupName"
+                     size="large"
                      style="width: 100%"
                      id="mailingListName"
                      type="text"
@@ -38,26 +38,33 @@
           <n-button-group>
             <n-button id="saveGroup"
                       type="primary"
-                      @click="validateAndSave">{{ store.translations.SAVE }}
+                      size="large"
+                      @click="validateAndSave">{{ globalStore.translations.SAVE }}
             </n-button>
             <n-button id="cancelEditing"
                       type="success"
-                      @click="cancelList">{{ store.translations.CANCEL }}
+                      size="large"
+                      @click="cancelList">{{ globalStore.translations.CANCEL }}
             </n-button>
           </n-button-group>
         </div>
       </div>
       <div class="row mt-3">
         <div class="col">
-          <h3>{{ store.translations.MAILING_LISTS }}</h3>
+          <h3>{{ globalStore.translations.MAILING_LISTS }}</h3>
         </div>
       </div>
       <div class="row">
         <div class="col">
           <n-data-table
+              remote
+              size="large"
               :columns="columns"
-              :data="mailingListStore.mailingListDocsView.docs"
+              :data="mailingListStore.docsListPage.docs"
+              :bordered="false"
               :pagination="pagination"
+              @update:page="handlePageChange"
+              @update:page-size="handlePageSizeChange"
           />
           <input type="hidden" id="mailingListMode" value=""/>
         </div>
@@ -68,7 +75,7 @@
 </template>
 
 <script>
-import {onMounted, reactive, ref} from 'vue';
+import {h, onMounted, reactive, ref} from 'vue';
 import {
   NButton,
   NButtonGroup,
@@ -104,13 +111,35 @@ export default {
   },
   setup() {
     const formRef = ref(null);
-    const store = useGlobalStore();
+    const globalStore = useGlobalStore();
     const userGroupStore = useUserGroupStore();
     const mailingListStore = useMailingListStore();
     const message = useMessage();
 
     const state = reactive({
       mailingListMode: ''
+    });
+
+    const pagination = reactive({
+      page: 1,
+      pageSize: 5,
+      pageCount: 1,
+      itemCount: 0,
+      size: 'large'
+    });
+
+    function handlePageChange(page) {
+      mailingListStore.fetchMailingList(page, pagination.pageSize, pagination);
+    }
+
+    function handlePageSizeChange(pageSize) {
+      mailingListStore.fetchMailingList(pagination.page, pageSize, pagination);
+    }
+
+    onMounted(async () => {
+      await userGroupStore.getList();
+      await mailingListStore.fetchMailingList(1, 5, pagination);
+      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
     });
 
     const validateAndSave = (e) => {
@@ -178,41 +207,51 @@ export default {
         {
           title: 'Created',
           key: 'reg_date'
+        },
+        {
+          title: "Action",
+          key: "actions",
+          render(row) {
+            return [
+              h(NButton, {
+                onClick: () => { /* handle edit */
+                },
+                style: 'margin-right: 8px;',
+                strong: true,
+                secondary: true,
+                type: "primary",
+                size: "small",
+              }, {default: () => 'Edit'}),
+              h(NButton, {
+                onClick: () => { /* handle delete */
+                },
+                strong: true,
+                secondary: true,
+                type: "error",
+                size: "small",
+              }, {default: () => 'Delete'})
+            ];
+          }
         }
-      ]
-    }
+      ];
+    };
 
-    const paginationReactive = reactive({
-      page: 1,
-      pageSize: 5,
-      onChange: (page) => {
-        paginationReactive.page = page;
-      },
-      onUpdatePageSize: (pageSize) => {
-        paginationReactive.pageSize = pageSize;
-        paginationReactive.page = 1;
-      }
-    });
-
-    onMounted(async () => {
-      await userGroupStore.getList();
-      await mailingListStore.refreshMailingList(1);
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
-    });
 
     return {
       state,
-      store,
+      globalStore,
       userGroupStore,
       mailingListStore,
       cancelList,
       validateAndSave,
       rules,
       columns: createColumns(),
-      pagination: paginationReactive,
+      pagination,
       formValue,
       formRef,
-      message
+      message,
+      handlePageSizeChange,
+      handlePageChange
     };
   }
 };

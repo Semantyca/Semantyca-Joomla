@@ -13,7 +13,7 @@ global $smtca_assets;
 $smtca_assets = "administrator/components/com_semantycanm/assets/";
 $rootUrl      = JUri::root();
 $host         = JUri::getInstance()->toString(['host']);
-$doc->addScript($rootUrl . $smtca_assets . "js/Pagination.js");
+//$doc->addScript($rootUrl . $smtca_assets . "js/Pagination.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/MailingListRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/NewsletterRequest.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
@@ -21,7 +21,7 @@ $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
+//$doc->addScript($rootUrl . $smtca_assets . "js/handlebars.min.js");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
 

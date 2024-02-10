@@ -42,17 +42,17 @@
     <div class="row mt-3">
       <div class="col  d-flex align-items-center">
         <n-button-group>
-          <n-button id="saveGroup"
+          <n-button size="large"
                     strong
                     error
                     seconadry
                     @click="resetFunction">{{ store.translations.RESET }}
           </n-button>
-          <n-button id="cancelEditing"
+          <n-button size="large"
                     type="primary"
                     @click="copyContentToClipboard">{{ store.translations.COPY_CODE }}
           </n-button>
-          <n-button id="cancelEditing"
+          <n-button size="large"
                     type="primary"
                     @click="next">{{ store.translations.NEXT }}
           </n-button>
@@ -75,6 +75,9 @@ import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
 import {NButton, NButtonGroup, NSkeleton, useMessage} from "naive-ui";
+import {useTemplateStore} from "../stores/templateStore";
+import Handlebars from 'handlebars';
+
 
 export default {
   name: 'Composer',
@@ -98,6 +101,7 @@ export default {
     }).toUpperCase();
     const currentDateFormatted = `${currentMonth} ${currentYear}`;
     const store = useGlobalStore();
+    const templateStore = useTemplateStore();
     const newsletterStore = useNewsletterStore();
     const state = reactive({
       editorCont: '',
@@ -208,7 +212,7 @@ export default {
     };
 
     const getWrappedContent = (content) => {
-      let template = Handlebars.compile(store.template.wrapper);
+      let template = Handlebars.compile(templateStore.doc.wrapper);
       let data = {
         content: content
       };
@@ -241,14 +245,14 @@ export default {
         return value1 < value2;
       });
 
-      let template = Handlebars.compile(store.template.html);
+      let template = Handlebars.compile(templateStore.doc.html);
       let data = {
-        bannerUrl: store.template.banner,
+        bannerUrl: templateStore.doc.banner,
         currentDateFormatted: currentDateFormatted,
         currentYear: currentYear,
         articles: articles,
-        maxArticles: store.template.maxArticles,
-        maxArticlesShort: store.template.maxArticlesShort
+        maxArticles: templateStore.doc.maxArticles,
+        maxArticlesShort: templateStore.doc.maxArticlesShort
       };
       return template(data);
     }
@@ -286,7 +290,7 @@ export default {
 
     onMounted(async () => {
       await fetchArticles('');
-      await store.getTemplate('classic');
+      await templateStore.getTemplate('classic');
       await nextTick(() => {
         applyAndDropSet([articlesListRef.value, selectedArticlesListRef.value]);
       });

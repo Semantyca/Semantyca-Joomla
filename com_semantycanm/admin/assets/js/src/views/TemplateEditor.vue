@@ -1,18 +1,32 @@
 <template>
   <div class="container mt-3">
     <div class="row">
-      <div class="col-md-12">
-        <div class="header-container">
-          <h3>{{ store.translations.TEMPLATE }}</h3>
-        </div>
+      <div class="col">
+        <h3>{{ globalStore.translations.TEMPLATE }}</h3>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
         <editor
-            :api-key="store.tinyMceLic"
+            :api-key="globalStore.tinyMceLic"
             :init="templateEditorConfig"
-            v-model="store.template.html"></editor>
-
-        <div class="col-mt-3" style="margin-top: 10px;">
-          <button class="btn btn-success" style="margin-right: 10px;" @click="saveTemplate">Save</button>
-        </div>
+            v-model="store.doc.html"></editor>
+      </div>
+    </div>
+    <div class="row mt-3">
+      <div class="col  d-flex align-items-center">
+        <n-button-group>
+          <n-button type="primary"
+                    size="large"
+                    @click="saveTemplate">{{ globalStore.translations.SAVE }}
+          </n-button>
+          <n-button size="large"
+                    strong
+                    error
+                    seconadry
+                    @click="cancelTemplate">{{ globalStore.translations.CANCEL }}
+          </n-button>
+        </n-button-group>
       </div>
     </div>
   </div>
@@ -22,14 +36,17 @@
 import {onMounted} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
+import {useTemplateStore} from "../stores/templateStore";
+import {NButton, NButtonGroup} from "naive-ui";
 
 const TEMPLATE_SPINNER = 'templateSpinner';
 export default {
   name: 'TemplateEditor',
-  components: {Editor},
+  components: {Editor, NButton, NButtonGroup},
 
   setup() {
-    const store = useGlobalStore();
+    const globalStore = useGlobalStore();
+    const store = useTemplateStore();
 
     const templateEditorConfig = {
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
@@ -69,14 +86,20 @@ export default {
       }
     };
 
+    const cancelTemplate = async () => {
+
+    }
+
     onMounted(async () => {
       await store.getTemplate('classic');
     });
 
     return {
+      globalStore,
       store,
       templateEditorConfig,
-      saveTemplate
+      saveTemplate,
+      cancelTemplate
     };
   }
 }

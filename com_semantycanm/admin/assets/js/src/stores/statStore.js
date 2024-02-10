@@ -1,20 +1,16 @@
 import {defineStore} from 'pinia';
 
-export const useNewsletterStore = defineStore('newsletter', {
+export const useStatStore = defineStore('stat', {
     state: () => ({
         docsListPage: {
             docs: []
         }
     }),
     actions: {
-        async fetchNewsLetter(page, size, pagination) {
-            //   showSpinner('newsletterSpinner');
+        async fetchStatisticsData(page, size, pagination) {
             try {
-                const response = await fetch('index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + page + '&limit=' + size);
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error, status = ${response.status}`);
-                }
+                startLoading('loadingSpinner');
+                const response = await fetch('index.php?option=com_semantycanm&task=Stat.findAll&page=' + page + '&limit=' + size);
                 const respData = await response.json();
                 if (respData.success && respData.data) {
                     this.docsListPage.docs = respData.data.docs;
@@ -24,10 +20,9 @@ export const useNewsletterStore = defineStore('newsletter', {
                     pagination.page = respData.data.current;
                 }
             } catch (error) {
-                console.error(error);
-                //  showErrorBar('NewsLetter.findAll', error.message);
+                showAlertBar("Error: " + error);
             } finally {
-                //  hideSpinner('newsletterSpinner');
+                stopLoading('loadingSpinner');
             }
         }
     }

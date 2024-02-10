@@ -4,31 +4,32 @@
 
       <div class="row">
         <div class="col">
-          <h3>{{ store.translations.AVAILABLE_LISTS }}</h3>
+          <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
           <div class="col-md-12 dragdrop-list">
             <ul ref="availableListsUlRef" class="list-group">
-              <li v-for="ml in mailingListStore.mailingList.docs" :key="ml.id" class="list-group-item"
+              <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item"
                   :id="ml.id">{{ ml.name }}
               </li>
             </ul>
           </div>
         </div>
         <div class="col">
-          <h3>{{ store.translations.SELECTED_LISTS }}</h3>
+          <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
           <div class="col-md-12 dragdrop-list">
             <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
           </div>
         </div>
       </div>
 
-      <div class="row justify-content-center mt-5">
+      <div class="row justify-content-center mt-3">
         <div class="col">
-          <h2 class="mb-4">{{ store.translations.SEND_NEWSLETTER }}</h2>
+          <h3>{{ globalStore.translations.SEND_NEWSLETTER }}</h3>
           <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
           <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-          <n-form-item :label=store.translations.TEST_ADDRESS path="testEmail">
+          <n-form-item :label=globalStore.translations.TEST_ADDRESS path="testEmail">
             <n-input v-model:value="newsLetterFormValue.testEmail"
                      placeholder="E-mail address"
+                     size="large"
                      type="text"
                      id="testEmails"
                      name="testEmails"/>
@@ -38,14 +39,18 @@
 
       <div class="row justify-content-center">
         <div class="col">
-          <n-form-item :label="store.translations.SUBJECT" path="subject">
+          <n-form-item :label="globalStore.translations.SUBJECT" path="subject">
             <n-input-group>
               <n-input v-model:value="newsLetterFormValue.subject"
+                       size="large"
                        type="text"
                        id="subject"
                        placeholder="Subject"
                        style="flex-grow: 1;"/>
-              <n-button type="tertiary" @click="setSubject">{{ store.translations.FETCH_SUBJECT }}</n-button>
+              <n-button size="large"
+                        type="tertiary"
+                        @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+              </n-button>
             </n-input-group>
           </n-form-item>
         </div>
@@ -54,7 +59,7 @@
       <div class="row">
         <div class="col">
           <div class="form-group">
-            <n-form-item :label=store.translations.MESSAGE_CONTENT path="messageContent">
+            <n-form-item :label=globalStore.translations.MESSAGE_CONTENT path="messageContent">
               <n-input
                   v-model:value="newsLetterFormValue.messageContent"
                   type="textarea"
@@ -70,20 +75,23 @@
         <div class="col-4 d-flex align-items-center">
           <n-button-group>
             <n-button type="success"
-                      @click="sendNewsletter(false)">{{ store.translations.SEND_NEWSLETTER }}
+                      size="large"
+                      @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
             </n-button>
             <n-button id="saveNewsletterBtn"
+                      size="large"
                       type="primary"
-                      @click="sendNewsletter(true)">{{ store.translations.SAVE_NEWSLETTER }}
+                      @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
             </n-button>
             <n-button id="toggleEditBtn"
+                      size="large"
                       type="primary"
-                      @click="editContent">{{ store.translations.EDIT }}
+                      @click="editContent">{{ globalStore.translations.EDIT }}
             </n-button>
 
           </n-button-group>
         </div>
-        <div class="col-4 d-flex align-items-center">
+        <div class="col-1 d-flex align-items-center">
           <n-switch :round="false" :rail-style="railStyle">
             <template #checked>
               On
@@ -93,24 +101,32 @@
             </template>
           </n-switch>
         </div>
-        <div class="col-4  d-flex align-items-center">
-
+        <div class="col d-flex align-items-center me-5">
+          <n-progress
+              type="line"
+              :percentage="100"
+              :indicator-placement="'inside'"
+          />
         </div>
       </div>
 
       <div class="row mt-4">
         <div class="col">
-          <h3>{{ store.translations.NEWSLETTERS_LIST }}</h3>
+          <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
         </div>
       </div>
 
       <div class="row">
         <div class="col">
           <n-data-table
+              remote
+              size="large"
               :columns="columns"
-              :data="ownStore.newsLetterDocsView.docs"
+              :data="newsLetterStore.docsListPage.docs"
               :bordered="false"
               :pagination="pagination"
+              @update:page="handlePageChange"
+              @update:page-size="handlePageSizeChange"
           />
         </div>
       </div>
@@ -119,7 +135,7 @@
 </template>
 
 <script>
-import {defineComponent, nextTick, onMounted, reactive, ref} from 'vue';
+import {defineComponent, h, nextTick, onMounted, reactive, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {
   NButton,
@@ -129,6 +145,7 @@ import {
   NFormItem,
   NInput,
   NInputGroup,
+  NProgress,
   NSpace,
   NSwitch,
   useMessage
@@ -147,15 +164,15 @@ export default defineComponent({
     NDataTable,
     NInputGroup,
     NFormItem,
-    NForm
+    NForm,
+    NProgress
   },
 
   setup() {
     const newsletterFormRef = ref(null);
     const availableListsUlRef = ref(null);
     const selectedListsUlRef = ref(null);
-    const currentRef = ref(1);
-    const store = useGlobalStore();
+    const globalStore = useGlobalStore();
     const mailingListStore = useMailingListStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
@@ -171,7 +188,29 @@ export default defineComponent({
       selectedGroups: []
     });
 
+    const pagination = reactive({
+      page: 1,
+      pageSize: 10,
+      pageCount: 1,
+      itemCount: 0,
+      size: 'large'
+    });
 
+    function handlePageChange(page) {
+      newsLetterStore.fetchNewsLetter(page, pagination.pageSize, pagination);
+    }
+
+    function handlePageSizeChange(pageSize) {
+      newsLetterStore.fetchNewsLetter(pagination.page, pageSize, pagination);
+    }
+
+    onMounted(() => {
+      mailingListStore.fetchMailingList(1, 100, undefined);
+      newsLetterStore.fetchNewsLetter(1, 10, pagination);
+      nextTick(() => {
+        applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
+      });
+    });
     const setSubject = () => {
       fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random')
           .then(response => response.json())
@@ -183,6 +222,7 @@ export default defineComponent({
             showAlertBar("Error: " + error);
           });
     }
+
     const sendNewsletter = async (onlySave) => {
       newsletterFormRef.value.validate((errors) => {
         if (!errors) {
@@ -248,14 +288,6 @@ export default defineComponent({
       });
     };
 
-    onMounted(() => {
-      mailingListStore.getPageOfMailingList(1);
-      newsLetterStore.fetchNewsletters(1);
-      nextTick(() => {
-        applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
-      });
-    });
-
     const newsLetterRules = {
       testEmail: {
         validator(rule, value) {
@@ -292,26 +324,39 @@ export default defineComponent({
         {
           title: 'Created',
           key: 'reg_date'
+        },
+        {
+          title: "Action",
+          key: "actions",
+          render(row) {
+            return [
+              h(NButton, {
+                onClick: () => { /* handle edit */
+                },
+                style: 'margin-right: 8px;',
+                strong: true,
+                secondary: true,
+                type: "primary",
+                size: "small",
+              }, {default: () => 'Edit'}),
+              h(NButton, {
+                onClick: () => { /* handle delete */
+                },
+                strong: true,
+                secondary: true,
+                type: "error",
+                size: "small",
+              }, {default: () => 'Delete'})
+            ];
+          }
         }
       ]
     }
 
-    const pagination = reactive({
-      page: 1,
-      pageSize: 10,
-      onChange: (page) => {
-        paginationReactive.page = page;
-      },
-      onUpdatePageSize: (pageSize) => {
-        paginationReactive.pageSize = pageSize;
-        paginationReactive.page = 1;
-      }
-    });
-
     return {
-      store,
+      globalStore,
       mailingListStore,
-      ownStore: newsLetterStore,
+      newsLetterStore,
       state,
       newsletterFormRef,
       newsLetterRules,
@@ -321,10 +366,8 @@ export default defineComponent({
       setSubject,
       availableListsUlRef,
       selectedListsUlRef,
-      NSwitch,
       columns: createColumns(),
       pagination,
-      current: currentRef,
       railStyle: ({
                     focused,
                     checked
@@ -338,7 +381,9 @@ export default defineComponent({
         }
         style.marginRight = "20px";
         return style;
-      }
+      },
+      handlePageSizeChange,
+      handlePageChange
     };
   },
 });

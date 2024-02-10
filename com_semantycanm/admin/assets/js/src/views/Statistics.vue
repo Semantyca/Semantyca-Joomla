@@ -4,14 +4,18 @@
     <div class="row">
       <div class="col-md-12">
         <div class="header-container d-flex justify-content-between align-items-center">
-          <h3>{{ store.translations.STATISTICS }}</h3>
+          <h3>{{ globalStore.translations.STATISTICS }}</h3>
         </div>
       </div>
       <n-data-table
+          remote
+          size="large"
           :columns="columns"
-          :data="store.statisticView.docs"
+          :data="statStore.docsListPage.docs"
           :bordered="false"
           :pagination="pagination"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
       />
     </div>
   </div>
@@ -20,8 +24,9 @@
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {useGlobalStore} from '../stores/globalStore';
-import {NDataTable, NTag} from 'naive-ui';
+import {NDataTable, NPagination, NTag} from 'naive-ui';
+import {useStatStore} from "../stores/statStore";
+import {useGlobalStore} from "../stores/globalStore";
 
 export default defineComponent({
   name: 'Statistics',
@@ -30,18 +35,34 @@ export default defineComponent({
   },
   components: {
     NDataTable,
+    NPagination
   },
 
   setup() {
     const statsTabRef = ref(null);
-    const store = useGlobalStore();
+    const globalStore = useGlobalStore();
+    const statStore = useStatStore();
 
-    const refreshStats = async (currentPage) => {
-      await store.fetchStatisticsData(currentPage);
-    };
+    const pagination = reactive({
+      page: 1,
+      pageSize: 10,
+      pageCount: 1,
+      itemCount: 0,
+      size: 'large',
+      showSizePicker: true,
+      pageSizes: [10, 20, 50]
+    });
+
+    function handlePageChange(page) {
+      statStore.fetchStatisticsData(page, pagination.pageSize, pagination);
+    }
+
+    function handlePageSizeChange(pageSize) {
+      statStore.fetchStatisticsData(pagination.page, pageSize, pagination);
+    }
 
     onMounted(() => {
-      store.fetchStatisticsData(1);
+      statStore.fetchStatisticsData(1, 10, pagination);
     });
 
     const createColumns = () => {
@@ -87,7 +108,10 @@ export default defineComponent({
         },
         {
           title: 'Recipients',
-          key: 'recipients'
+          key: 'recipients',
+          render(row) {
+            return row.recipients.length;
+          }
         },
         {
           title: 'Opens',
@@ -104,33 +128,17 @@ export default defineComponent({
       ]
     }
 
-    const paginationReactive = reactive({
-      page: 1,
-      pageSize: 10,
-      onChange: (page) => {
-        paginationReactive.page = page;
-      },
-      onUpdatePageSize: (pageSize) => {
-        paginationReactive.pageSize = pageSize;
-        paginationReactive.page = 1;
-      }
-    });
+
 
     return {
+      globalStore,
       statsTabRef,
-      refreshStats,
       columns: createColumns(),
-      data: [],
-      pagination: paginationReactive,
-      store
+      pagination,
+      statStore,
+      handlePageSizeChange,
+      handlePageChange
     };
   },
 });
 </script>
-
-<style>
-.n-data-table {
-  font-size: 16px;
-}
-
-</style>

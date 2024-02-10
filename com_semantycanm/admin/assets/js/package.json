@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@tinymce/tinymce-vue": "^5.1.1",
+    "handlebars": "^4.7.8",
     "lodash": "^4.17.21",
     "monaco-editor-vue3": "^0.1.10",
     "monaco-editor-webpack-plugin": "^7.1.0",
