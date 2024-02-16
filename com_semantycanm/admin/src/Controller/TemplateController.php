@@ -4,13 +4,13 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Throwable;
 
 class TemplateController extends BaseController
 {
@@ -27,7 +27,7 @@ class TemplateController extends BaseController
 			http_response_code(404);
 			echo new JsonResponse($e->getErrors(), 'applicationError', true);
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			echo new JsonResponse($e->getMessage(), 'error', true);
@@ -63,7 +63,7 @@ class TemplateController extends BaseController
 			http_response_code(400);
 			echo new JsonResponse($e->getMessage(), 'validationError', true);
 		}
-		catch (Exception $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
@@ -73,6 +73,4 @@ class TemplateController extends BaseController
 			$app->close();
 		}
 	}
-
-
 }

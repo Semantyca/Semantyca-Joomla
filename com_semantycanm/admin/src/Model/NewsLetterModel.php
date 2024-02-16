@@ -15,7 +15,12 @@ class NewsLetterModel extends BaseDatabaseModel
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
-			->select($db->quoteName(array('id', 'subject', 'reg_date', 'message_content')))
+			->select([
+				$db->quoteName('id', 'key'),
+				$db->quoteName('reg_date'),
+				$db->quoteName('subject'),
+				$db->quoteName('message_content')
+			])
 			->from($db->quoteName('#__semantyca_nm_newsletters'))
 			->order('reg_date desc')
 			->setLimit($itemsPerPage, $offset);
@@ -54,6 +59,42 @@ class NewsLetterModel extends BaseDatabaseModel
 		return $db->loadObjectList();
 
 	}
+
+	public function findRelevantEvent($id, $eventTypes)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$newslettersTable = $db->quoteName('#__semantyca_nm_newsletters');
+		$statsTable       = $db->quoteName('#__semantyca_nm_stats');
+		$eventsTable      = $db->quoteName('#__semantyca_nm_subscriber_events');
+
+		if (!is_array($eventTypes))
+		{
+			$eventTypes = [$eventTypes];
+		}
+
+		$quotedEventTypes = array_map(function ($type) use ($db) {
+			return $db->quote($type);
+		}, $eventTypes);
+		$eventTypesList   = implode(',', $quotedEventTypes);
+
+		$query->select([
+			$eventsTable . '.' . $db->quoteName('subscriber_email'),
+			$eventsTable . '.' . $db->quoteName('event_type'),
+			$eventsTable . '.' . $db->quoteName('fulfilled')
+		])
+			->from($newslettersTable)
+			->innerJoin($statsTable . ' ON ' . $statsTable . '.newsletter_id = ' . $newslettersTable . '.id')
+			->innerJoin($eventsTable . ' ON ' . $eventsTable . '.stats_id = ' . $statsTable . '.id')
+			->where($newslettersTable . '.id = ' . $db->quote($id))
+			->where($eventsTable . '.event_type IN (' . $eventTypesList . ')');
+
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
+	}
+
 
 	public function findByContent($subject, $messageContent): ?object
 	{

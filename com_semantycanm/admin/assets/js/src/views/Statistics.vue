@@ -12,6 +12,7 @@
           size="large"
           :columns="columns"
           :data="statStore.docsListPage.docs"
+          allow-checking-not-loaded
           :bordered="false"
           :pagination="pagination"
           @update:page="handlePageChange"
@@ -68,9 +69,21 @@ export default defineComponent({
     const createColumns = () => {
       return [
         {
+          title: 'Created',
+          key: 'reg_date'
+        },
+        {
           title: 'News letter',
           key: 'newsletter_id'
         },
+        /* {
+           type: 'expand',
+           renderExpand: (rowData) => {
+             console.log('row', rowData.key);
+             statStore.fetchEvents(rowData.key);
+             return statStore.eventListPage.docs[rowData.key]
+           }
+         },*/
         {
           title: 'Status',
           key: 'status',
@@ -80,19 +93,15 @@ export default defineComponent({
             switch (row.status) {
               case -1:
                 type = 'error';
-                title = 'Error';
+                title = 'Not fulfilled';
                 break;
               case 1:
                 type = 'warning';
-                title = 'Sending';
+                title = 'Processing';
                 break;
               case 2:
                 type = 'info';
-                title = 'Sent';
-                break;
-              case 3:
-                type = 'success';
-                title = 'Read';
+                title = 'Done';
                 break;
               default:
                 type = 'default';
@@ -103,27 +112,11 @@ export default defineComponent({
           }
         },
         {
-          title: 'Send time',
-          key: 'sent_time'
-        },
-        {
-          title: 'Recipients',
-          key: 'recipients',
+          title: 'Errors',
+          key: 'errors',
           render(row) {
-            return row.recipients.length;
+            return row.errors;
           }
-        },
-        {
-          title: 'Opens',
-          key: 'opens'
-        },
-        {
-          title: 'Clicks',
-          key: 'clicks'
-        },
-        {
-          title: 'Unsubs.',
-          key: 'unsubs'
         }
       ]
     }

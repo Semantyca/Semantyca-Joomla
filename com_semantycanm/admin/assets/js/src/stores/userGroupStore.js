@@ -48,7 +48,7 @@ export const useUserGroupStore = defineStore('userGroup', {
                     mailingListName,
                     listItems,
                     async (data) => {
-                        await useMailingListStore().fetchMailingList(1);
+                        await useMailingListStore().fetchMailingList(1, 5);
                     }
                 );
             } catch (error) {

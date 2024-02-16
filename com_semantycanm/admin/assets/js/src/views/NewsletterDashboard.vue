@@ -61,7 +61,7 @@
           <div class="form-group">
             <n-form-item :label=globalStore.translations.MESSAGE_CONTENT path="messageContent">
               <n-input
-                  v-model:value="newsLetterFormValue.messageContent"
+                  v-model:value="newsLetterFormValue.localMessageContent"
                   type="textarea"
                   rows="10"
                   placeholder=""
@@ -72,7 +72,7 @@
       </div>
 
       <div class="row">
-        <div class="col-4 d-flex align-items-center">
+        <div class="col-5 d-flex align-items-center">
           <n-button-group>
             <n-button type="success"
                       size="large"
@@ -83,31 +83,37 @@
                       type="primary"
                       @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
             </n-button>
-            <n-button id="toggleEditBtn"
-                      size="large"
+            <n-button size="large"
                       type="primary"
-                      @click="editContent">{{ globalStore.translations.EDIT }}
+                      @click="checkStatus(true)">Check status
             </n-button>
+            <!--            <n-button id="toggleEditBtn"
+                                  size="large"
+                                  type="primary"
+                                  @click="editContent">{{ globalStore.translations.EDIT }}
+                        </n-button>-->
 
           </n-button-group>
         </div>
-        <div class="col-1 d-flex align-items-center">
+        <div class="col-1 d-flex  flex-column align-items-start">
           <n-switch :round="false" :rail-style="railStyle">
-            <template #checked>
-              On
-            </template>
-            <template #unchecked>
-              Off
-            </template>
           </n-switch>
         </div>
-        <div class="col d-flex align-items-center me-5">
+        <div class="col d-flex flex-column align-items-center me-5">
           <n-progress
               type="line"
-              :percentage="100"
+              :percentage="newsLetterStore.progress.dispatched"
               :indicator-placement="'inside'"
-          />
+              style="margin-bottom: 10px;"
+          ></n-progress>
+          <n-progress
+              type="line"
+              status="warning"
+              :percentage="newsLetterStore.progress.read"
+              :indicator-placement="'inside'"
+          ></n-progress>
         </div>
+
       </div>
 
       <div class="row mt-4">
@@ -135,7 +141,7 @@
 </template>
 
 <script>
-import {defineComponent, h, nextTick, onMounted, reactive, ref} from 'vue';
+import {defineComponent, h, nextTick, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {
   NButton,
@@ -167,8 +173,10 @@ export default defineComponent({
     NForm,
     NProgress
   },
-
-  setup() {
+  props: {
+    messageContent: String,
+  },
+  setup(props) {
     const newsletterFormRef = ref(null);
     const availableListsUlRef = ref(null);
     const selectedListsUlRef = ref(null);
@@ -176,16 +184,18 @@ export default defineComponent({
     const mailingListStore = useMailingListStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
+
+
     const state = reactive({
-      currentNewsletterId: '',
-      isTest: false
+      isTest: false,
+      progress: 0
     });
 
     const newsLetterFormValue = ref({
       testEmail: '',
       subject: '',
-      messageContent: '',
-      selectedGroups: []
+      selectedGroups: [],
+      localMessageContent: props.messageContent
     });
 
     const pagination = reactive({
@@ -207,10 +217,30 @@ export default defineComponent({
     onMounted(() => {
       mailingListStore.fetchMailingList(1, 100, undefined);
       newsLetterStore.fetchNewsLetter(1, 10, pagination);
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+      newsLetterStore.startPolling();
       nextTick(() => {
         applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
       });
     });
+
+    onUnmounted(() => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      newsLetterStore.stopPolling();
+    });
+
+    watch(() => props.messageContent, (newVal) => {
+      newsLetterFormValue.value.localMessageContent = newVal;
+    });
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        newsLetterStore.stopPolling();
+      } else {
+        newsLetterStore.startPolling();
+      }
+    };
+
     const setSubject = () => {
       fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random')
           .then(response => response.json())
@@ -227,12 +257,12 @@ export default defineComponent({
       newsletterFormRef.value.validate((errors) => {
         if (!errors) {
           const subj = newsLetterFormValue.value.subject;
-          const msgContent = newsLetterFormValue.value.messageContent;
+          const msgContent = newsLetterFormValue.value.localMessageContent;
           const newsletterRequest = new NewsletterRequest();
           if (onlySave) {
             newsletterRequest.addNewsletter(subj, msgContent)
                 .then(() => {
-                  newsLetterStore.fetchNewsletters(1);
+                  newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
           } else {
             let listItems;
@@ -248,7 +278,8 @@ export default defineComponent({
             }
             newsletterRequest.sendEmail(subj, msgContent, listItems)
                 .then(() => {
-                  newsLetterStore.fetchNewsletters(1);
+                  newsLetterStore.startPolling();
+                  newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
           }
         } else {
@@ -304,7 +335,9 @@ export default defineComponent({
         message: 'The subject cannot be empty'
       },
       messageContent: {
-        required: true,
+        validator() {
+          return !!(newsLetterFormValue.value.localMessageContent && newsLetterFormValue.value.localMessageContent.trim() !== '');
+        },
         message: 'Message content is empty. It cannot be saved'
       },
       selectedLists: {
@@ -314,6 +347,22 @@ export default defineComponent({
         message: 'At least one group should be selected'
       }
     };
+
+    const editHandler = (id) => {
+      newsLetterStore.currentNewsletterId = id;
+      const rowData = newsLetterStore.getRowByKey(id);
+      if (rowData) {
+        newsLetterStore.startPolling();
+        newsLetterFormValue.value.subject = rowData.subject;
+        newsLetterFormValue.value.localMessageContent = decodeURIComponent(rowData.message_content);
+      }
+    };
+
+    const checkStatus = () => {
+      const rowData = newsLetterStore.startPolling();
+      console.log(rowData);
+    };
+
 
     const createColumns = () => {
       return [
@@ -331,8 +380,7 @@ export default defineComponent({
           render(row) {
             return [
               h(NButton, {
-                onClick: () => { /* handle edit */
-                },
+                onClick: () => editHandler(row.key),
                 style: 'margin-right: 8px;',
                 strong: true,
                 secondary: true,
@@ -364,6 +412,7 @@ export default defineComponent({
       sendNewsletter,
       editContent,
       setSubject,
+      checkStatus,
       availableListsUlRef,
       selectedListsUlRef,
       columns: createColumns(),

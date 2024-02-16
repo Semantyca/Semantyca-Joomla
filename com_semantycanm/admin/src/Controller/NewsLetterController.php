@@ -10,6 +10,7 @@ use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 
 class NewsLetterController extends BaseController
 {
@@ -24,7 +25,7 @@ class NewsLetterController extends BaseController
 			$model = $this->getModel('NewsLetter');
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			echo new JsonResponse($e->getMessage(), 'error', true);
@@ -36,7 +37,6 @@ class NewsLetterController extends BaseController
 
 	public function find()
 	{
-		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$id      = $this->input->getString('id');
@@ -44,7 +44,28 @@ class NewsLetterController extends BaseController
 			$results = $model->find($id);
 			echo new JsonResponse($results);
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
+		{
+			http_response_code(500);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
+		}
+	}
+
+	public function findNewsletterEvents()
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
+			$id = $this->input->getString('id');
+			/** @var NewsLetterModel $model */
+			$model   = $this->getModel('NewsLetter');
+			$results = $model->findRelevantEvent($id, [Constants::EVENT_TYPE_DISPATCHED, Constants::EVENT_TYPE_READ]);
+			echo new JsonResponse($results);
+		}
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			echo new JsonResponse($e->getMessage(), 'error', true);
@@ -86,7 +107,7 @@ class NewsLetterController extends BaseController
 			http_response_code(400);
 			echo new JsonResponse($e->getMessage(), 'Error', true);
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
@@ -121,7 +142,7 @@ class NewsLetterController extends BaseController
 			http_response_code(400);
 			echo new JsonResponse($e->getMessage(), 'Error', true);
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);

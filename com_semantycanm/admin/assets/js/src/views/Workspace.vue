@@ -5,10 +5,10 @@
       <Lists></Lists>
     </n-tab-pane>
     <n-tab-pane name="Composer" tab="Composer">
-      <Composer @change-tab="handleChangeTab"></Composer>
+      <Composer @change-tab="handleChangeTab" @content-changed="handleContentChanged"></Composer>
     </n-tab-pane>
     <n-tab-pane name="Newsletter" tab="Newsletter">
-      <NewsletterDashboard></NewsletterDashboard>
+      <NewsletterDashboard :messageContent="messageContent"></NewsletterDashboard>
     </n-tab-pane>
     <n-tab-pane name="Statistics" tab="Statistics">
       <Statistics></Statistics>
@@ -19,38 +19,43 @@
   </n-tabs>
 </template>
 
-
 <script>
-import {NCard, NTabPane, NTabs} from 'naive-ui'
+import {ref} from "vue";
 import Lists from "./Lists.vue";
 import Composer from "./Composer.vue";
 import NewsletterDashboard from "./NewsletterDashboard.vue";
 import Statistics from "./Statistics.vue";
 import TemplateEditor from "./TemplateEditor.vue";
-import {ref} from "vue";
+import {NTabPane, NTabs} from 'naive-ui';
 
 export default {
   components: {
-    NCard,
-    NTabs,
     NTabPane,
+    NTabs,
     Lists,
     Composer,
     NewsletterDashboard,
     Statistics,
-    TemplateEditor
+    TemplateEditor,
   },
   setup() {
     const activeTab = ref('Lists');
+    const messageContent = ref('');
+
     const handleChangeTab = (tabName) => {
       activeTab.value = tabName;
     };
 
+    const handleContentChanged = (content) => {
+      messageContent.value = content;
+    };
+
     return {
       activeTab,
+      messageContent,
       handleChangeTab,
+      handleContentChanged,
     };
   },
 }
-
 </script>

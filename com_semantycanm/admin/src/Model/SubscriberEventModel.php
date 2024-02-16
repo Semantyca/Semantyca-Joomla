@@ -6,7 +6,7 @@ use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 
 class SubscriberEventModel extends BaseDatabaseModel
 {
-	public function createSubscriberEvent($newsletter_id, $subscriber, $eventType): string
+	public function createSubscriberEvent($stat_id, $subscriber, $eventType): string
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -15,9 +15,8 @@ class SubscriberEventModel extends BaseDatabaseModel
 
 		$data = [
 			'subscriber_email' => $subscriber,
-			'newsletter_id' => $newsletter_id,
+			'stat_id' => $stat_id,
 			'event_type'       => $eventType,
-			'expected'         => 1,
 			'trigger_token'    => $triggerToken
 		];
 

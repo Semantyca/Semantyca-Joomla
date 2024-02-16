@@ -13,13 +13,15 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
+use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
 
 class ServiceController extends BaseController
 {
-	public function sendEmail()
+	public function sendEmailAsync()
 	{
-		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$subject     = $this->input->post->get('subject', '', 'RAW');
@@ -43,6 +45,77 @@ class ServiceController extends BaseController
 				throw new ValidationErrorException($errors);
 			}
 
+			/** @var StatModel $statModel */
+			/** @var SubscriberEventModel $eventModel */
+			$statModel      = $this->getModel('Stat');
+			$newLetterModel = $this->getModel('NewsLetter');
+			$eventModel     = $this->getModel('SubscriberEvent');
+
+			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
+
+			$messagingHelper = new Messaging($statModel, $eventModel);
+			$result          = $messagingHelper->sendEmailAsync($user_group, $newsLetterUpsertResults);
+			if ($result)
+			{
+				echo new JsonResponse($result);
+			}
+			else
+			{
+				throw new MessagingException(['An error happened while sending the message']);
+
+			}
+
+		}
+		catch (ValidationErrorException|MessagingException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getMessage(), 'Error', true);
+
+		}
+		catch (\Throwable  $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
+		}
+	}
+
+	/**
+	 *
+	 * @deprecated 2.0 Use sendEmailAsync() instead.
+	 * @since      1.0
+	 */
+	public function sendEmail()
+	{
+		try
+		{
+			$subject     = $this->input->post->get('subject', '', 'RAW');
+			$user_group  = $this->input->post->get('user_group', '', 'RAW');
+			$encodedBody = $this->input->post->get('encoded_body', '', 'RAW');
+
+			$errors = [];
+
+			if (empty($user_group))
+			{
+				$errors[] = 'User group is required';
+			}
+
+			if (empty($encodedBody))
+			{
+				$errors[] = 'Encoded body is required';
+			}
+
+			if (!empty($errors))
+			{
+				throw new ValidationErrorException($errors);
+			}
+
+			/** @var MailingListModel $mailingListModel */
+			/** @var StatModel $statModel */
+			/** @var SubscriberEventModel $eventModel */
 			$mailingListModel = $this->getModel('MailingList');
 			$statModel        = $this->getModel('Stat');
 			$newLetterModel   = $this->getModel('NewsLetter');
@@ -50,7 +123,7 @@ class ServiceController extends BaseController
 
 			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
 
-			$messagingHelper = new Messaging($mailingListModel, $statModel, $eventModel);
+			$messagingHelper = new Messaging($statModel, $eventModel, $mailingListModel);
 			$result          = $messagingHelper->sendEmail(urldecode($encodedBody), $subject, $user_group, $newsLetterUpsertResults);
 			if ($result)
 			{
@@ -69,7 +142,7 @@ class ServiceController extends BaseController
 			echo new JsonResponse($e->getMessage(), 'Error', true);
 
 		}
-		catch (\Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
@@ -98,7 +171,7 @@ class ServiceController extends BaseController
 			echo new JsonResponse($result);
 		}
 		catch
-		(\Exception $e)
+		(\Throwable $e)
 		{
 			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getMessage(), 'error', true);

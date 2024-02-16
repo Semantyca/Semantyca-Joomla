@@ -17,12 +17,47 @@ class Messaging
 	private SubscriberEventModel $eventModel;
 	private string $baseURL;
 	const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
-	public function __construct(MailingListModel $mailingListModel, StatModel $statModel, SubscriberEventModel $eventModel)
+
+	public function __construct(StatModel $statModel, SubscriberEventModel $eventModel = null, MailingListModel $mailingListModel = null)
 	{
-		$this->mailingListModel = $mailingListModel;
 		$this->statModel        = $statModel;
 		$this->eventModel = $eventModel;
-		$this->baseURL = Uri::root();
+		$this->mailingListModel = $mailingListModel;
+		$this->baseURL = $mailingListModel ? Uri::root() : null;
+	}
+
+
+	public function sendEmailAsync($user_or_user_group, $newsletter_id): bool
+	{
+		if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
+		{
+			$recipients = [$user_or_user_group];
+		}
+		else
+		{
+			$recipients = $this->mailingListModel->getEmailAddresses($user_or_user_group);
+		}
+
+		$subject      = "Your Email Subject"; // Define your subject here
+		$body         = "Your Email Body"; // Define your body here
+		$pathToScript = "/path/to/joomla/cli/sendemail.php"; // Adjust this path
+
+		foreach ($recipients as $e_mail)
+		{
+			$stat_rec_id = $this->statModel->createStatRecord($recipients, Constants::NOT_FULFILLED, $newsletter_id);
+			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_DISPATCHED);
+			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_READ);
+			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
+			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_CLICK);
+
+			// Prepare the command
+			$command = escapeshellcmd("php $pathToScript --subject=" . escapeshellarg($subject) . " --body=" . escapeshellarg($body) . " --recipient=" . escapeshellarg($e_mail));
+			// Execute the command
+			exec($command);
+		}
+
+		return $this->statModel->createStatRecord($recipients, Constants::NOT_FULFILLED, $newsletter_id);
+
 	}
 
 	/**
@@ -61,9 +96,9 @@ class Messaging
 	 * @throws UpdateRecordException
 	 * @since
 	 */
-	function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
+	private function sendMessage($mailer, $recipients, $body, $newsletter_id): bool
 	{
-		$stat_rec_id         = $this->statModel->createStatRecord($recipients, Constants::SENDING_ATTEMPT, $newsletter_id);
+		$stat_rec_id = $this->statModel->createStatRecord($recipients, Constants::NOT_FULFILLED, $newsletter_id);
 		$allSentSuccessfully = true;
 
 		foreach ($recipients as $e_mail)
@@ -92,11 +127,11 @@ class Messaging
 
 		if ($allSentSuccessfully)
 		{
-			$this->statModel->updateStatRecord($stat_rec_id, Constants::HAS_BEEN_SENT);
+			$this->statModel->updateStatRecord($stat_rec_id, Constants::DONE);
 		}
 		else
 		{
-			$this->statModel->updateStatRecord($stat_rec_id, Constants::MESSAGING_ERROR);
+			$this->statModel->updateStatRecord($stat_rec_id, Constants::NOT_FULFILLED);
 			throw new MessagingException(['Error occurred in sending emails. Not all recipients will get the message']);
 		}
 

@@ -153,9 +153,11 @@ export default {
     };
 
     const next = () => {
-      newsletterStore.messageContent = getWrappedContent(state.editorCont);
+      const messageContent = getWrappedContent(state.editorCont);
+      emit('content-changed', messageContent);
       emit('change-tab', 'Newsletter');
     };
+
 
     const fetchArticles = async (searchTerm) => {
       startLoading('loadingSpinner');

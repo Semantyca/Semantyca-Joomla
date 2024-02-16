@@ -40,7 +40,7 @@ class NewsletterRequest {
             'subject': subj,
             'user_group': listOfUserGroups
         };
-        return this.makeRequest('Service.sendEmail', data);
+        return this.makeRequest('Service.sendEmailAsync', data);
     }
 
     addNewsletter(subj, msgContent) {

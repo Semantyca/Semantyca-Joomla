@@ -17,19 +17,19 @@ class StatModel extends BaseDatabaseModel
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
-			->select($db->quoteName(array('id', 'recipients', 'newsletter_id', 'status', 'sent_time', 'opens', 'clicks', 'unsubs')))
+			->select([
+				$db->quoteName('id', 'key'),
+				$db->quoteName('reg_date'),
+				$db->quoteName('newsletter_id'),
+				$db->quoteName('status'),
+				$db->quoteName('errors')
+			])
 			->from($db->quoteName('#__semantyca_nm_stats'))
 			->order('reg_date desc')
 			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
 		$stats = $db->loadObjectList();
-
-		// TODO database capability is not leveraged ((
-		foreach ($stats as $stat)
-		{
-			$stat->recipients = json_decode($stat->recipients, true);
-		}
 
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
@@ -45,6 +45,31 @@ class StatModel extends BaseDatabaseModel
 			'maxPage' => $maxPage
 		];
 	}
+
+	public function getEvents($statsId)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->select([
+			$db->quoteName('id', 'key'),
+			$db->quoteName('reg_date'),
+			$db->quoteName('subscriber_email'),
+			$db->quoteName('event_type'),
+			$db->quoteName('fulfilled'),
+			$db->quoteName('event_date')
+		])
+			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
+			->where($db->quoteName('stats_id') . ' = ' . (int) $statsId)
+			->setLimit(100);
+
+		$db->setQuery($query);
+
+		return [
+			'docs' => $db->loadObjectList()
+		];
+	}
+
 
 	public function createStatRecord($recipients, $status, $newsletter_id)
 	{
@@ -83,7 +108,7 @@ class StatModel extends BaseDatabaseModel
 		$fields = array(
 			$db->quoteName('status') . ' = ' . $db->quote($status)
 		);
-		if ($status == Constants::HAS_BEEN_SENT)
+		if ($status == Constants::DONE)
 		{
 			$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
 		}
