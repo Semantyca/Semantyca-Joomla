@@ -96,7 +96,7 @@
           </n-button-group>
         </div>
         <div class="col-1 d-flex  flex-column align-items-start">
-          <n-switch :round="false" :rail-style="railStyle">
+          <n-switch :round="false">
           </n-switch>
         </div>
         <div class="col d-flex flex-column align-items-center me-5">
@@ -267,7 +267,7 @@ export default defineComponent({
           } else {
             let listItems;
             if (newsLetterFormValue.value.testEmail !== "") {
-              listItems = [newsLetterFormValue.value.testEmail];
+              listItems = newsLetterFormValue.value.testEmail;
             } else {
               listItems = Array.from(document.querySelectorAll('#selectedLists li'))
                   .map(li => li.textContent.trim());
@@ -281,6 +281,10 @@ export default defineComponent({
                   newsLetterStore.startPolling();
                   newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
+                .catch(error => {
+                  console.log('err', error);
+                  message.error(error.toString());
+                });
           }
         } else {
           Object.keys(errors).forEach(fieldName => {
@@ -417,20 +421,6 @@ export default defineComponent({
       selectedListsUlRef,
       columns: createColumns(),
       pagination,
-      railStyle: ({
-                    focused,
-                    checked
-                  }) => {
-        const style = {};
-        if (checked) {
-          style.background = "#06792a";
-          if (focused) {
-            style.boxShadow = "0 0 0 2px #d0305040";
-          }
-        }
-        style.marginRight = "20px";
-        return style;
-      },
       handlePageSizeChange,
       handlePageChange
     };

@@ -2779,3 +2779,7 @@
 node_modules/
 .env
 .env.production
+/vendor/doctrine/deprecations/
+/vendor/phpdocumentor/type-resolver/
+/vendor/phpstan/phpdoc-parser/
+/vendor/nikic/php-parser/

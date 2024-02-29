@@ -12,7 +12,7 @@ use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
 class Messaging
 {
-	private MailingListModel $mailingListModel;
+	private ?MailingListModel $mailingListModel;
 	private StatModel $statModel;
 	private SubscriberEventModel $eventModel;
 	private string $baseURL;
@@ -23,7 +23,7 @@ class Messaging
 		$this->statModel        = $statModel;
 		$this->eventModel = $eventModel;
 		$this->mailingListModel = $mailingListModel;
-		$this->baseURL = $mailingListModel ? Uri::root() : null;
+		$this->baseURL = Uri::root();
 	}
 
 
@@ -38,25 +38,31 @@ class Messaging
 			$recipients = $this->mailingListModel->getEmailAddresses($user_or_user_group);
 		}
 
-		$subject      = "Your Email Subject"; // Define your subject here
-		$body         = "Your Email Body"; // Define your body here
-		$pathToScript = "/path/to/joomla/cli/sendemail.php"; // Adjust this path
-
 		foreach ($recipients as $e_mail)
 		{
-			$stat_rec_id = $this->statModel->createStatRecord($recipients, Constants::NOT_FULFILLED, $newsletter_id);
+			$stat_rec_id = $this->statModel->createStatRecord(Constants::NOT_FULFILLED, $newsletter_id);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_DISPATCHED);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_READ);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_CLICK);
 
-			// Prepare the command
-			$command = escapeshellcmd("php $pathToScript --subject=" . escapeshellarg($subject) . " --body=" . escapeshellarg($body) . " --recipient=" . escapeshellarg($e_mail));
-			// Execute the command
-			exec($command);
 		}
 
-		return $this->statModel->createStatRecord($recipients, Constants::NOT_FULFILLED, $newsletter_id);
+		$newsletterId = escapeshellarg($newsletter_id);
+		$baseURL      = escapeshellarg($this->baseURL);
+		$realPath     = realpath(dirname(__FILE__));
+		$scriptPath   = $realPath . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'cli' . DIRECTORY_SEPARATOR . 'send_newsletter.php';
+		if (strtoupper(substr(PHP_OS, 0, 3)) === 'WIN')
+		{
+			pclose(popen("start /B php \"$scriptPath\" $newsletterId $baseURL > NUL 2>&1", "r"));
+		}
+		else
+		{
+			exec("php '$scriptPath' $newsletterId $baseURL > /dev/null 2>&1 &");
+		}
+
+
+		return true;
 
 	}
 

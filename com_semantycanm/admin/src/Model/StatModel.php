@@ -21,8 +21,7 @@ class StatModel extends BaseDatabaseModel
 				$db->quoteName('id', 'key'),
 				$db->quoteName('reg_date'),
 				$db->quoteName('newsletter_id'),
-				$db->quoteName('status'),
-				$db->quoteName('errors')
+				$db->quoteName('status')
 			])
 			->from($db->quoteName('#__semantyca_nm_stats'))
 			->order('reg_date desc')
@@ -71,16 +70,15 @@ class StatModel extends BaseDatabaseModel
 	}
 
 
-	public function createStatRecord($recipients, $status, $newsletter_id)
+	public function createStatRecord($status, $newsletter_id)
 	{
 		$db       = $this->getDatabase();
 		$query    = $db->getQuery(true);
 		$reg_date = new Date();
 
-		$columns = array('recipients', 'reg_date', 'status', 'newsletter_id');
+		$columns = array('reg_date', 'status', 'newsletter_id');
 
 		$values = array(
-			$db->quote(json_encode($recipients)),
 			$db->quote($reg_date->toSql()),
 			$status,
 			$newsletter_id
@@ -89,7 +87,6 @@ class StatModel extends BaseDatabaseModel
 		$query->insert($db->quoteName('#__semantyca_nm_stats'))
 			->columns($db->quoteName($columns))
 			->values(implode(',', $values));
-		error_log($query->__toString());
 		$db->setQuery($query);
 		$db->execute();
 

@@ -53,9 +53,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_stats`
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
     newsletter_id INT,
-    recipients JSON DEFAULT (JSON_ARRAY()),
-    errors     JSON DEFAULT (JSON_ARRAY()),
-    status     INT  DEFAULT 0,
+    status INT DEFAULT 0,
     PRIMARY KEY (id),
     FOREIGN KEY (newsletter_id) REFERENCES `#__semantyca_nm_newsletters` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
@@ -71,6 +69,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscriber_events`
     fulfilled        INT      DEFAULT 0,
     trigger_token    VARCHAR(255),
     event_date       DATETIME,
+    errors JSON DEFAULT (JSON_ARRAY()),
     PRIMARY KEY (id),
     FOREIGN KEY (stats_id) REFERENCES `#__semantyca_nm_stats` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;

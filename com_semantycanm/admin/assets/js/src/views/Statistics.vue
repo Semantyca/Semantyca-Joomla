@@ -100,22 +100,15 @@ export default defineComponent({
                 title = 'Processing';
                 break;
               case 2:
-                type = 'info';
+                type = 'success';
                 title = 'Done';
                 break;
               default:
-                type = 'default';
+                type = 'tertiary';
                 title = 'Unknown';
                 break;
             }
             return h(NTag, {type}, {default: () => title});
-          }
-        },
-        {
-          title: 'Errors',
-          key: 'errors',
-          render(row) {
-            return row.errors;
           }
         }
       ]

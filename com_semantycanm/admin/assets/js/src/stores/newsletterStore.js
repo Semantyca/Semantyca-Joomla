@@ -69,8 +69,8 @@ export const useNewsletterStore = defineStore('newsletter', {
             if (this.pollingIntervalId) {
                 clearInterval(this.pollingIntervalId);
             }
-            this.fetchCurrentNewsLetterEvents();
-            this.setupPollingInterval();
+            // this.fetchCurrentNewsLetterEvents();
+            //  this.setupPollingInterval();
         },
         setupPollingInterval() {
             this.pollingIntervalId = setInterval(() => {

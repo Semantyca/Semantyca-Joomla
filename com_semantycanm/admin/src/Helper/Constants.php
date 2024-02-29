@@ -7,6 +7,7 @@ class Constants
 	public const JSON_CONTENT_TYPE = 'Content-Type: application/json; charset=UTF-8';
 
 	const COMPONENT_NAME = "com_semantycanm";
+	const EXT_SCRIPT = "sendemail.php";
 	const NOT_FULFILLED = -1;
 	const UNDEFINED = 0;
 	const PROCESSING = 1;

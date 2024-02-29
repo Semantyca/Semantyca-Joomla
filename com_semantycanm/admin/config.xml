@@ -50,6 +50,18 @@
                 label="DEFAULT_BANNER"
         />
 
+        <field
+                name="theme"
+                type="list"
+                label="THEME_TYPE"
+                default="day"
+                validate="options"
+        >
+            <option value="day">DAY_THEME</option>
+            <option value="night">NIGHT_THEME</option>
+            <option value="automatic">AUTO_THEME</option>
+        </field>
+
     </fieldset>
 
     <fieldset

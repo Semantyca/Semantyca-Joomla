@@ -2,36 +2,8 @@ class NewsletterRequest {
     constructor() {
         this.httpMethod = 'POST';
         this.headers = new Headers({
-            "Content-Type": "application/x-www-form-urlencoded"
+            'Content-Type': 'application/json',
         });
-    }
-
-    async makeRequest(endpoint, data) {
-        try {
-            const url = `index.php?option=com_semantycanm&task=${endpoint}`;
-            const formData = new URLSearchParams();
-
-            for (const key in data) {
-                if (data.hasOwnProperty(key)) {
-                    formData.append(key, data[key]);
-                }
-            }
-
-            const response = await fetch(url, {
-                method: this.httpMethod,
-                headers: this.headers,
-                body: formData,
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error, status = ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            showErrorBar(`${endpoint}`, error.message);
-            throw error;
-        }
     }
 
     sendEmail(subj, msgContent, listOfUserGroups) {
@@ -49,5 +21,21 @@ class NewsletterRequest {
             'msg': encodeURIComponent(msgContent)
         };
         return this.makeRequest('NewsLetter.add', data);
+    }
+
+    makeRequest(endpoint, data) {
+        const url = `index.php?option=com_semantycanm&task=${endpoint}`;
+        return fetch(url, {
+            method: this.httpMethod,
+            headers: this.headers,
+            body: JSON.stringify(data),
+        })
+            .then(response => {
+                if (!response.ok) {
+                    console.log('application error: ', response.text())
+                    throw new Error('Server returned an application error: ' + response.status);
+                }
+                return response.json();
+            });
     }
 }

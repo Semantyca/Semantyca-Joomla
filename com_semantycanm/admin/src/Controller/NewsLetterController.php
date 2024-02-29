@@ -5,11 +5,11 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 
 class NewsLetterController extends BaseController
@@ -110,7 +110,7 @@ class NewsLetterController extends BaseController
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		}
 		$app->close();
@@ -145,7 +145,7 @@ class NewsLetterController extends BaseController
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{

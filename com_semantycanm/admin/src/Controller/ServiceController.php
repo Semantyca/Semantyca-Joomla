@@ -5,12 +5,12 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
@@ -22,11 +22,15 @@ class ServiceController extends BaseController
 {
 	public function sendEmailAsync()
 	{
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$subject     = $this->input->post->get('subject', '', 'RAW');
-			$user_group  = $this->input->post->get('user_group', '', 'RAW');
-			$encodedBody = $this->input->post->get('encoded_body', '', 'RAW');
+			$jsonInput = file_get_contents('php://input');
+			$data      = json_decode($jsonInput, true);
+
+			$subject     = $data['subject'] ?? '';
+			$user_group  = $data['user_group'] ?? '';
+			$encodedBody = $data['encoded_body'] ?? '';
 
 			$errors = [];
 
@@ -45,15 +49,17 @@ class ServiceController extends BaseController
 				throw new ValidationErrorException($errors);
 			}
 
-			/** @var StatModel $statModel */
-			/** @var SubscriberEventModel $eventModel */
+			$newLetterModel   = $this->getModel('NewsLetter');
 			$statModel      = $this->getModel('Stat');
-			$newLetterModel = $this->getModel('NewsLetter');
 			$eventModel     = $this->getModel('SubscriberEvent');
+			$mailingListModel = $this->getModel('MailingList');
 
 			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
 
-			$messagingHelper = new Messaging($statModel, $eventModel);
+			/** @var StatModel $statModel */
+			/** @var SubscriberEventModel $eventModel */
+			/** @var MailingListModel $mailingListModel */
+			$messagingHelper = new Messaging($statModel, $eventModel, $mailingListModel);
 			$result          = $messagingHelper->sendEmailAsync($user_group, $newsLetterUpsertResults);
 			if ($result)
 			{
@@ -62,7 +68,6 @@ class ServiceController extends BaseController
 			else
 			{
 				throw new MessagingException(['An error happened while sending the message']);
-
 			}
 
 		}
@@ -70,18 +75,18 @@ class ServiceController extends BaseController
 		{
 			http_response_code(400);
 			echo new JsonResponse($e->getMessage(), 'Error', true);
-
 		}
 		catch (\Throwable  $e)
 		{
 			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();
 		}
 	}
+
 
 	/**
 	 *
@@ -90,6 +95,7 @@ class ServiceController extends BaseController
 	 */
 	public function sendEmail()
 	{
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$subject     = $this->input->post->get('subject', '', 'RAW');
@@ -145,7 +151,7 @@ class ServiceController extends BaseController
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
@@ -173,7 +179,7 @@ class ServiceController extends BaseController
 		catch
 		(\Throwable $e)
 		{
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{

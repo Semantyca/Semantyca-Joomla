@@ -15,7 +15,7 @@ class SubscriberEventModel extends BaseDatabaseModel
 
 		$data = [
 			'subscriber_email' => $subscriber,
-			'stat_id' => $stat_id,
+			'stats_id' => $stat_id,
 			'event_type'       => $eventType,
 			'trigger_token'    => $triggerToken
 		];
