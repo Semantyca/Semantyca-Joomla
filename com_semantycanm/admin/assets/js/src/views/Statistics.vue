@@ -25,7 +25,7 @@
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {NDataTable, NPagination, NTag} from 'naive-ui';
+import {NButton, NDataTable, NPagination, NTag} from 'naive-ui';
 import {useStatStore} from "../stores/statStore";
 import {useGlobalStore} from "../stores/globalStore";
 
@@ -73,17 +73,29 @@ export default defineComponent({
           key: 'reg_date'
         },
         {
+          type: 'expand',
+          renderExpand: (rowData) => {
+            if (!statStore.eventListPage.docs[rowData.key]) {
+              console.log('Fetching data for row', rowData.key);
+              statStore.fetchEvents(rowData.key);
+            }
+            return h(
+                NButton,
+                {
+                  strong: true,
+                  tertiary: true,
+                  size: 'small',
+                  onClick: () => play(row)
+                },
+                {default: () => 'Play'}
+            )
+          }
+
+        },
+        {
           title: 'News letter',
           key: 'newsletter_id'
         },
-        /* {
-           type: 'expand',
-           renderExpand: (rowData) => {
-             console.log('row', rowData.key);
-             statStore.fetchEvents(rowData.key);
-             return statStore.eventListPage.docs[rowData.key]
-           }
-         },*/
         {
           title: 'Status',
           key: 'status',

@@ -6,7 +6,7 @@ export const useStatStore = defineStore('stat', {
             docs: []
         },
         eventListPage: {
-            docs: []
+            docs: {}
         }
     }),
     actions: {
@@ -35,7 +35,7 @@ export const useStatStore = defineStore('stat', {
                 const respData = await response.json();
                 if (respData.success && respData.data) {
                     console.log('resp', respData.data)
-                    this.eventListPage.docs[eventId] = respData.data;
+                    this.eventListPage.docs[eventId] = respData.data.docs;
                 }
             } catch (error) {
                 showAlertBar("Error: " + error);

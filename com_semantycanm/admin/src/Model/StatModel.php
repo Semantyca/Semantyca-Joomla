@@ -45,7 +45,7 @@ class StatModel extends BaseDatabaseModel
 		];
 	}
 
-	public function getEvents($statsId)
+	public function getEvents($id)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -59,7 +59,7 @@ class StatModel extends BaseDatabaseModel
 			$db->quoteName('event_date')
 		])
 			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
-			->where($db->quoteName('stats_id') . ' = ' . (int) $statsId)
+			->where($db->quoteName('stats_id') . ' = ' . (int) $id)
 			->setLimit(100);
 
 		$db->setQuery($query);
