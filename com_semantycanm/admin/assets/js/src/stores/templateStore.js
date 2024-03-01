@@ -13,13 +13,13 @@ export const useTemplateStore = defineStore('template', {
         }
     }),
     actions: {
-        async getTemplate(name) {
+        async getTemplate(name, message) {
             try {
                 startLoading('loadingSpinner');
                 const url = `index.php?option=com_semantycanm&task=Template.find&name=${name}`;
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`Network response was not 200 for name ${name}`);
+                    throw new Error(`Network response was not ok for name ${name}`);
                 }
                 const {data} = await response.json();
                 this.doc.id = data.id;
@@ -30,7 +30,7 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.banner = data.banner;
                 this.doc.wrapper = data.wrapper;
             } catch (error) {
-                showErrorBar('Template.find&name', error.message);
+                message.error(error.message);
             } finally {
                 stopLoading('loadingSpinner');
             }

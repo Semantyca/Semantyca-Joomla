@@ -37,7 +37,7 @@ import {onMounted} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
-import {NButton, NButtonGroup} from "naive-ui";
+import {NButton, NButtonGroup, useMessage} from "naive-ui";
 
 const TEMPLATE_SPINNER = 'templateSpinner';
 export default {
@@ -57,7 +57,7 @@ export default {
       plugins: 'code',
       toolbar: 'code'
     };
-
+    const message = useMessage();
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
       const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(store.template.id)}`;
@@ -81,7 +81,8 @@ export default {
         console.log('Template saved successfully');
         stopLoading(TEMPLATE_SPINNER);
       } catch (error) {
-        showErrorBar(`${endpoint}`, error.message);
+        message.warning(error.message);
+        //showErrorBar(`${endpoint}`, error.message);
         stopLoading(TEMPLATE_SPINNER);
       }
     };
@@ -91,7 +92,7 @@ export default {
     }
 
     onMounted(async () => {
-      await store.getTemplate('classic');
+      await store.getTemplate('classic', message);
     });
 
     return {
