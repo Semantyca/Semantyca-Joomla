@@ -26,7 +26,7 @@ const app = createApp({
     template: `
       <div>
         <n-message-provider>
-          <n-config-provider :theme-overrides="darkTheme">
+          <n-config-provider :theme-overrides="smtcaTheme">
             <!-- <n-global-style />-->
             <Workspace/>
           </n-config-provider>

@@ -1,7 +1,5 @@
 <?php
 
-echo "Start sending the newsletters\n";
-
 if (php_sapi_name() != 'cli')
 {
 	die('This script can only be run from the command line.');
@@ -11,7 +9,6 @@ use Joomla\CMS\Factory;
 use PHPMailer\PHPMailer\PHPMailer;
 
 define('_JEXEC', 1);
-#define('JPATH_BASE', realpath('C:/xampp/htdocs/joomla'));
 define('JPATH_BASE', realpath(dirname(__FILE__) . '/../../../../'));
 
 require_once JPATH_BASE . '/includes/defines.php';
@@ -79,39 +76,70 @@ function sendEmail($rowData, $baseURL)
 
 	$mailer->addAddress($rowData->subscriber_email);
 	$mailer->isHTML(true);
-
 	$mailer->Subject = $rowData->subject;
 	$mailer->Body    = $customizedBody;
 
 	try
 	{
-		if ($mailer->Send())
+		if ($mailer->send())
 		{
-			updateEventFulfilled($rowData->id);
+			updateEventFulfilled($rowData->id, true);
+		}
+		else
+		{
+			updateEventFulfilled($rowData->id, false, 'Mailer send() returned false');
 		}
 	}
 	catch (\Throwable $e)
 	{
-		echo $e;
+		echo $e->getMessage() . "\n";
 		error_log($e);
+		updateEventFulfilled($rowData->id, false, $e->getMessage());
 	}
 
 	$mailer->clearAllRecipients();
 }
 
-function updateEventFulfilled($eventId)
+
+function updateEventFulfilled($eventId, $success, $errorMessage = null)
 {
 	global $db;
-	$query      = $db->getQuery(true);
-	$fields     = [$db->quoteName('fulfilled') . ' = 1'];
+	$query = $db->getQuery(true);
+
+	$fulfilledValue = $success ? '1' : '0';
+
+	if ($success)
+	{
+		$fields = [
+			$db->quoteName('fulfilled') . ' = ' . $db->quote($fulfilledValue),
+			$db->quoteName('event_date') . ' = ' . $db->quote(date('Y-m-d H:i:s')),
+		];
+	}
+	else
+	{
+		$fields = [
+			$db->quoteName('fulfilled') . ' = ' . $db->quote($fulfilledValue),
+			$db->quoteName('event_date') . ' = ' . $db->quote(date('Y-m-d H:i:s')),
+			$db->quoteName('errors') . ' = JSON_ARRAY_APPEND(' . $db->quoteName('errors') . ', "$", ' . $db->quote($errorMessage) . ')',
+		];
+	}
+
 	$conditions = [$db->quoteName('id') . ' = ' . $db->quote($eventId)];
 	$query->update($db->quoteName('#__semantyca_nm_subscriber_events'))->set($fields)->where($conditions);
 
 	$db->setQuery($query);
 	$db->execute();
 
-	echo "Marked event ID $eventId as fulfilled due to email send failure.\n";
+	if ($success)
+	{
+		echo "Marked event ID $eventId as fulfilled.\n";
+	}
+	else
+	{
+		echo "Marked event ID $eventId as not fulfilled and logged error: $errorMessage\n";
+	}
 }
+
 
 $newsletter_id = $argv[1] ?? null;
 $base_url      = $argv[2] ?? null;

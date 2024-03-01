@@ -25,9 +25,10 @@
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {NButton, NDataTable, NPagination, NTag} from 'naive-ui';
+import {NDataTable, NPagination, NTag} from 'naive-ui';
 import {useStatStore} from "../stores/statStore";
 import {useGlobalStore} from "../stores/globalStore";
+import EventTable from "../components/EventTable.vue";
 
 export default defineComponent({
   name: 'Statistics',
@@ -79,16 +80,10 @@ export default defineComponent({
               console.log('Fetching data for row', rowData.key);
               statStore.fetchEvents(rowData.key);
             }
-            return h(
-                NButton,
-                {
-                  strong: true,
-                  tertiary: true,
-                  size: 'small',
-                  onClick: () => play(row)
-                },
-                {default: () => 'Play'}
-            )
+            return h(EventTable, {
+              data: statStore.eventListPage.docs[rowData.key],
+
+            });
           }
 
         },
@@ -125,7 +120,6 @@ export default defineComponent({
         }
       ]
     }
-
 
 
     return {

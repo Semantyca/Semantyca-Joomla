@@ -56,7 +56,8 @@ class StatModel extends BaseDatabaseModel
 			$db->quoteName('subscriber_email'),
 			$db->quoteName('event_type'),
 			$db->quoteName('fulfilled'),
-			$db->quoteName('event_date')
+			$db->quoteName('event_date'),
+			$db->quoteName('errors')
 		])
 			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
 			->where($db->quoteName('stats_id') . ' = ' . (int) $id)

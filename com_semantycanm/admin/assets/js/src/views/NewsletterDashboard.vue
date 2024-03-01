@@ -83,10 +83,10 @@
                       type="primary"
                       @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
             </n-button>
-            <n-button size="large"
-                      type="primary"
-                      @click="checkStatus(true)">Check status
-            </n-button>
+            <!--            <n-button size="large"
+                                  type="primary"
+                                  @click="checkStatus(true)">Check status
+                        </n-button>-->
             <!--            <n-button id="toggleEditBtn"
                                   size="large"
                                   type="primary"
@@ -95,10 +95,10 @@
 
           </n-button-group>
         </div>
-        <div class="col-1 d-flex  flex-column align-items-start">
-          <n-switch :round="false">
-          </n-switch>
-        </div>
+        <!--        <div class="col-1 d-flex  flex-column align-items-start">
+                  <n-switch :round="false">
+                  </n-switch>
+                </div>-->
         <div class="col d-flex flex-column align-items-center me-5">
           <n-progress
               type="line"

@@ -66,10 +66,10 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_subscriber_events`
     stats_id         INT,
     subscriber_email VARCHAR(255),
     event_type       INT      DEFAULT 99,
-    fulfilled        INT      DEFAULT 0,
+    fulfilled INT  DEFAULT -1,
     trigger_token    VARCHAR(255),
     event_date       DATETIME,
-    errors JSON DEFAULT (JSON_ARRAY()),
+    errors    JSON DEFAULT (JSON_ARRAY()),
     PRIMARY KEY (id),
     FOREIGN KEY (stats_id) REFERENCES `#__semantyca_nm_stats` (id) ON DELETE CASCADE
 ) ENGINE = InnoDB;
