@@ -102,7 +102,7 @@ export default {
     const currentDateFormatted = `${currentMonth} ${currentYear}`;
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
-    const newsletterStore = useNewsletterStore();
+    const newsLetterStore = useNewsletterStore();
     const state = reactive({
       editorCont: '',
       selectedArticles: []
@@ -154,8 +154,10 @@ export default {
 
     const next = () => {
       const messageContent = getWrappedContent(state.editorCont);
+      newsLetterStore.currentNewsletterId = 0;
       emit('content-changed', messageContent);
       emit('change-tab', 'Newsletter');
+
     };
 
 

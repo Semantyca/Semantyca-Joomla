@@ -277,7 +277,9 @@ export default defineComponent({
               }
             }
             newsletterRequest.sendEmail(subj, msgContent, listItems)
-                .then(() => {
+                .then((response) => {
+                  console.log(response.data);
+                  newsLetterStore.currentNewsletterId = response.data;
                   newsLetterStore.startPolling();
                   newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })

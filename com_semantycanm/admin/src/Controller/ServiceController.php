@@ -54,16 +54,16 @@ class ServiceController extends BaseController
 			$eventModel     = $this->getModel('SubscriberEvent');
 			$mailingListModel = $this->getModel('MailingList');
 
-			$newsLetterUpsertResults = $newLetterModel->upsert($subject, $encodedBody);
+			$newsletterId = $newLetterModel->upsert($subject, $encodedBody);
 
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
 			$messagingHelper = new Messaging($statModel, $eventModel, $mailingListModel);
-			$result          = $messagingHelper->sendEmailAsync($user_group, $newsLetterUpsertResults);
+			$result       = $messagingHelper->sendEmailAsync($user_group, $newsletterId);
 			if ($result)
 			{
-				echo new JsonResponse($result);
+				echo new JsonResponse($newsletterId);
 			}
 			else
 			{
