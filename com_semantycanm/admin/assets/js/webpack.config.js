@@ -10,6 +10,7 @@ require('dotenv').config();
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
 const outputDir = process.env.BUILD_OUTPUT_DIR;
+const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
     optimization: {
