@@ -102,8 +102,9 @@ module.exports = {
             __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false)
         }),
         new BundleAnalyzerPlugin({
-            analyzerMode: 'static', // Generates a static HTML file.
-            openAnalyzer: false, // Prevents the automatic opening of the report in the browser.
+            analyzerMode: 'static',
+            reportFilename: 'bundle-report.html',
+            openAnalyzer: false,
         }),
     ],
     resolve: {
