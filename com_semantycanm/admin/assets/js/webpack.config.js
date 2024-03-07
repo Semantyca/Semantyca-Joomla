@@ -8,6 +8,7 @@ const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 require('dotenv').config();
 
 console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('__dirname: ', __dirname);
 
 const outputDir = process.env.BUILD_OUTPUT_DIR;
 const isProduction = process.env.NODE_ENV === 'production';
@@ -99,7 +100,7 @@ module.exports = {
         }),
         new BundleAnalyzerPlugin({
             analyzerMode: 'static',
-            reportFilename: 'bundle-report.html',
+            reportFilename: path.resolve(__dirname, 'bundle-report.html'),
             openAnalyzer: false,
         }),
     ],
