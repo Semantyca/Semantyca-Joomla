@@ -3,6 +3,7 @@ const webpack = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
 require('dotenv').config();
 
@@ -98,6 +99,10 @@ module.exports = {
             __VUE_OPTIONS_API__: JSON.stringify(true),
             __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
             __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false)
+        }),
+        new BundleAnalyzerPlugin({
+            analyzerMode: 'static', // Generates a static HTML file.
+            openAnalyzer: false, // Prevents the automatic opening of the report in the browser.
         }),
     ],
     resolve: {
