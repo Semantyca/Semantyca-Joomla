@@ -3,7 +3,6 @@ const webpack = require('webpack');
 const {CleanWebpackPlugin} = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
-const MonacoEditorPlugin = require('monaco-editor-webpack-plugin')
 
 require('dotenv').config();
 
@@ -12,6 +11,14 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 const outputDir = process.env.BUILD_OUTPUT_DIR;
 
 module.exports = {
+    optimization: {
+        splitChunks: {
+            cacheGroups: {
+                default: false
+            }
+        },
+        runtimeChunk: false,
+    },
     mode: process.env.NODE_ENV || 'development',
     devtool: 'eval-source-map',
     entry: path.resolve(__dirname, 'src/main.js'),
@@ -92,9 +99,6 @@ module.exports = {
             __VUE_PROD_DEVTOOLS__: JSON.stringify(false),
             __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: JSON.stringify(false)
         }),
-        /*new MonacoEditorPlugin({
-            languages: ['html']
-        })*/
     ],
     resolve: {
         alias: {

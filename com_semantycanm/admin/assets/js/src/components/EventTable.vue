@@ -55,7 +55,7 @@ export default {
           title: 'Fulfilled',
           key: 'fulfilled',
           render(row) {
-            if (row.fulfilled) {
+            if (row.fulfilled === 1) {
               return "YES";
             }
             return "";
