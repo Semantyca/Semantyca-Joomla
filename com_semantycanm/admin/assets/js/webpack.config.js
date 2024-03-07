@@ -14,11 +14,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
     optimization: {
-        splitChunks: {
-            cacheGroups: {
-                default: false
-            }
-        },
+        splitChunks: false,
         runtimeChunk: false,
     },
     mode: process.env.NODE_ENV || 'development',
