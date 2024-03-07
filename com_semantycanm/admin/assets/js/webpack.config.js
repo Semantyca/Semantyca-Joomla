@@ -20,7 +20,7 @@ module.exports = {
         runtimeChunk: false,
     },
     mode: process.env.NODE_ENV || 'development',
-    devtool: 'eval-source-map',
+    devtool: isProduction ? false : 'eval-source-map',
     entry: path.resolve(__dirname, 'src/main.js'),
     output: {
         path: path.resolve(__dirname, outputDir),
