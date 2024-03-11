@@ -19,7 +19,7 @@ $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
+#$doc->addScript($rootUrl . $smtca_assets . "js/dragdrop.js");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
 

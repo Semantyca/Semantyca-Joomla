@@ -17,26 +17,36 @@
           <n-skeleton text :repeat="4" size="medium"/>
           <n-skeleton text style="width: 60%" size="medium"/>
         </div>
-        <ul v-else ref="articlesListRef" id="articlesUlElement" class="list-group dragdrop-list-short">
-          <li v-for="article in articles" :key="article.id" class="list-group-item"
-              :id="article.id" :title="article.title" :data-url="article.url"
-              :data-category="article.category" :data-intro="article.intro">
-            <strong>{{ article.category }}</strong><br>{{ article.title }}
-          </li>
-        </ul>
+        <draggable v-else
+                   class="list-group dragdrop-list-short"
+                   :list="articleStore.listPage.docs"
+                   group="articles"
+                   itemKey="id"
+                   @end="onDragEnd">
+          <template #item="{ element }">
+            <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
+                 :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
+              <strong>{{ element.category }}</strong><br>{{ element.title }}
+            </div>
+          </template>
+        </draggable>
       </div>
       <div class="col-md-6">
         <div class="header-container">
           <h3>{{ store.translations.SELECTED_ARTICLES }}</h3>
         </div>
-        <ul ref="selectedArticlesListRef" id="selectedArticles" class="list-group dragdrop-list">
-          <li v-for="selectedArticle in state.selectedArticles" :key="selectedArticle.id"
-              class="list-group-item"
-              :id="selectedArticle.id" :title="selectedArticle.title" :data-url="selectedArticle.url"
-              :data-category="selectedArticle.category" :data-intro="selectedArticle.intro">
-            <strong>{{ selectedArticle.category }}</strong><br>{{ selectedArticle.title }}
-          </li>
-        </ul>
+        <draggable
+            class="list-group dragdrop-list"
+            :list="articleStore.selectedArticles"
+            group="articles" itemKey="id"
+            @end="onDragEnd">
+          <template #item="{ element }">
+            <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
+                 :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
+              <strong>{{ element.category }}</strong><br>{{ element.title }}
+            </div>
+          </template>
+        </draggable>
       </div>
     </div>
     <div class="row mt-3">
@@ -62,22 +72,23 @@
         <editor
             :api-key="store.tinyMceLic"
             :init="composerEditorConfig"
-            v-model="state.editorCont"></editor>
+            v-model="articleStore.editorCont"></editor>
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import {nextTick, onMounted, reactive, ref} from 'vue';
+import {onMounted, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
 import {NButton, NButtonGroup, NSkeleton, useMessage} from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
-import Handlebars from 'handlebars';
-
+import draggable from 'vuedraggable';
+import {useArticleStore} from "../stores/articleStore";
+import {buildContent, getWrappedContent} from '../utils/contentUtils';
 
 export default {
   name: 'Composer',
@@ -85,12 +96,13 @@ export default {
     Editor,
     NSkeleton,
     NButton,
-    NButtonGroup
+    NButtonGroup,
+    draggable
   },
 
   setup(props, {emit}) {
     const articles = ref([]);
-    const isLoading = ref(true);
+    const isLoading = ref(false);
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
@@ -100,13 +112,10 @@ export default {
       month: 'long'
     }).toUpperCase();
     const currentDateFormatted = `${currentMonth} ${currentYear}`;
+    const articleStore = useArticleStore();
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
     const newsLetterStore = useNewsletterStore();
-    const state = reactive({
-      editorCont: '',
-      selectedArticles: []
-    });
     const message = useMessage();
 
     const composerEditorConfig = {
@@ -131,14 +140,27 @@ export default {
       ],
     };
 
+    onMounted(async () => {
+      try {
+        await articleStore.fetchArticles('');
+        await templateStore.getTemplate('classic', message);
+      } catch (error) {
+        console.error("Error in mounted hook:", error);
+      }
+    });
+
+    const onDragEnd = () => {
+      articleStore.editorCont = buildContent(currentDateFormatted, currentYear, articleStore.selectedArticles);
+    };
+
     const resetFunction = async () => {
-      await fetchArticles('');
-      state.editorCont = '';
-      selectedArticlesListRef.value.innerHTML = '';
+      articleStore.selectedArticles = [];
+      articleStore.editorCont = '';
+      await articleStore.fetchArticles('');
     };
 
     const copyContentToClipboard = () => {
-      const completeHTML = getWrappedContent(state.editorCont);
+      const completeHTML = getWrappedContent(articleStore.editorCont);
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
       document.body.appendChild(tempTextArea);
@@ -153,157 +175,22 @@ export default {
     };
 
     const next = () => {
-      const messageContent = getWrappedContent(state.editorCont);
+      const messageContent = getWrappedContent(articleStore.editorCont);
       newsLetterStore.currentNewsletterId = 0;
       emit('content-changed', messageContent);
       emit('change-tab', 'Newsletter');
-
     };
 
-
-    const fetchArticles = async (searchTerm) => {
-      startLoading('loadingSpinner');
-      isLoading.value = true;
-      try {
-        const url = 'index.php?option=com_semantycanm&task=Article.search&q=' + encodeURIComponent(searchTerm);
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Network response was not ok for searchTerm ${searchTerm}`);
-        }
-        const data = await response.json();
-        articles.value = data.data.map(a => ({
-          id: a.id,
-          title: a.title,
-          url: a.url,
-          category: a.category,
-          intro: encodeURIComponent(a.introtext)
-        }));
-        stopLoading('loadingSpinner');
-        isLoading.value = false;
-      } catch (error) {
-        console.error(`Problem fetching articles:`, error);
-        stopLoading('loadingSpinner');
-        isLoading.value = false;
-      }
-    };
-
-    const fetchArticlesDebounced = debounce(fetchArticles, 300);
+    const fetchArticlesDebounced = debounce(articleStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {
       fetchArticlesDebounced(event.target.value);
     };
 
-    const applyAndDropSet = (lists) => {
-      lists.forEach(list => {
-        Sortable.create(list, {
-          group: {
-            name: 'shared',
-            pull: true,
-            put: true
-          },
-          animation: 150,
-          sort: false,
-          onEnd: () => {
-            updateComposerContent();
-          }
-        });
-      });
-    };
-
-    const updateComposerContent = () => {
-      const v = buildContent(currentDateFormatted, currentYear);
-      console.log(v);
-      state.editorCont = v;
-    };
-
-    const getWrappedContent = (content) => {
-      let template = Handlebars.compile(templateStore.doc.wrapper);
-      let data = {
-        content: content
-      };
-      return template(data);
-    }
-
-    const buildContent = (currentDateFormatted, currentYear) => {
-      const selectedArticlesLi = document.querySelectorAll('#selectedArticles li');
-      let articles = [];
-      selectedArticlesLi.forEach((article) => {
-        const articleId = article.id;
-        const title = article.title;
-        const url = normalizeUrl(article.dataset.url);
-        let htmlContent = decodeURIComponent(article.dataset.intro);
-        let intro = makeImageUrlsAbsolute(htmlContent);
-        const category = article.dataset.category;
-
-        let articleObj = {
-          id: articleId,
-          title: title,
-          url: url,
-          intro: intro,
-          category: category,
-          backgroundColor: getRandomWebSafeColor()
-        };
-        articles.push(articleObj);
-      });
-
-      Handlebars.registerHelper('lt', function (value1, value2) {
-        return value1 < value2;
-      });
-
-      let template = Handlebars.compile(templateStore.doc.html);
-      let data = {
-        bannerUrl: templateStore.doc.banner,
-        currentDateFormatted: currentDateFormatted,
-        currentYear: currentYear,
-        articles: articles,
-        maxArticles: templateStore.doc.maxArticles,
-        maxArticlesShort: templateStore.doc.maxArticlesShort
-      };
-      return template(data);
-    }
-
-    const getRandomWebSafeColor = () => {
-      const safeValues = [0, 51, 102, 153, 204, 255];
-      const red = safeValues[Math.floor(Math.random() * safeValues.length)];
-      const green = safeValues[Math.floor(Math.random() * safeValues.length)];
-      const blue = safeValues[Math.floor(Math.random() * safeValues.length)];
-      return `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`;
-    }
-
-    const makeImageUrlsAbsolute = (articleHtml) => {
-      let parser = new DOMParser();
-      let htmlDoc = parser.parseFromString(articleHtml, 'text/html');
-      let images = htmlDoc.getElementsByTagName('img');
-
-      for (let img of images) {
-        let currentSrc = img.src;
-        img.src = normalizeUrl(currentSrc);
-        img.removeAttribute('loading');
-        img.removeAttribute('data-path');
-      }
-
-      return htmlDoc.body.innerHTML;
-    }
-
-    const normalizeUrl = (url) => {
-      if (url.includes('/administrator/')) {
-        return url.replace('/administrator', '');
-      }
-      return url;
-    }
-
-
-    onMounted(async () => {
-      await fetchArticles('');
-      await templateStore.getTemplate('classic');
-      await nextTick(() => {
-        applyAndDropSet([articlesListRef.value, selectedArticlesListRef.value]);
-      });
-    });
-
     return {
+      articleStore,
       articles,
+      onDragEnd,
       isLoading,
-      state,
       store,
       articlesListRef,
       selectedArticlesListRef,
