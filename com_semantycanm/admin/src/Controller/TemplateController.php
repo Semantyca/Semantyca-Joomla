@@ -4,11 +4,13 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
+use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Throwable;
 
@@ -16,6 +18,7 @@ class TemplateController extends BaseController
 {
 	public function find()
 	{
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$name  = $this->input->getString('name');
@@ -37,9 +40,14 @@ class TemplateController extends BaseController
 		}
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 1.0.0
+	 */
 	public function update()
 	{
 		$app = Factory::getApplication();
+		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
 			$id = $this->input->getString('id');

@@ -1,52 +1,79 @@
 <template>
-  <div class="container mt-3">
-    <div class="row">
-      <div class="col">
-        <h3>{{ globalStore.translations.TEMPLATE }}</h3>
+  <n-form inline ref="formRef" :rules="rules" :model="formValue">
+    <div class="container mt-3">
+      <div class="row">
+        <div class="col-3 d-flex align-items-center">
+          <n-form-item label="Template name" path="groupName" class="w-100">
+            <n-input v-model:value="formValue.templateName"
+                     disabled
+                     size="large"
+                     style="width: 100%"
+                     id="templateName"
+                     type="text"
+                     placeholder="Template name"/>
+          </n-form-item>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <h3>{{ globalStore.translations.TEMPLATE }}</h3>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <editor
+              :api-key="globalStore.tinyMceLic"
+              :init="templateEditorConfig"
+              v-model="store.doc.html"></editor>
+        </div>
+      </div>
+      <div class="row mt-3">
+        <div class="col  d-flex align-items-center">
+          <n-button-group>
+            <n-button type="primary"
+                      size="large"
+                      @click="saveTemplate">{{ globalStore.translations.SAVE }}
+            </n-button>
+            <n-button size="large"
+                      strong
+                      error
+                      seconadry
+                      @click="cancelTemplate">{{ globalStore.translations.CANCEL }}
+            </n-button>
+          </n-button-group>
+        </div>
       </div>
     </div>
-    <div class="row">
-      <div class="col">
-        <editor
-            :api-key="globalStore.tinyMceLic"
-            :init="templateEditorConfig"
-            v-model="store.doc.html"></editor>
-      </div>
-    </div>
-    <div class="row mt-3">
-      <div class="col  d-flex align-items-center">
-        <n-button-group>
-          <n-button type="primary"
-                    size="large"
-                    @click="saveTemplate">{{ globalStore.translations.SAVE }}
-          </n-button>
-          <n-button size="large"
-                    strong
-                    error
-                    seconadry
-                    @click="cancelTemplate">{{ globalStore.translations.CANCEL }}
-          </n-button>
-        </n-button-group>
-      </div>
-    </div>
-  </div>
+  </n-form>
 </template>
 
 <script>
-import {onMounted} from 'vue';
+import {onMounted, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
-import {NButton, NButtonGroup, useMessage} from "naive-ui";
+import {NButton, NButtonGroup, NForm, NFormItem, NInput, useMessage} from "naive-ui";
 
-const TEMPLATE_SPINNER = 'templateSpinner';
+const TEMPLATE_SPINNER = 'loadingSpinner';
 export default {
   name: 'TemplateEditor',
-  components: {Editor, NButton, NButtonGroup},
+  components: {
+    Editor,
+    NButton,
+    NButtonGroup,
+    NInput,
+    NForm,
+    NFormItem,
+  },
 
   setup() {
     const globalStore = useGlobalStore();
     const store = useTemplateStore();
+
+    const formValue = ref({
+      templateName: '',
+      permittedColor: [],
+    });
 
     const templateEditorConfig = {
       model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
@@ -60,47 +87,49 @@ export default {
     const message = useMessage();
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
-      const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(store.template.id)}`;
-      const data = {
-        // html: state['html']
-      };
-
-      try {
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
+      await store.saveTemplate(store.doc.id, store.doc.html,
+          () => {
+            console.log('Template saved successfully');
+            stopLoading(TEMPLATE_SPINNER);
           },
-          body: JSON.stringify(data)
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error, status = ${response.status}`);
-        }
-
-        console.log('Template saved successfully');
-        stopLoading(TEMPLATE_SPINNER);
-      } catch (error) {
-        message.warning(error.message);
-        //showErrorBar(`${endpoint}`, error.message);
-        stopLoading(TEMPLATE_SPINNER);
-      }
+          (error) => {
+            message.warning(error.message);
+            stopLoading(TEMPLATE_SPINNER);
+          }
+      );
     };
+
+    onMounted(async () => {
+      await store.getTemplate('classic', message);
+    });
+
+    watch(() => store.doc.name, (newName) => {
+      formValue.value.templateName = newName;
+    }, {
+      immediate: true
+    });
 
     const cancelTemplate = async () => {
 
     }
 
-    onMounted(async () => {
-      await store.getTemplate('classic', message);
-    });
+    const rules = {
+      templateName: {
+        required: true,
+        message: 'Template name cannot be empty'
+      }
+    };
+
+
 
     return {
       globalStore,
       store,
       templateEditorConfig,
       saveTemplate,
-      cancelTemplate
+      cancelTemplate,
+      rules,
+      formValue
     };
   }
 }

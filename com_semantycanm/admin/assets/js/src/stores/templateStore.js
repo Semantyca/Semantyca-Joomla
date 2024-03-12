@@ -34,6 +34,31 @@ export const useTemplateStore = defineStore('template', {
             } finally {
                 stopLoading('loadingSpinner');
             }
+        },
+        async saveTemplate(templateId, htmlContent, onSuccess, onError) {
+            const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(templateId)}`;
+            const data = {
+                html: htmlContent
+            };
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error, status = ${response.status}`);
+                }
+
+                console.log('Template saved successfully');
+                onSuccess?.();
+            } catch (error) {
+                onError?.(error);
+            }
         }
     }
 });
