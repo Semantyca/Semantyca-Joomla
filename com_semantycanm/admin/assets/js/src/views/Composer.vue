@@ -88,7 +88,7 @@ import {NButton, NButtonGroup, NSkeleton, useMessage} from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useArticleStore} from "../stores/articleStore";
-import {buildContent, getWrappedContent} from '../utils/contentUtils';
+import {buildContent, getWrappedContent, resetColorIndex} from '../utils/msgGen';
 
 export default {
   name: 'Composer',
@@ -157,6 +157,7 @@ export default {
     const resetFunction = async () => {
       articleStore.selectedArticles = [];
       articleStore.editorCont = '';
+      resetColorIndex();
       await articleStore.fetchArticles('');
     };
 

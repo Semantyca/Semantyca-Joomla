@@ -1,6 +1,8 @@
 import Handlebars from 'handlebars';
 import {useTemplateStore} from "../stores/templateStore";
 
+const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
+let colorIndex = 0;
 export const getWrappedContent = (content) => {
     const templateStore = useTemplateStore();
     let template = Handlebars.compile(templateStore.doc.wrapper);
@@ -10,6 +12,7 @@ export const getWrappedContent = (content) => {
     return template(data);
 }
 export const buildContent = (currentDateFormatted, currentYear, selectedArticles) => {
+    resetColorIndex();
     const templateStore = useTemplateStore();
     let articles = [];
     selectedArticles.forEach((article) => {
@@ -26,7 +29,7 @@ export const buildContent = (currentDateFormatted, currentYear, selectedArticles
             url: url,
             intro: intro,
             category: category,
-            backgroundColor: getRandomWebSafeColor()
+            backgroundColor: getSequentialColor()
         };
         articles.push(articleObj);
     });
@@ -46,6 +49,16 @@ export const buildContent = (currentDateFormatted, currentYear, selectedArticles
     };
     return template(data);
 };
+
+export const resetColorIndex = () => {
+    colorIndex = 0;
+}
+
+const getSequentialColor = () => {
+    const color = colorList[colorIndex];
+    colorIndex = (colorIndex + 1) % colorList.length;
+    return color;
+}
 
 const getRandomWebSafeColor = () => {
     const safeValues = [0, 51, 102, 153, 204, 255];

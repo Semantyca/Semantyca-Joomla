@@ -3,15 +3,26 @@
     <div class="container mt-3">
       <div class="row">
         <div class="col-3 d-flex align-items-center">
-          <n-form-item label="Template name" path="groupName" class="w-100">
-            <n-input v-model:value="formValue.templateName"
-                     disabled
-                     size="large"
-                     style="width: 100%"
-                     id="templateName"
-                     type="text"
-                     placeholder="Template name"/>
-          </n-form-item>
+          <n-space vertical>
+            <n-form-item label="Template name" path="templateName" class="w-100">
+
+              <n-input v-model:value="formValue.templateName"
+                       disabled
+                       size="large"
+                       style="width: 100%"
+                       id="templateName"
+                       type="text"
+                       placeholder="Template name"/>
+            </n-form-item>
+            <n-form-item label="Colors" path="colors" class="w-100">
+              <n-input v-model:value="formValue.permittedColor"
+                       disabled
+                       size="large"
+                       style="width: 100%"
+                       id="permittedColor"
+                       type="text"/>
+            </n-form-item>
+          </n-space>
         </div>
       </div>
       <div class="row">
@@ -72,7 +83,8 @@ export default {
 
     const formValue = ref({
       templateName: '',
-      permittedColor: [],
+      permittedColor: ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'],
+      permittedColorAdd: ['#053682'],
     });
 
     const templateEditorConfig = {
@@ -117,9 +129,11 @@ export default {
       templateName: {
         required: true,
         message: 'Template name cannot be empty'
+      },
+      colors: {
+        required: false
       }
     };
-
 
 
     return {
