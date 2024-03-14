@@ -25,7 +25,7 @@ const titleFontFamily = 'Arial';
                         <%= currentDateFormatted %>
                     </td>
                 </tr>
-                <% for(let i = 0; i < articles.length && i < maxArticles; i++) { %>
+                <% for(let i = 0; i < articles.length; i++) { %>
                     <% const article = articles[i]; %>
                     <% const backgroundColor = colorList[i % colorList.length]; %>
                     <!-- Dynamic -->
@@ -69,11 +69,15 @@ const titleFontFamily = 'Arial';
                                     <td height="<%= spacerHeight %>"></td>
                                 </tr>
                             </table>
-                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
-                                <tr>
-                                    <td><%= article.intro %></td>
-                                </tr>
-                            </table>
+                            <!-- If it is  less than 5 it will print the content of the article-->
+                            <% if(i < 5) { %>
+                                <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                                    <tr>
+                                        <td><%- article.intro %></td>
+
+                                    </tr>
+                                </table>
+                            <% } %>
                         </td>
                     </tr>
                 <% } %>
