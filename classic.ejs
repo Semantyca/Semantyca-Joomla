@@ -1,0 +1,114 @@
+<%
+const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
+const spacerWidth = 0;
+const spacerCellSpacing = 0;
+const spacerCellPadding = 0;
+const spacerBorder = 0;
+const spacerHeight = 0;
+const titleFontSize = 10;
+const titleFontFamily = 'Arial';
+%>
+
+<table width="100%" cellspacing="0" cellpadding="0" border="0">
+    <tr>
+        <td width="10">&nbsp;</td>
+        <td>
+            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                <!-- Image row -->
+                <tr>
+                    <td>
+                        <img src="<%= bannerUrl %>" alt="banner" width="100%">
+                    </td>
+                </tr>
+                <tr>
+                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;">
+                        <%= currentDateFormatted %>
+                    </td>
+                </tr>
+                <% for(let i = 0; i < articles.length && i < maxArticles; i++) { %>
+                    <% const article = articles[i]; %>
+                    <% const backgroundColor = colorList[i % colorList.length]; %>
+                    <!-- Dynamic -->
+                    <tr>
+                        <td>
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                                <tr>
+                                    <td width="3">&nbsp;</td>
+                                    <td valign="middle">
+                                        <table width="100%" cellspacing="0" cellpadding="5" border="0">
+                                            <tr>
+                                                <td bgcolor="<%= backgroundColor %>"
+                                                    style="color: #FFFFFF; font-size: 22px;">
+                                                    <%= article.category %>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td>&nbsp;</td>
+                                </tr>
+                            </table>
+                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
+                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                                <tr>
+                                    <td height="<%= spacerHeight %>"></td>
+                                </tr>
+                            </table>
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                                <tr>
+                                    <td>
+                                        <a href="<%= article.url %>"
+                                           style="font-size: <%= titleFontSize %>; text-decoration: none; font-family: <%= titleFontFamily %>;">
+                                            <%= article.title %>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
+                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                                <tr>
+                                    <td height="<%= spacerHeight %>"></td>
+                                </tr>
+                            </table>
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                                <tr>
+                                    <td><%= article.intro %></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                <% } %>
+                <!-- Footer content row -->
+                <tr>
+                    <td>
+                        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td style="padding:5px;">&nbsp;</td>
+                            </tr>
+                            <tr>
+                                <td style="font-size: 14px; border-top: 1px solid #003399;">&copy; <%= currentYear %>,
+                                    European Maritime Safety Agency
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td width="10">&nbsp;</td>
+    </tr>
+</table>
+<!-- Ending -->
+<table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>" cellpadding="<%= spacerCellPadding %>"
+       border="<%= spacerBorder %>">
+    <tr>
+        <td height="<%= spacerHeight %>">&nbsp;</td>
+    </tr>
+</table>
+<table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+    <tr>
+        <td bgcolor="#101B1E" width="5">&nbsp;</td>
+        <td style="font-size: 25px; color: #FFFFFF" bgcolor="#101B1E">
+            Other News
+        </td>
+    </tr>
+</table>

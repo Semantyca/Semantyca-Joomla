@@ -108,6 +108,10 @@ module.exports = {
         alias: {
             vue$: 'vue/dist/vue.esm-bundler.js',
         },
-        extensions: ['.js', '.vue', '.json']
+        extensions: ['.js', '.vue', '.json'],
+        fallback: {
+            "fs": false, // No direct browser equivalent
+            "path": require.resolve("path-browserify"), // Fallback to path-browserify for browser environment
+        }
     },
 };

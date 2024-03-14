@@ -5,7 +5,6 @@
         <div class="col-3 d-flex align-items-center">
           <n-space vertical>
             <n-form-item label="Template name" path="templateName" class="w-100">
-
               <n-input v-model:value="formValue.templateName"
                        disabled
                        size="large"
@@ -32,14 +31,17 @@
       </div>
       <div class="row">
         <div class="col">
-          <editor
-              :api-key="globalStore.tinyMceLic"
-              :init="templateEditorConfig"
-              v-model="store.doc.html"></editor>
+          <n-input
+              size="large"
+              type="textarea"
+              v-model:value="store.doc.html"
+              autosize
+              placeholder="Enter template content here..."
+          ></n-input>
         </div>
       </div>
       <div class="row mt-3">
-        <div class="col  d-flex align-items-center">
+        <div class="col d-flex align-items-center">
           <n-button-group>
             <n-button type="primary"
                       size="large"
@@ -63,7 +65,7 @@ import {onMounted, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
-import {NButton, NButtonGroup, NForm, NFormItem, NInput, useMessage} from "naive-ui";
+import {NButton, NButtonGroup, NForm, NFormItem, NInput, NSpace, useMessage} from "naive-ui";
 
 const TEMPLATE_SPINNER = 'loadingSpinner';
 export default {
@@ -75,6 +77,7 @@ export default {
     NInput,
     NForm,
     NFormItem,
+    NSpace
   },
 
   setup() {
@@ -87,15 +90,6 @@ export default {
       permittedColorAdd: ['#053682'],
     });
 
-    const templateEditorConfig = {
-      model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
-      skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
-      content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
-      menubar: false,
-      statusbar: false,
-      plugins: 'code',
-      toolbar: 'code'
-    };
     const message = useMessage();
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
@@ -139,7 +133,6 @@ export default {
     return {
       globalStore,
       store,
-      templateEditorConfig,
       saveTemplate,
       cancelTemplate,
       rules,

@@ -1,93 +1,78 @@
-import Handlebars from 'handlebars';
+import ejs from 'ejs';
 import {useTemplateStore} from "../stores/templateStore";
 
-const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
-let colorIndex = 0;
-export const getWrappedContent = (content) => {
-    const templateStore = useTemplateStore();
-    let template = Handlebars.compile(templateStore.doc.wrapper);
-    let data = {
-        content: content
-    };
-    return template(data);
-}
-export const buildContent = (currentDateFormatted, currentYear, selectedArticles) => {
-    resetColorIndex();
-    const templateStore = useTemplateStore();
-    let articles = [];
-    selectedArticles.forEach((article) => {
-        const articleId = article.id;
-        const title = article.title;
-        const url = normalizeUrl(article.url);
-        let htmlContent = decodeURIComponent(article.intro);
-        let intro = makeImageUrlsAbsolute(htmlContent);
-        const category = article.category;
-
-        let articleObj = {
-            id: articleId,
-            title: title,
-            url: url,
-            intro: intro,
-            category: category,
-            backgroundColor: getSequentialColor()
-        };
-        articles.push(articleObj);
-    });
-
-    Handlebars.registerHelper('lt', function (value1, value2) {
-        return value1 < value2;
-    });
-
-    let template = Handlebars.compile(templateStore.doc.html);
-    let data = {
-        bannerUrl: templateStore.doc.banner,
-        currentDateFormatted: currentDateFormatted,
-        currentYear: currentYear,
-        articles: articles,
-        maxArticles: templateStore.doc.maxArticles,
-        maxArticlesShort: templateStore.doc.maxArticlesShort
-    };
-    return template(data);
-};
-
-export const resetColorIndex = () => {
-    colorIndex = 0;
-}
-
-const getSequentialColor = () => {
-    const color = colorList[colorIndex];
-    colorIndex = (colorIndex + 1) % colorList.length;
-    return color;
-}
-
-const getRandomWebSafeColor = () => {
-    const safeValues = [0, 51, 102, 153, 204, 255];
-    const red = safeValues[Math.floor(Math.random() * safeValues.length)];
-    const green = safeValues[Math.floor(Math.random() * safeValues.length)];
-    const blue = safeValues[Math.floor(Math.random() * safeValues.length)];
-    return `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`;
-}
-
-const makeImageUrlsAbsolute = (articleHtml) => {
+const makeImageUrlsAbsolute = (htmlContent) => {
     let parser = new DOMParser();
-    let htmlDoc = parser.parseFromString(articleHtml, 'text/html');
-    let images = htmlDoc.getElementsByTagName('img');
-
-    for (let img of images) {
-        let currentSrc = img.src;
-        img.src = normalizeUrl(currentSrc);
+    let doc = parser.parseFromString(htmlContent, 'text/html');
+    doc.querySelectorAll('img').forEach(img => {
+        img.src = normalizeUrl(img.src);
         img.removeAttribute('loading');
         img.removeAttribute('data-path');
-    }
-
-    return htmlDoc.body.innerHTML;
-}
-
+    });
+    return doc.body.innerHTML;
+};
 
 const normalizeUrl = (url) => {
-    if (url.includes('/administrator/')) {
-        return url.replace('/administrator', '');
-    }
-    return url;
+    return url.includes('/administrator/') ? url.replace('/administrator', '') : url;
+};
+
+export const getWrappedContent = (content) => {
+    const templateStore = useTemplateStore();
+    const data = {content};
+    const wrapperTemplateString = templateStore.doc.wrapper
+        .replace(/&lt;%/g, '<%')
+        .replace(/%&gt;/g, '%>');
+    //const wrapperTemplateString =  templateStore.doc.wrapper;
+    return ejs.render(wrapperTemplateString, data);
+};
+
+export const buildContent = (currentDateFormatted, currentYear, selectedArticles) => {
+    const templateStore = useTemplateStore();
+    const articles = selectedArticles.map(article => ({
+        id: article.id,
+        title: article.title,
+        url: normalizeUrl(article.url),
+        intro: makeImageUrlsAbsolute(decodeURIComponent(article.intro)),
+        category: article.category,
+    }));
+
+    const data = {
+        bannerUrl: templateStore.doc.banner,
+        currentDateFormatted,
+        currentYear,
+        articles,
+        maxArticles: templateStore.doc.maxArticles,
+        maxArticlesShort: templateStore.doc.maxArticlesShort,
+    };
+
+
+    const template = '<p>Hello, <%= currentDateFormatted %>!</p>';
+    //   const data1 = { name: 'World' };
+    //  const output = ejs.render(template, data1);
+    //   console.log('test', output); //
+    const templateString = decodeEJSTemplate(templateStore.doc.html);
+
+    // const templateString =  templateStore.doc.html;
+    console.log('template', templateString);
+
+    let r = ejs.render(templateString, data);
+    console.log(r);
+    return r;
+};
+
+function decodeEJSTemplate(templateString) {
+    // Step 1: Decode EJS tags
+    let decodedString = templateString
+        .replace(/&lt;%/g, '<%')
+        .replace(/%&gt;/g, '%>');
+
+    // Step 2: Decode common logical operators within EJS tags
+    // This includes <, >, and & within loops and conditionals
+    // Note: This regex is simplified for demonstration and might need adjustments
+    decodedString = decodedString.replace(/(<%[^%>]*?)&amp;([^%>]*?%>)/g, '$1&$2')
+        .replace(/(<%[^%>]*?)&lt;([^%>]*?%>)/g, '$1<$2')
+        .replace(/(<%[^%>]*?)&gt;([^%>]*?%>)/g, '$1>$2');
+
+    return decodedString;
 }
 
