@@ -68,6 +68,23 @@ class TemplateModel extends BaseDatabaseModel
 		$template->maxArticlesShort = $row->max_articles_short;
 		$template->wrapper          = $row->wrapper;
 
+		$customFieldsQuery = $db->getQuery(true)
+			->select('id, template_id, name, type, caption')
+			->from($db->quoteName('#__semantyca_nm_custom_fields'))
+			->where('template_id = ' . (int) $row->id);
+		$db->setQuery($customFieldsQuery);
+		$customFieldsRows = $db->loadObjectList();
+
+		foreach ($customFieldsRows as $customFieldRow)
+		{
+			$template->customFields[] = [
+				'id'      => $customFieldRow->id,
+				'name'    => $customFieldRow->name,
+				'type'    => $customFieldRow->type,
+				'caption' => $customFieldRow->caption,
+			];
+		}
+
 		if (empty($template->banner))
 		{
 			$params           = ComponentHelper::getParams(Constants::COMPONENT_NAME);
@@ -75,7 +92,6 @@ class TemplateModel extends BaseDatabaseModel
 			$imagePath        = explode('#', $defaultBanner)[0];
 			$template->banner = Uri::root() . $imagePath;
 		}
-
 
 		return $template;
 	}

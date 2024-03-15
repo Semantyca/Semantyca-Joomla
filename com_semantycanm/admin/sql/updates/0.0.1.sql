@@ -12,6 +12,21 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
+(
+    id            INT AUTO_INCREMENT,
+    reg_date      DATETIME     DEFAULT CURRENT_TIMESTAMP,
+    template_id   INT,
+    name          VARCHAR(255) NOT NULL,
+    value         VARCHAR(255) NOT NULL,
+    type          INT          DEFAULT -1,
+    caption       VARCHAR(255) NOT NULL,
+    default_value VARCHAR(255) DEFAULT '',
+    PRIMARY KEY (id),
+    CONSTRAINT `fk_semantyca_nm_template` FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE,
+    UNIQUE KEY `unique_type_name` (type, name)
+) ENGINE = InnoDB;
+
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list`
 (
     id       INT AUTO_INCREMENT,

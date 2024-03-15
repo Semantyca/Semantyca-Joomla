@@ -12,6 +12,7 @@ class TemplateDTO
 	public $content;
 	public $banner;
 	public $wrapper;
+	public $customFields = []; // Added customFields as an empty array by default
 
 	public function toArray()
 	{
@@ -20,9 +21,10 @@ class TemplateDTO
 			'name'             => $this->name,
 			'maxArticles'      => $this->maxArticles,
 			'maxArticlesShort' => $this->maxArticlesShort,
-			'content' => $this->content,
-			'banner'  => $this->banner,
-			'wrapper' => $this->wrapper
+			'content'      => $this->content,
+			'banner'       => $this->banner,
+			'wrapper'      => $this->wrapper,
+			'customFields' => $this->customFields // Include customFields in the array representation
 		];
 	}
 }

@@ -9,7 +9,8 @@ export const useTemplateStore = defineStore('template', {
             maxArticlesShort: '',
             html: '',
             banner: '',
-            wrapper: ''
+            wrapper: '',
+            customFields: []
         }
     }),
     actions: {
@@ -29,6 +30,7 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.html = data.content;
                 this.doc.banner = data.banner;
                 this.doc.wrapper = data.wrapper;
+                this.doc.customFields = data.customFields;
             } catch (error) {
                 message.error(error.message);
             } finally {

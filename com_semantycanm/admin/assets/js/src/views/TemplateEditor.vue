@@ -13,31 +13,27 @@
                        type="text"
                        placeholder="Template name"/>
             </n-form-item>
-            <n-form-item label="Colors" path="colors" class="w-100">
-              <n-input v-model:value="formValue.permittedColor"
-                       disabled
-                       size="large"
-                       style="width: 100%"
-                       id="permittedColor"
-                       type="text"/>
-            </n-form-item>
           </n-space>
         </div>
       </div>
       <div class="row">
         <div class="col">
-          <h3>{{ globalStore.translations.TEMPLATE }}</h3>
+          <n-data-table
+              remote
+              size="large"
+              :columns="columns"
+              :data="store.doc.customFields"
+              :bordered="false"
+          />
         </div>
       </div>
-      <div class="row">
+      <div class="row mt-5">
         <div class="col">
-          <n-input
-              size="large"
-              type="textarea"
-              v-model:value="store.doc.html"
-              autosize
-              placeholder="Enter template content here..."
-          ></n-input>
+          <code-mirror v-model="store.doc.html"
+                       basic
+                       :lang="lang"
+                       :dark="dark"
+          />
         </div>
       </div>
       <div class="row mt-3">
@@ -61,11 +57,13 @@
 </template>
 
 <script>
-import {onMounted, ref, watch} from 'vue';
+import {h, onMounted, reactive, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
-import {NButton, NButtonGroup, NForm, NFormItem, NInput, NSpace, useMessage} from "naive-ui";
+import {NButton, NButtonGroup, NDataTable, NForm, NFormItem, NInput, NSpace, useMessage} from "naive-ui";
+import CodeMirror from 'vue-codemirror6';
+import {html} from '@codemirror/lang-html';
 
 const TEMPLATE_SPINNER = 'loadingSpinner';
 export default {
@@ -77,25 +75,28 @@ export default {
     NInput,
     NForm,
     NFormItem,
-    NSpace
+    NSpace,
+    CodeMirror,
+    NDataTable,
   },
 
   setup() {
     const globalStore = useGlobalStore();
     const store = useTemplateStore();
-
+    const lang = html();
+    const dark = ref(false);
     const formValue = ref({
-      templateName: '',
-      permittedColor: ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'],
-      permittedColorAdd: ['#053682'],
+      templateName: ''
     });
-
+    const state = reactive({
+      values: []
+    });
     const message = useMessage();
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
       await store.saveTemplate(store.doc.id, store.doc.html,
           () => {
-            console.log('Template saved successfully');
+            message.info('Template saved successfully');
             stopLoading(TEMPLATE_SPINNER);
           },
           (error) => {
@@ -129,6 +130,34 @@ export default {
       }
     };
 
+    const createColumns = () => {
+      return [
+        {
+          title: 'Variable name',
+          key: 'name'
+        },
+        {
+          title: 'Type',
+          key: 'type'
+        },
+        {
+          title: 'Caption',
+          key: 'caption'
+        },
+        {
+          title: 'Value',
+          key: 'value',
+          render(row, index) {
+            return h(NInput, {
+              value: row.value,
+              onUpdateValue(v) {
+                state.value[index] = v;
+              }
+            });
+          }
+        }
+      ];
+    };
 
     return {
       globalStore,
@@ -136,7 +165,10 @@ export default {
       saveTemplate,
       cancelTemplate,
       rules,
-      formValue
+      columns: createColumns(),
+      formValue,
+      lang,
+      dark
     };
   }
 }
