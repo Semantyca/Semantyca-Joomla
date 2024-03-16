@@ -69,7 +69,7 @@ class TemplateModel extends BaseDatabaseModel
 		$template->wrapper          = $row->wrapper;
 
 		$customFieldsQuery = $db->getQuery(true)
-			->select('id, template_id, name, type, caption')
+			->select('id, template_id, name, value, type, caption, default_value, is_available')
 			->from($db->quoteName('#__semantyca_nm_custom_fields'))
 			->where('template_id = ' . (int) $row->id);
 		$db->setQuery($customFieldsQuery);
@@ -78,10 +78,13 @@ class TemplateModel extends BaseDatabaseModel
 		foreach ($customFieldsRows as $customFieldRow)
 		{
 			$template->customFields[] = [
-				'id'      => $customFieldRow->id,
-				'name'    => $customFieldRow->name,
-				'type'    => $customFieldRow->type,
-				'caption' => $customFieldRow->caption,
+				'id'           => $customFieldRow->id,
+				'name'         => $customFieldRow->name,
+				'value'        => $customFieldRow->value,
+				'type'         => $customFieldRow->type,
+				'caption'      => $customFieldRow->caption,
+				'defaultValue' => $customFieldRow->default_value,
+				'isAvailable'  => $customFieldRow->is_available,
 			];
 		}
 

@@ -1,12 +1,10 @@
 <%
 const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
-const spacerWidth = 0;
-const spacerCellSpacing = 0;
-const spacerCellPadding = 0;
-const spacerBorder = 0;
-const spacerHeight = 0;
-const titleFontSize = 10;
-const titleFontFamily = 'Arial';
+const bannerUrl = 'images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44';
+//const articles = []; // This gets populated itself
+const currentYear = new Date().getFullYear();
+const currentDateFormatted = `${new Date().toLocaleString('default', {month: 'long'}).toUpperCase()} ${currentYear}`;
+const maxContentDisplay = 5; // Display content for the first 5 articles only
 %>
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -21,9 +19,7 @@ const titleFontFamily = 'Arial';
                     </td>
                 </tr>
                 <tr>
-                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;">
-                        <%= currentDateFormatted %>
-                    </td>
+                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;"><%= currentDateFormatted %></td>
                 </tr>
                 <% for(let i = 0; i < articles.length; i++) { %>
                     <% const article = articles[i]; %>
@@ -47,34 +43,30 @@ const titleFontFamily = 'Arial';
                                     <td>&nbsp;</td>
                                 </tr>
                             </table>
-                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
-                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                            <table width="0" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td height="<%= spacerHeight %>"></td>
+                                    <td height="0"></td>
                                 </tr>
                             </table>
                             <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
                                 <tr>
                                     <td>
                                         <a href="<%= article.url %>"
-                                           style="font-size: <%= titleFontSize %>; text-decoration: none; font-family: <%= titleFontFamily %>;">
+                                           style="font-size: 12; text-decoration: none; font-family: serif;">
                                             <%= article.title %>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
-                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
-                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                            <table width="0" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td height="<%= spacerHeight %>"></td>
+                                    <td height="0"></td>
                                 </tr>
                             </table>
-                            <!-- If it is  less than 5 it will print the content of the article-->
-                            <% if(i < 5) { %>
+                            <% if(i < maxContentDisplay) { %>
                                 <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
                                     <tr>
                                         <td><%- article.intro %></td>
-
                                     </tr>
                                 </table>
                             <% } %>
@@ -102,10 +94,10 @@ const titleFontFamily = 'Arial';
     </tr>
 </table>
 <!-- Ending -->
-<table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>" cellpadding="<%= spacerCellPadding %>"
-       border="<%= spacerBorder %>">
+<table width="0" cellspacing="0" cellpadding="0"
+       border="0">
     <tr>
-        <td height="<%= spacerHeight %>">&nbsp;</td>
+        <td height="0">&nbsp;</td>
     </tr>
 </table>
 <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">

@@ -1,33 +1,45 @@
 <template>
+  <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
   <n-form inline ref="formRef" :rules="rules" :model="formValue">
-    <div class="container mt-3">
+    <div class="container">
       <div class="row">
-        <div class="col-3 d-flex align-items-center">
-          <n-space vertical>
-            <n-form-item label="Template name" path="templateName" class="w-100">
-              <n-input v-model:value="formValue.templateName"
-                       disabled
-                       size="large"
-                       style="width: 100%"
-                       id="templateName"
-                       type="text"
-                       placeholder="Template name"/>
-            </n-form-item>
-          </n-space>
+        <div class="col-8">
+          <n-form-item label="Template name" label-placement="left" path="templateName" class="w-100">
+            <n-input v-model:value="formValue.templateName"
+                     disabled
+                     size="large"
+                     style="width: 100%"
+                     id="templateName"
+                     type="text"
+                     placeholder="Template name"/>
+          </n-form-item>
         </div>
       </div>
+      <n-divider title-placement="left">Custom fields</n-divider>
       <div class="row">
-        <div class="col">
-          <n-data-table
-              remote
-              size="large"
-              :columns="columns"
-              :data="store.doc.customFields"
-              :bordered="false"
-          />
+        <div class="col-8">
+          <n-form-item
+              label-placement="left"
+              require-mark-placement="right-hanging"
+              label-width="auto"
+              :style="{
+                    maxWidth: '800px'
+                }"
+              v-for="(field, index) in customFields"
+              :key="field.id"
+              :label="field.caption"
+          >
+            <n-input v-model:value="field.value"/>&nbsp;
+            <n-input v-model:value="field.name"/>&nbsp;
+            <n-select v-model:value="field.type" :options="options"/>&nbsp;&nbsp;
+            <n-checkbox :checked="field.isAvailable === 1"
+                        @update:checked="value => updateFieldIsAvailable(index, value)"/>
+
+          </n-form-item>
         </div>
       </div>
-      <div class="row mt-5">
+      <n-divider title-placement="left">Template source</n-divider>
+      <div class="row">
         <div class="col">
           <code-mirror v-model="store.doc.html"
                        basic
@@ -57,11 +69,22 @@
 </template>
 
 <script>
-import {h, onMounted, reactive, ref, watch} from 'vue';
+import {computed, onMounted, reactive, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
-import {NButton, NButtonGroup, NDataTable, NForm, NFormItem, NInput, NSpace, useMessage} from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NCheckbox,
+  NDivider,
+  NForm,
+  NFormItem,
+  NInput,
+  NSelect,
+  NSpace,
+  useMessage
+} from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 
@@ -73,14 +96,17 @@ export default {
     NButton,
     NButtonGroup,
     NInput,
+    NSelect,
+    NCheckbox,
     NForm,
     NFormItem,
     NSpace,
     CodeMirror,
-    NDataTable,
+    NDivider
   },
 
   setup() {
+    const formRef = ref(null);
     const globalStore = useGlobalStore();
     const store = useTemplateStore();
     const lang = html();
@@ -88,10 +114,32 @@ export default {
     const formValue = ref({
       templateName: ''
     });
-    const state = reactive({
-      values: []
-    });
     const message = useMessage();
+
+    const customFields = computed(() => store.doc.customFields);
+
+    const formRules = reactive({
+      'fields': [
+        {required: true, message: 'This field is required', trigger: 'blur'}
+      ]
+    });
+
+    onMounted(async () => {
+      await store.getTemplate('classic', message);
+    });
+
+    watch(() => store.doc.name, (newName) => {
+      formValue.value.templateName = newName;
+    }, {
+      immediate: true
+    });
+
+    const updateFieldIsAvailable = (index, value) => {
+      // Assuming `customFields` is reactive and directly modifies the store's state
+      store.doc.customFields[index].isAvailable = value ? 1 : 0;
+    };
+
+
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
       await store.saveTemplate(store.doc.id, store.doc.html,
@@ -106,15 +154,6 @@ export default {
       );
     };
 
-    onMounted(async () => {
-      await store.getTemplate('classic', message);
-    });
-
-    watch(() => store.doc.name, (newName) => {
-      formValue.value.templateName = newName;
-    }, {
-      immediate: true
-    });
 
     const cancelTemplate = async () => {
 
@@ -130,46 +169,35 @@ export default {
       }
     };
 
-    const createColumns = () => {
-      return [
-        {
-          title: 'Variable name',
-          key: 'name'
-        },
-        {
-          title: 'Type',
-          key: 'type'
-        },
-        {
-          title: 'Caption',
-          key: 'caption'
-        },
-        {
-          title: 'Value',
-          key: 'value',
-          render(row, index) {
-            return h(NInput, {
-              value: row.value,
-              onUpdateValue(v) {
-                state.value[index] = v;
-              }
-            });
-          }
-        }
-      ];
-    };
+    const typeOptions = [
+      {label: "Number", value: 501},
+      {label: "String", value: 502},
+      {label: "List of Colors", value: 503},
+      {label: "URL", value: 504},
+    ];
 
     return {
       globalStore,
       store,
       saveTemplate,
       cancelTemplate,
+      updateFieldIsAvailable,
       rules,
-      columns: createColumns(),
       formValue,
+      customFields,
       lang,
-      dark
+      dark,
+      formRef,
+      formRules,
+      options: typeOptions
     };
   }
 }
 </script>
+
+<style>
+
+.n-divider:not(.n-divider--dashed) .n-divider__line {
+  background-color: #a1bce0;
+}
+</style>

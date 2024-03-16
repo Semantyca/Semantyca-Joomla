@@ -1,9 +1,10 @@
 <template>
+  <n-divider title-placement="left">User Groups</n-divider>
   <n-form inline ref="formRef" :rules="rules" :model="formValue">
     <div class="container mt-3">
       <div class="row">
         <div class="col">
-          <h3>{{ globalStore.translations.AVAILABLE_USER_GROUPS }}</h3>
+          <!--          <h3>{{ globalStore.translations.AVAILABLE_USER_GROUPS }}</h3>-->
           <draggable v-model="formValue.availableGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -13,7 +14,7 @@
           </draggable>
         </div>
         <div class="col">
-          <h3>{{ globalStore.translations.SELECTED_USER_GROUPS }}</h3>
+          <!--          <h3>{{ globalStore.translations.SELECTED_USER_GROUPS }}</h3>-->
           <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -49,11 +50,12 @@
           </n-button-group>
         </div>
       </div>
-      <div class="row mt-3">
-        <div class="col">
-          <h3>{{ globalStore.translations.MAILING_LISTS }}</h3>
-        </div>
-      </div>
+      <n-divider title-placement="left">Available Mailing Lists</n-divider>
+      <!--      <div class="row mt-3">
+              <div class="col">
+                <h3>{{ globalStore.translations.MAILING_LISTS }}</h3>
+              </div>
+            </div>-->
       <div class="row">
         <div class="col">
           <n-data-table
@@ -80,6 +82,7 @@ import {
   NButton,
   NButtonGroup,
   NDataTable,
+  NDivider,
   NForm,
   NFormItem,
   NFormItemGi,
@@ -107,6 +110,7 @@ export default {
     NForm,
     NFormItem,
     NFormItemGi,
+    NDivider,
     draggable
   },
   setup() {

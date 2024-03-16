@@ -1,9 +1,28 @@
 <template>
+  <n-divider title-placement="left">Parameters</n-divider>
+  <div class="row">
+    <div class="col-8">
+      <n-form-item
+          label-placement="left"
+          require-mark-placement="right-hanging"
+          label-width="auto"
+          :style="{
+                    maxWidth: '800px'
+                }"
+          v-for="(field, index) in availableCustomFields"
+          :key="field.id"
+          :label="field.caption"
+      >
+        <n-input v-model:value="field.value"/>
+      </n-form-item>
+    </div>
+  </div>
+  <n-divider class="custom-divider" title-placement="left">Articles</n-divider>
   <div class="container mt-3">
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">
-          <h3>{{ store.translations.AVAILABLE_ARTICLES }}</h3>
+          <!--          <h3>{{ store.translations.AVAILABLE_ARTICLES }}</h3>-->
           <div id="composerSpinner"
                class="spinner-border text-info spinner-grow-sm mb-2"
                role="status"
@@ -33,7 +52,7 @@
       </div>
       <div class="col-md-6">
         <div class="header-container">
-          <h3>{{ store.translations.SELECTED_ARTICLES }}</h3>
+          <!--          <h3>{{ store.translations.SELECTED_ARTICLES }}</h3>-->
         </div>
         <draggable
             class="list-group dragdrop-list"
@@ -49,6 +68,7 @@
         </draggable>
       </div>
     </div>
+    <n-divider class="custom-divider" title-placement="left">Review</n-divider>
     <div class="row mt-3">
       <div class="col  d-flex align-items-center">
         <n-button-group>
@@ -79,12 +99,12 @@
 </template>
 
 <script>
-import {onMounted, ref} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
-import {NButton, NButtonGroup, NSkeleton, useMessage} from "naive-ui";
+import {NButton, NButtonGroup, NDivider, NFormItem, NInput, NSkeleton, useMessage} from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useArticleStore} from "../stores/articleStore";
@@ -97,6 +117,9 @@ export default {
     NSkeleton,
     NButton,
     NButtonGroup,
+    NDivider,
+    NFormItem,
+    NInput,
     draggable
   },
 
@@ -117,6 +140,7 @@ export default {
     const templateStore = useTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
+    const availableCustomFields = computed(() => templateStore.doc.customFields);
 
     const composerEditorConfig = {
       apiKey: store.tinymceLic,
@@ -194,6 +218,7 @@ export default {
       onDragEnd,
       isLoading,
       store,
+      availableCustomFields,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,

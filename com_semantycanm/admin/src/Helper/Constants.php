@@ -21,7 +21,7 @@ class Constants
 	const FIELD_TYPE_NUMBER = 501;
 	const FILED_TYPE_STRING = 502;
 	const FIELD_TYPE_STRING_LIST = 503;
-	const FIELD_TYPE_MACRO = 504;
+	const FIELD_TYPE_URL = 504;
 
 
 }

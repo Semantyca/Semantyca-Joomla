@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
     type          INT          DEFAULT -1,
     caption       VARCHAR(255) NOT NULL,
     default_value VARCHAR(255) DEFAULT '',
+    is_available BOOL DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT `fk_semantyca_nm_template` FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE,
     UNIQUE KEY `unique_type_name` (type, name)
