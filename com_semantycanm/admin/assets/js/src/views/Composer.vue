@@ -13,7 +13,12 @@
           :key="field.id"
           :label="field.caption"
       >
-        <n-input v-model:value="field.value"/>
+        <div v-for="(colorObject, index) in editableColors" :key="index">
+          <n-color-picker v-model:value="colorObject.value"
+                          :show-alpha="false"
+                          @update:value="handleColorChange"
+                          style="margin-right: 5px; width: 80px"/>
+        </div>
       </n-form-item>
     </div>
   </div>
@@ -98,17 +103,27 @@
   </div>
 </template>
 
-<script>
-import {computed, onMounted, ref} from 'vue';
+<script>import {computed, onMounted, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
-import {NButton, NButtonGroup, NDivider, NFormItem, NInput, NSkeleton, useMessage} from "naive-ui";
+import {
+  NButton,
+  NButtonGroup,
+  NColorPicker,
+  NDivider,
+  NFormItem,
+  NInput,
+  NSelect,
+  NSkeleton,
+  NTag,
+  useMessage
+} from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useArticleStore} from "../stores/articleStore";
-import {buildContent, getWrappedContent} from '../utils/msgGen';
+import DynamicBuilder from "../utils/DynamicBuilder"
 
 export default {
   name: 'Composer',
@@ -120,6 +135,9 @@ export default {
     NDivider,
     NFormItem,
     NInput,
+    NSelect,
+    NTag,
+    NColorPicker,
     draggable
   },
 
@@ -130,17 +148,21 @@ export default {
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
     const activeTabName = ref('Composer');
-    const currentYear = new Date().getFullYear();
-    const currentMonth = new Date().toLocaleString('default', {
-      month: 'long'
-    }).toUpperCase();
-    const currentDateFormatted = `${currentMonth} ${currentYear}`;
     const articleStore = useArticleStore();
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
-    const availableCustomFields = computed(() => templateStore.doc.customFields);
+    const availableCustomFields = computed(() => {
+      return templateStore.doc.customFields.filter(field => field.isAvailable === 1);
+    });
+    //const availableCustomFields = computed(() => templateStore.doc.customFields);
+    const editableColors = ref([]);
+
+    const knownIndex = ref(0); //
+    const dynamicBuilder = new DynamicBuilder(templateStore.doc);
+
+
 
     const composerEditorConfig = {
       apiKey: store.tinymceLic,
@@ -169,14 +191,24 @@ export default {
       try {
         await articleStore.fetchArticles('');
         await templateStore.getTemplate('classic', message);
+        // Now that data is fetched, you can safely parse colors
+        parseColors(); // Consider moving this inside your watch or directly here if appropriate
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
     });
 
+
     const onDragEnd = () => {
-      articleStore.editorCont = buildContent(currentDateFormatted, currentYear, articleStore.selectedArticles);
+      const colors = editableColors.value.map(colorObject => colorObject.value);
+      console.log('colors', colors)
+      dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
+      dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
+      dynamicBuilder.addVariable("maxContentDisplay", 5);
+      dynamicBuilder.addVariable("colorList", colors);
+      articleStore.editorCont = dynamicBuilder.buildContent();
     };
+
 
     const resetFunction = async () => {
       articleStore.selectedArticles = [];
@@ -186,7 +218,7 @@ export default {
     };
 
     const copyContentToClipboard = () => {
-      const completeHTML = getWrappedContent(articleStore.editorCont);
+      const completeHTML = dynamicBuilder.getWrappedContent(articleStore.editorCont);
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
       document.body.appendChild(tempTextArea);
@@ -201,11 +233,62 @@ export default {
     };
 
     const next = () => {
-      const messageContent = getWrappedContent(articleStore.editorCont);
+      const messageContent = dynamicBuilder.getWrappedContent(articleStore.editorCont);
       newsLetterStore.currentNewsletterId = 0;
       emit('content-changed', messageContent);
       emit('change-tab', 'Newsletter');
     };
+
+
+    const parseColors = () => {
+      if (availableCustomFields.value.length > 0 && availableCustomFields.value.length > knownIndex.value) {
+        editableColors.value = availableCustomFields.value[knownIndex.value].defaultValue.split(',').map(color => ({value: color}));
+      } else {
+        console.log("Data not ready or index out of bounds");
+      }
+    };
+
+    const handleColorChange = () => {
+      // Extract color values from editableColors
+      const colors = editableColors.value.map(colorObject => colorObject.value);
+      console.log('colors', colors);
+
+      // Updating dynamicBuilder with the new color list and other variables
+      dynamicBuilder.addVariable("colorList", colors);
+      dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
+      dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
+      dynamicBuilder.addVariable("maxContentDisplay", 5);
+
+      // Regenerate the content
+      articleStore.editorCont = dynamicBuilder.buildContent();
+    };
+
+
+    watch([() => availableCustomFields, knownIndex], () => {
+      parseColors();
+    });
+
+    /* watch(editableColors, (newVal, oldVal) => {
+       // This function runs whenever editableColors changes.
+       // It maps over editableColors to extract the color values.
+       const colors = editableColors.value.map(colorObject => colorObject.value);
+       console.log('colors', colors);
+
+       // Update dynamicBuilder with the new color list
+       dynamicBuilder.addVariable("colorList", colors);
+
+       // Assuming other variables (articles, bannerUrl, maxContentDisplay) do not change here,
+       // or are already set elsewhere and don't need to be reset every time a color changes.
+       // If they do change and need to be included here, uncomment and adjust as necessary.
+       // dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
+       // dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
+       // dynamicBuilder.addVariable("maxContentDisplay", 5);
+
+       // Finally, regenerate the content.
+       articleStore.editorCont = dynamicBuilder.buildContent();
+     }, {
+       deep: true // This option is necessary to watch inside arrays or objects
+     });*/
 
     const fetchArticlesDebounced = debounce(articleStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {
@@ -225,10 +308,11 @@ export default {
       composerEditorConfig,
       activeTabName,
       debouncedFetchArticles,
-      getWrappedContent,
       resetFunction,
       copyContentToClipboard,
       next,
+      editableColors,
+      handleColorChange
     };
   }
 };

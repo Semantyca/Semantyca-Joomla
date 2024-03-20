@@ -8,15 +8,12 @@ DROP TABLE IF EXISTS `#__semantyca_nm_templates`;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
-    id                 INT AUTO_INCREMENT,
-    reg_date           DATETIME DEFAULT CURRENT_TIMESTAMP,
-    type               VARCHAR(20),
-    name VARCHAR(255) UNIQUE,
-    content            MEDIUMTEXT,
-    wrapper            MEDIUMTEXT,
-    banner             VARCHAR(255),
-    max_articles       INT,
-    max_articles_short INT,
+    id       INT AUTO_INCREMENT,
+    reg_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type     VARCHAR(20),
+    name     VARCHAR(255) UNIQUE,
+    content  MEDIUMTEXT,
+    wrapper  MEDIUMTEXT,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
@@ -27,10 +24,10 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
     reg_date      DATETIME     DEFAULT CURRENT_TIMESTAMP,
     template_id   INT,
     name          VARCHAR(255) NOT NULL,
-    value         VARCHAR(255) NOT NULL,
     type          INT          DEFAULT -1,
     caption       VARCHAR(255) NOT NULL,
     default_value VARCHAR(255) DEFAULT '',
+    parameters   JSON DEFAULT (JSON_ARRAY()),
     is_available BOOL DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT `fk_semantyca_nm_template` FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE,

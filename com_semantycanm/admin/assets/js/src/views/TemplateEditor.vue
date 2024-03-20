@@ -1,4 +1,22 @@
 <template>
+  <div class="container">
+    <div class="row mt-3">
+      <n-button-group>
+        <n-button
+            type="primary"
+            @click="saveTemplate"
+        >
+          {{ globalStore.translations.SAVE }}
+        </n-button>
+        <n-button>
+          Reset
+        </n-button>
+        <n-button>
+          Info
+        </n-button>
+      </n-button-group>
+    </div>
+  </div>
   <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
   <n-form inline ref="formRef" :rules="rules" :model="formValue">
     <div class="container">
@@ -18,24 +36,36 @@
       <n-divider title-placement="left">Custom fields</n-divider>
       <div class="row">
         <div class="col-8">
-          <n-form-item
-              label-placement="left"
-              require-mark-placement="right-hanging"
-              label-width="auto"
-              :style="{
-                    maxWidth: '800px'
-                }"
-              v-for="(field, index) in customFields"
-              :key="field.id"
-              :label="field.caption"
+          <n-dynamic-input v-model:value="customFormFields"
+                           :on-create="addCustomField"
+                           item-style="margin-bottom: 0;"
+                           #="{ index }"
           >
-            <n-input v-model:value="field.value"/>&nbsp;
-            <n-input v-model:value="field.name"/>&nbsp;
-            <n-select v-model:value="field.type" :options="options"/>&nbsp;&nbsp;
-            <n-checkbox :checked="field.isAvailable === 1"
-                        @update:checked="value => updateFieldIsAvailable(index, value)"/>
-
-          </n-form-item>
+            <n-form-item :show-label="false" path="valueType">
+              <n-select v-model:value="customFormFields[index].type"
+                        :options="options"
+                        style="margin-right: 12px; width: 160px"/>
+            </n-form-item>
+            <n-form-item :show-label="false" path="variableName">
+              <n-input v-model:value="customFormFields[index].name"
+                       placeholder="Variable name"
+                       style="margin-right: 12px;"/>
+            </n-form-item>
+            <n-form-item :show-label="false" path="caption">
+              <n-input v-model:value="customFormFields[index].caption"
+                       placeholder="Caption"
+                       style="margin-right: 12px; width: 260px"/>
+            </n-form-item>
+            <n-form-item :show-label="false" path="defaultValue">
+              <n-input v-model:value="customFormFields[index].defaultValue"
+                       placeholder="Default value"
+                       style="margin-right: 12px; width: 360px"/>
+            </n-form-item>
+            <n-form-item :show-label="false" path="valueType">
+              <n-checkbox :checked="customFormFields[ index ].isAvailable === 1"
+                          @update:checked="value => updateFieldIsAvailable(index, value)"/>
+            </n-form-item>
+          </n-dynamic-input>
         </div>
       </div>
       <n-divider title-placement="left">Template source</n-divider>
@@ -69,7 +99,7 @@
 </template>
 
 <script>
-import {computed, onMounted, reactive, ref, watch} from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
@@ -78,6 +108,7 @@ import {
   NButtonGroup,
   NCheckbox,
   NDivider,
+  NDynamicInput,
   NForm,
   NFormItem,
   NInput,
@@ -102,13 +133,14 @@ export default {
     NFormItem,
     NSpace,
     CodeMirror,
-    NDivider
+    NDivider,
+    NDynamicInput
   },
 
   setup() {
     const formRef = ref(null);
     const globalStore = useGlobalStore();
-    const store = useTemplateStore();
+    const templateStore = useTemplateStore();
     const lang = html();
     const dark = ref(false);
     const formValue = ref({
@@ -116,33 +148,26 @@ export default {
     });
     const message = useMessage();
 
-    const customFields = computed(() => store.doc.customFields);
-
-    const formRules = reactive({
-      'fields': [
-        {required: true, message: 'This field is required', trigger: 'blur'}
-      ]
-    });
+    const customFormFields = computed(() => templateStore.doc.customFields);
 
     onMounted(async () => {
-      await store.getTemplate('classic', message);
+      await templateStore.getTemplate('classic', message);
     });
 
-    watch(() => store.doc.name, (newName) => {
+    watch(() => templateStore.doc.name, (newName) => {
       formValue.value.templateName = newName;
     }, {
       immediate: true
     });
 
     const updateFieldIsAvailable = (index, value) => {
-      // Assuming `customFields` is reactive and directly modifies the store's state
-      store.doc.customFields[index].isAvailable = value ? 1 : 0;
+      templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
     };
 
 
     const saveTemplate = async () => {
       startLoading(TEMPLATE_SPINNER);
-      await store.saveTemplate(store.doc.id, store.doc.html,
+      await templateStore.saveTemplate(templateStore.doc.id, templateStore.doc.html,
           () => {
             message.info('Template saved successfully');
             stopLoading(TEMPLATE_SPINNER);
@@ -159,37 +184,62 @@ export default {
 
     }
 
+    const addCustomField = () => {
+      const newField = {
+        type: 502,
+        name: '',
+        caption: '',
+        defaultValue: '',
+        isAvailable: 0
+      };
+      templateStore.addCustomField(newField);
+    };
+
+
     const rules = {
       templateName: {
         required: true,
         message: 'Template name cannot be empty'
       },
-      colors: {
-        required: false
-      }
+      defaultValue: {
+        required: true,
+        message: 'Default value cannot be empty'
+      },
+      variableName: {
+        required: true,
+        message: 'Variable name cannot be empty'
+      },
+      valueType: {
+        required: true,
+        message: 'Value type cannot be empty'
+      },
+      caption: {
+        required: true,
+        message: 'Caption cannot be empty'
+      },
     };
 
     const typeOptions = [
       {label: "Number", value: 501},
       {label: "String", value: 502},
-      {label: "List of Colors", value: 503},
+      {label: "Colors", value: 503},
       {label: "URL", value: 504},
     ];
 
     return {
       globalStore,
-      store,
+      store: templateStore,
       saveTemplate,
       cancelTemplate,
       updateFieldIsAvailable,
       rules,
       formValue,
-      customFields,
+      customFormFields,
       lang,
       dark,
       formRef,
-      formRules,
-      options: typeOptions
+      options: typeOptions,
+      addCustomField
     };
   }
 }

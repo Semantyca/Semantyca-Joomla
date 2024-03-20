@@ -14,6 +14,9 @@ export const useTemplateStore = defineStore('template', {
         }
     }),
     actions: {
+        addCustomField(newField) {
+            this.doc.customFields.push(newField);
+        },
         async getTemplate(name, message) {
             try {
                 startLoading('loadingSpinner');
@@ -25,10 +28,7 @@ export const useTemplateStore = defineStore('template', {
                 const {data} = await response.json();
                 this.doc.id = data.id;
                 this.doc.name = data.name;
-                this.doc.maxArticles = data.maxArticles;
-                this.doc.maxArticlesShort = data.maxArticlesShort;
                 this.doc.html = data.content;
-                this.doc.banner = data.banner;
                 this.doc.wrapper = data.wrapper;
                 this.doc.customFields = data.customFields;
             } catch (error) {

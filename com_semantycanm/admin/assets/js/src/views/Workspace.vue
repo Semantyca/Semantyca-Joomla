@@ -5,7 +5,7 @@
       <Lists></Lists>
     </n-tab-pane>
     <n-tab-pane name="Composer" tab="Composer">
-      <Composer @change-tab="handleChangeTab" @content-changed="handleContentChanged"></Composer>
+      <Composer></Composer>
     </n-tab-pane>
     <n-tab-pane name="Newsletter" tab="Newsletter">
       <NewsletterDashboard :messageContent="messageContent"></NewsletterDashboard>

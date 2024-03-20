@@ -46,7 +46,7 @@ class TemplateModel extends BaseDatabaseModel
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true)
-			->select('id, reg_date, name, content, banner, max_articles, max_articles_short, wrapper')
+			->select('id, reg_date, name, content, wrapper')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->where('name = ' . $db->quote($name));
 
@@ -62,14 +62,11 @@ class TemplateModel extends BaseDatabaseModel
 		$template->id               = $row->id;
 		$template->regDate          = $row->reg_date;
 		$template->content          = $row->content;
-		$template->banner = $row->banner;
 		$template->name             = $row->name;
-		$template->maxArticles      = $row->max_articles;
-		$template->maxArticlesShort = $row->max_articles_short;
 		$template->wrapper          = $row->wrapper;
 
 		$customFieldsQuery = $db->getQuery(true)
-			->select('id, template_id, name, value, type, caption, default_value, is_available')
+			->select('id, template_id, name, parameters, type, caption, default_value, is_available')
 			->from($db->quoteName('#__semantyca_nm_custom_fields'))
 			->where('template_id = ' . (int) $row->id);
 		$db->setQuery($customFieldsQuery);
@@ -80,7 +77,7 @@ class TemplateModel extends BaseDatabaseModel
 			$template->customFields[] = [
 				'id'           => $customFieldRow->id,
 				'name'         => $customFieldRow->name,
-				'value'        => $customFieldRow->value,
+				'parameters' => $customFieldRow->parameters,
 				'type'         => $customFieldRow->type,
 				'caption'      => $customFieldRow->caption,
 				'defaultValue' => $customFieldRow->default_value,
@@ -149,6 +146,7 @@ class TemplateModel extends BaseDatabaseModel
 		return $db->execute();
 	}
 
+//3.2.4.1
 	public function deleteTemplate($id)
 	{
 		$db         = $this->getDatabase();
