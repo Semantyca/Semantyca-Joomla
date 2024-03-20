@@ -1,11 +1,5 @@
 <%
 const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
-const colorList1 = ['#2E5215FF'];
-const bannerUrl = 'images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44';
-//const articles = []; // This gets populated itself
-const currentYear = new Date().getFullYear();
-const currentDateFormatted = `${new Date().toLocaleString('default', {month: 'long'}).toUpperCase()} ${currentYear}`;
-const maxContentDisplay = 5; // Display content for the first 5 articles only
 %>
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -20,18 +14,20 @@ const maxContentDisplay = 5; // Display content for the first 5 articles only
                     </td>
                 </tr>
                 <tr>
-                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;"><%= currentDateFormatted %></td>
+                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;">
+                        <%= currentDateFormatted %>
+                    </td>
                 </tr>
-                <% for(let i = 0; i < articles.length; i++) { %>
+                <% for(let i = 0; i < articles.length && i < maxArticles; i++) { %>
                     <% const article = articles[i]; %>
                     <% const backgroundColor = colorList[i % colorList.length]; %>
                     <!-- Dynamic -->
                     <tr>
                         <td>
-                            <table width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#152E52">
                                 <tr>
-                                    <td width="3">&nbsp;</td>
-                                    <td valign="middle">
+                                    <td width="3" bgcolor="#152E52">&nbsp;</td>
+                                    <td valign="middle" bgcolor="#152E52">
                                         <table width="100%" cellspacing="0" cellpadding="5" border="0">
                                             <tr>
                                                 <td bgcolor="<%= backgroundColor %>"
@@ -41,36 +37,36 @@ const maxContentDisplay = 5; // Display content for the first 5 articles only
                                             </tr>
                                         </table>
                                     </td>
-                                    <td>&nbsp;</td>
+                                    <td bgcolor="#152E52">&nbsp;</td>
                                 </tr>
                             </table>
-                            <table width="0" cellspacing="0" cellpadding="0" border="0">
+                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
+                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
                                 <tr>
-                                    <td height="0"></td>
+                                    <td height="<%= spacerHeight %>"></td>
                                 </tr>
                             </table>
                             <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
                                 <tr>
                                     <td>
                                         <a href="<%= article.url %>"
-                                           style="font-size: 12; text-decoration: none; font-family: serif;">
+                                           style="font-size: <%= titleFontSize %>; color: #152E52; text-decoration: none; font-family: <%= titleFontFamily %>;">
                                             <%= article.title %>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
-                            <table width="0" cellspacing="0" cellpadding="0" border="0">
+                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
+                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
                                 <tr>
-                                    <td height="0"></td>
+                                    <td height="<%= spacerHeight %>"></td>
                                 </tr>
                             </table>
-                            <% if(i < maxContentDisplay) { %>
-                                <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
-                                    <tr>
-                                        <td><%- article.intro %></td>
-                                    </tr>
-                                </table>
-                            <% } %>
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                                <tr>
+                                    <td><%= article.intro %></td>
+                                </tr>
+                            </table>
                         </td>
                     </tr>
                 <% } %>
@@ -95,10 +91,10 @@ const maxContentDisplay = 5; // Display content for the first 5 articles only
     </tr>
 </table>
 <!-- Ending -->
-<table width="0" cellspacing="0" cellpadding="0"
-       border="0">
+<table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>" cellpadding="<%= spacerCellPadding %>"
+       border="<%= spacerBorder %>">
     <tr>
-        <td height="0">&nbsp;</td>
+        <td height="<%= spacerHeight %>">&nbsp;</td>
     </tr>
 </table>
 <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">

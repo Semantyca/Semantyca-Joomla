@@ -5,17 +5,26 @@ export const useTemplateStore = defineStore('template', {
         doc: {
             id: 0,
             name: '',
-            maxArticles: '',
-            maxArticlesShort: '',
             html: '',
-            banner: '',
             wrapper: '',
             customFields: []
         }
     }),
     actions: {
         addCustomField(newField) {
-            this.doc.customFields.push(newField);
+            const defaultFieldStructure = {
+                name: '',
+                type: '',
+                caption: '',
+                defaultValue: '[]',
+                isAvailable: 0,
+            };
+            this.doc.customFields.push({...defaultFieldStructure, ...newField});
+        },
+        removeCustomField(index) {
+            if (index >= 0 && index < this.doc.customFields.length) {
+                this.doc.customFields.splice(index, 1);
+            }
         },
         async getTemplate(name, message) {
             try {
@@ -37,10 +46,11 @@ export const useTemplateStore = defineStore('template', {
                 stopLoading('loadingSpinner');
             }
         },
-        async saveTemplate(templateId, htmlContent, onSuccess, onError) {
-            const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(templateId)}`;
+        async saveTemplate(message) {
+            startLoading('loadingSpinner');
+            const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(this.doc.id)}`;
             const data = {
-                html: htmlContent
+                doc: this.doc
             };
 
             try {
@@ -55,11 +65,11 @@ export const useTemplateStore = defineStore('template', {
                 if (!response.ok) {
                     throw new Error(`HTTP error, status = ${response.status}`);
                 }
-
-                console.log('Template saved successfully');
-                onSuccess?.();
+                message.info('Template saved successfully');
             } catch (error) {
-                onError?.(error);
+                message.error(error.message);
+            } finally {
+                stopLoading('loadingSpinner');
             }
         }
     }

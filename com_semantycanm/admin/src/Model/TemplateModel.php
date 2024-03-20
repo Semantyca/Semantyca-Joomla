@@ -2,12 +2,10 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
-use Joomla\CMS\Component\ComponentHelper;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Joomla\CMS\Uri\Uri;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\TemplateDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+
 
 class TemplateModel extends BaseDatabaseModel
 {
@@ -58,15 +56,15 @@ class TemplateModel extends BaseDatabaseModel
 			throw new RecordNotFoundException(["The template has not been found"]);
 		}
 
-		$template                   = new TemplateDTO();
-		$template->id               = $row->id;
-		$template->regDate          = $row->reg_date;
-		$template->content          = $row->content;
-		$template->name             = $row->name;
-		$template->wrapper          = $row->wrapper;
+		$template          = new TemplateDTO();
+		$template->id      = $row->id;
+		$template->regDate = $row->reg_date;
+		$template->content = $row->content;
+		$template->name    = $row->name;
+		$template->wrapper = $row->wrapper;
 
 		$customFieldsQuery = $db->getQuery(true)
-			->select('id, template_id, name, parameters, type, caption, default_value, is_available')
+			->select('id, template_id, name, type, caption, default_value, is_available')
 			->from($db->quoteName('#__semantyca_nm_custom_fields'))
 			->where('template_id = ' . (int) $row->id);
 		$db->setQuery($customFieldsQuery);
@@ -74,27 +72,22 @@ class TemplateModel extends BaseDatabaseModel
 
 		foreach ($customFieldsRows as $customFieldRow)
 		{
+			// Decode the JSON string to a PHP array
+			$decodedDefaultValue = json_decode($customFieldRow->default_value, true);
+
 			$template->customFields[] = [
 				'id'           => $customFieldRow->id,
 				'name'         => $customFieldRow->name,
-				'parameters' => $customFieldRow->parameters,
 				'type'         => $customFieldRow->type,
 				'caption'      => $customFieldRow->caption,
-				'defaultValue' => $customFieldRow->default_value,
+				'defaultValue' => $decodedDefaultValue, // Use the decoded value
 				'isAvailable'  => $customFieldRow->is_available,
 			];
 		}
 
-		if (empty($template->banner))
-		{
-			$params           = ComponentHelper::getParams(Constants::COMPONENT_NAME);
-			$defaultBanner    = $params->get('default_banner', '');
-			$imagePath        = explode('#', $defaultBanner)[0];
-			$template->banner = Uri::root() . $imagePath;
-		}
-
 		return $template;
 	}
+
 
 
 	public function find($type, $name)
@@ -129,24 +122,51 @@ class TemplateModel extends BaseDatabaseModel
 
 	public function update($id, $messageContent)
 	{
-		$db         = $this->getDatabase();
-		$query      = $db->getQuery(true);
-		$fields     = array(
-			$db->quoteName('content') . ' = ' . $db->quote($messageContent)
-		);
-		$conditions = array(
-			$db->quoteName('id') . ' = ' . (int) $id
-		);
-		$query
-			->update($db->quoteName('#__semantyca_nm_templates'))
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$fields     = [
+			$db->quoteName('content') . ' = ' . $db->quote($messageContent['html']),
+		];
+		$conditions = [
+			$db->quoteName('id') . ' = ' . (int) $id,
+		];
+		$query->update($db->quoteName('#__semantyca_nm_templates'))
 			->set($fields)
 			->where($conditions);
 		$db->setQuery($query);
+		$db->execute();
 
-		return $db->execute();
+		$query = $db->getQuery(true)
+			->delete($db->quoteName('#__semantyca_nm_custom_fields'))
+			->where($db->quoteName('template_id') . ' = ' . (int) $id);
+		$db->setQuery($query);
+		$db->execute();
+
+		foreach ($messageContent['customFields'] as $customField)
+		{
+			$query            = $db->getQuery(true);
+			$columns          = ['template_id', 'name', 'type', 'caption', 'default_value', 'is_available'];
+			$defaultValueJson = json_encode($customField['defaultValue']);
+			$values           = [
+				(int) $id,
+				$db->quote($customField['name']),
+				(int) $customField['type'],
+				$db->quote($customField['caption']),
+				$db->quote($defaultValueJson),
+				(int) $customField['isAvailable'],
+			];
+			$query->insert($db->quoteName('#__semantyca_nm_custom_fields'))
+				->columns($db->quoteName($columns))
+				->values(implode(',', $values));
+			$db->setQuery($query);
+			$db->execute();
+		}
+
+		return true;
 	}
 
-//3.2.4.1
+
 	public function deleteTemplate($id)
 	{
 		$db         = $this->getDatabase();

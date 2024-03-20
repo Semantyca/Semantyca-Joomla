@@ -55,7 +55,7 @@ class TemplateController extends BaseController
 			$inputJSON = file_get_contents('php://input');
 			$inputData = json_decode($inputJSON, true);
 
-			$html = $inputData['html'] ?? '';
+			$doc     = $inputData['doc'] ?? '';
 
 			if (empty($id))
 			{
@@ -63,7 +63,7 @@ class TemplateController extends BaseController
 			}
 
 			$model   = $this->getModel('Template');
-			$results = $model->update($id, $html);
+			$results = $model->update($id, $doc);
 			echo new JsonResponse($results);
 		}
 		catch (ValidationErrorException $e)

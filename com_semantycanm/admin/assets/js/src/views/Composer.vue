@@ -156,7 +156,6 @@ export default {
     const availableCustomFields = computed(() => {
       return templateStore.doc.customFields.filter(field => field.isAvailable === 1);
     });
-    //const availableCustomFields = computed(() => templateStore.doc.customFields);
     const editableColors = ref([]);
 
     const knownIndex = ref(0); //
@@ -191,8 +190,7 @@ export default {
       try {
         await articleStore.fetchArticles('');
         await templateStore.getTemplate('classic', message);
-        // Now that data is fetched, you can safely parse colors
-        parseColors(); // Consider moving this inside your watch or directly here if appropriate
+        parseColors();
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
@@ -213,7 +211,6 @@ export default {
     const resetFunction = async () => {
       articleStore.selectedArticles = [];
       articleStore.editorCont = '';
-      // resetColorIndex();
       await articleStore.fetchArticles('');
     };
 
@@ -241,25 +238,26 @@ export default {
 
 
     const parseColors = () => {
-      if (availableCustomFields.value.length > 0 && availableCustomFields.value.length > knownIndex.value) {
-        editableColors.value = availableCustomFields.value[knownIndex.value].defaultValue.split(',').map(color => ({value: color}));
+      if (availableCustomFields.value.length > 0 && availableCustomFields.value[knownIndex.value]) {
+        try {
+          const colorArray = JSON.parse(availableCustomFields.value[knownIndex.value].defaultValue);
+          editableColors.value = colorArray.map(color => ({value: color}));
+        } catch (error) {
+          console.error("Error parsing color JSON", error);
+          editableColors.value = [];
+        }
       } else {
         console.log("Data not ready or index out of bounds");
       }
     };
 
-    const handleColorChange = () => {
-      // Extract color values from editableColors
-      const colors = editableColors.value.map(colorObject => colorObject.value);
-      console.log('colors', colors);
 
-      // Updating dynamicBuilder with the new color list and other variables
+    const handleColorChange = () => {
+      const colors = editableColors.value.map(colorObject => colorObject.value);
       dynamicBuilder.addVariable("colorList", colors);
       dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
       dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
       dynamicBuilder.addVariable("maxContentDisplay", 5);
-
-      // Regenerate the content
       articleStore.editorCont = dynamicBuilder.buildContent();
     };
 
@@ -267,28 +265,6 @@ export default {
     watch([() => availableCustomFields, knownIndex], () => {
       parseColors();
     });
-
-    /* watch(editableColors, (newVal, oldVal) => {
-       // This function runs whenever editableColors changes.
-       // It maps over editableColors to extract the color values.
-       const colors = editableColors.value.map(colorObject => colorObject.value);
-       console.log('colors', colors);
-
-       // Update dynamicBuilder with the new color list
-       dynamicBuilder.addVariable("colorList", colors);
-
-       // Assuming other variables (articles, bannerUrl, maxContentDisplay) do not change here,
-       // or are already set elsewhere and don't need to be reset every time a color changes.
-       // If they do change and need to be included here, uncomment and adjust as necessary.
-       // dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
-       // dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
-       // dynamicBuilder.addVariable("maxContentDisplay", 5);
-
-       // Finally, regenerate the content.
-       articleStore.editorCont = dynamicBuilder.buildContent();
-     }, {
-       deep: true // This option is necessary to watch inside arrays or objects
-     });*/
 
     const fetchArticlesDebounced = debounce(articleStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {

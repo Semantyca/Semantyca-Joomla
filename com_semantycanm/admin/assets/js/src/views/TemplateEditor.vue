@@ -9,10 +9,10 @@
           {{ globalStore.translations.SAVE }}
         </n-button>
         <n-button>
-          Reset
+          Export
         </n-button>
         <n-button>
-          Info
+          Import
         </n-button>
       </n-button-group>
     </div>
@@ -38,6 +38,7 @@
         <div class="col-8">
           <n-dynamic-input v-model:value="customFormFields"
                            :on-create="addCustomField"
+                           :on-remove="removeCustomField"
                            item-style="margin-bottom: 0;"
                            #="{ index }"
           >
@@ -164,19 +165,8 @@ export default {
       templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
     };
 
-
     const saveTemplate = async () => {
-      startLoading(TEMPLATE_SPINNER);
-      await templateStore.saveTemplate(templateStore.doc.id, templateStore.doc.html,
-          () => {
-            message.info('Template saved successfully');
-            stopLoading(TEMPLATE_SPINNER);
-          },
-          (error) => {
-            message.warning(error.message);
-            stopLoading(TEMPLATE_SPINNER);
-          }
-      );
+      await templateStore.saveTemplate(message);
     };
 
 
@@ -193,6 +183,10 @@ export default {
         isAvailable: 0
       };
       templateStore.addCustomField(newField);
+    };
+
+    const removeCustomField = (index) => {
+      templateStore.removeCustomField(index);
     };
 
 
@@ -239,7 +233,8 @@ export default {
       dark,
       formRef,
       options: typeOptions,
-      addCustomField
+      addCustomField,
+      removeCustomField
     };
   }
 }
