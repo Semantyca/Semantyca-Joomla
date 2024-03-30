@@ -5,20 +5,31 @@
       <n-form-item
           label-placement="left"
           require-mark-placement="right-hanging"
-          label-width="auto"
-          :style="{
-                    maxWidth: '800px'
-                }"
-          v-for="(field, index) in availableCustomFields"
+          label-width="180px"
+          :style="{ maxWidth: '800px' }"
+          v-for="(field, index) in formCustomFields"
           :key="field.id"
           :label="field.caption"
       >
-        <div v-for="(colorObject, index) in editableColors" :key="index">
-          <n-color-picker v-model:value="colorObject.value"
-                          :show-alpha="false"
-                          @update:value="handleColorChange"
-                          style="margin-right: 5px; width: 80px"/>
-        </div>
+        <template v-if="field.type === 503">
+          <div v-for="(color, i) in field.defaultValue" :key="i">
+            <n-color-picker :value="color"
+                            size="large"
+                            :show-alpha="false"
+                            :actions="['confirm','clear']"
+                            @update:value="newValue => handleFieldChange(i, newValue)"
+                            style="margin-right: 5px; width: 80px"/>
+          </div>
+        </template>
+        <template v-else-if="field.type === 501">
+          <n-input-number v-model:value="field.defaultValue"
+                          size="large"
+                          style="width: 100px"/>
+        </template>
+        <template v-else>
+          <n-input v-model:value="field.defaultValue"
+                   size="large"/>
+        </template>
       </n-form-item>
     </div>
   </div>
@@ -103,7 +114,7 @@
   </div>
 </template>
 
-<script>import {computed, onMounted, ref, watch} from 'vue';
+<script>import {onMounted, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
@@ -115,6 +126,7 @@ import {
   NDivider,
   NFormItem,
   NInput,
+  NInputNumber,
   NSelect,
   NSkeleton,
   NTag,
@@ -122,7 +134,7 @@ import {
 } from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
-import {useArticleStore} from "../stores/articleStore";
+import {useComposerStore} from "../stores/composerStore";
 import DynamicBuilder from "../utils/DynamicBuilder"
 
 export default {
@@ -135,6 +147,7 @@ export default {
     NDivider,
     NFormItem,
     NInput,
+    NInputNumber,
     NSelect,
     NTag,
     NColorPicker,
@@ -148,17 +161,13 @@ export default {
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
     const activeTabName = ref('Composer');
-    const articleStore = useArticleStore();
+    const composerStore = useComposerStore();
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
-    const availableCustomFields = computed(() => {
-      return templateStore.doc.customFields.filter(field => field.isAvailable === 1);
-    });
-    const editableColors = ref([]);
-
-    const knownIndex = ref(0); //
+    const formCustomFields = ref([]);
+    const colorIndex = 0;
     const dynamicBuilder = new DynamicBuilder(templateStore.doc);
 
 
@@ -188,9 +197,21 @@ export default {
 
     onMounted(async () => {
       try {
-        await articleStore.fetchArticles('');
+        await composerStore.fetchArticles('');
         await templateStore.getTemplate('classic', message);
-        parseColors();
+        formCustomFields.value = templateStore.doc.availableCustomFields.map(field => {
+          if (field.type === 503) {
+            return {
+              ...field,
+              defaultValue: [...field.defaultValue]
+            };
+          } else {
+            return {
+              ...field
+            };
+          }
+        });
+
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
@@ -198,24 +219,28 @@ export default {
 
 
     const onDragEnd = () => {
-      const colors = editableColors.value.map(colorObject => colorObject.value);
-      console.log('colors', colors)
-      dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
+      if (composerStore.selectedArticles.length === 0) {
+        composerStore.editorCont = '';
+        return;
+      }
+      const colors = formCustomFields.value[colorIndex].defaultValue;
+      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
       dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
       dynamicBuilder.addVariable("maxContentDisplay", 5);
       dynamicBuilder.addVariable("colorList", colors);
-      articleStore.editorCont = dynamicBuilder.buildContent();
+      composerStore.editorCont = dynamicBuilder.buildContent();
     };
+
 
 
     const resetFunction = async () => {
-      articleStore.selectedArticles = [];
-      articleStore.editorCont = '';
-      await articleStore.fetchArticles('');
+      composerStore.selectedArticles = [];
+      composerStore.editorCont = '';
+      await composerStore.fetchArticles('');
     };
 
     const copyContentToClipboard = () => {
-      const completeHTML = dynamicBuilder.getWrappedContent(articleStore.editorCont);
+      const completeHTML = dynamicBuilder.getWrappedContent(composerStore.editorCont);
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
       document.body.appendChild(tempTextArea);
@@ -230,54 +255,35 @@ export default {
     };
 
     const next = () => {
-      const messageContent = dynamicBuilder.getWrappedContent(articleStore.editorCont);
+      const messageContent = dynamicBuilder.getWrappedContent(composerStore.editorCont);
       newsLetterStore.currentNewsletterId = 0;
       emit('content-changed', messageContent);
       emit('change-tab', 'Newsletter');
     };
 
 
-    const parseColors = () => {
-      if (availableCustomFields.value.length > 0 && availableCustomFields.value[knownIndex.value]) {
-        try {
-          const colorArray = JSON.parse(availableCustomFields.value[knownIndex.value].defaultValue);
-          editableColors.value = colorArray.map(color => ({value: color}));
-        } catch (error) {
-          console.error("Error parsing color JSON", error);
-          editableColors.value = [];
-        }
-      } else {
-        console.log("Data not ready or index out of bounds");
-      }
-    };
-
-
-    const handleColorChange = () => {
-      const colors = editableColors.value.map(colorObject => colorObject.value);
+    const handleFieldChange = (fieldIndex, newValue) => {
+      formCustomFields.value[colorIndex].defaultValue[fieldIndex] = newValue;
+      const colors = formCustomFields.value[colorIndex].defaultValue;
       dynamicBuilder.addVariable("colorList", colors);
-      dynamicBuilder.addVariable("articles", articleStore.selectedArticles);
+      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
       dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
       dynamicBuilder.addVariable("maxContentDisplay", 5);
-      articleStore.editorCont = dynamicBuilder.buildContent();
+      composerStore.editorCont = dynamicBuilder.buildContent();
     };
 
-
-    watch([() => availableCustomFields, knownIndex], () => {
-      parseColors();
-    });
-
-    const fetchArticlesDebounced = debounce(articleStore.fetchArticles, 300);
+    const fetchArticlesDebounced = debounce(composerStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {
       fetchArticlesDebounced(event.target.value);
     };
 
     return {
-      articleStore,
+      articleStore: composerStore,
       articles,
       onDragEnd,
       isLoading,
       store,
-      availableCustomFields,
+      formCustomFields,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
@@ -287,8 +293,7 @@ export default {
       resetFunction,
       copyContentToClipboard,
       next,
-      editableColors,
-      handleColorChange
+      handleFieldChange
     };
   }
 };

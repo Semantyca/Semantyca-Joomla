@@ -8,7 +8,6 @@ class TemplateDTO
 	public $regDate;
 	public $name;
 	public $content;
-	public $banner;
 	public $wrapper;
 	public $customFields = [];
 

@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
 
-export const useArticleStore = defineStore('article', {
+export const useComposerStore = defineStore('composer', {
     state: () => ({
         listPage: {
             docs: []

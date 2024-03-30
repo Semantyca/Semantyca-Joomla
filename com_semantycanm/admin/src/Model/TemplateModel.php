@@ -72,22 +72,20 @@ class TemplateModel extends BaseDatabaseModel
 
 		foreach ($customFieldsRows as $customFieldRow)
 		{
-			// Decode the JSON string to a PHP array
 			$decodedDefaultValue = json_decode($customFieldRow->default_value, true);
-
 			$template->customFields[] = [
 				'id'           => $customFieldRow->id,
 				'name'         => $customFieldRow->name,
 				'type'         => $customFieldRow->type,
 				'caption'      => $customFieldRow->caption,
-				'defaultValue' => $decodedDefaultValue, // Use the decoded value
+				'defaultValue' => $decodedDefaultValue,
 				'isAvailable'  => $customFieldRow->is_available,
 			];
 		}
 
+
 		return $template;
 	}
-
 
 
 	public function find($type, $name)

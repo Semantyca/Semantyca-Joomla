@@ -7,7 +7,8 @@ export const useTemplateStore = defineStore('template', {
             name: '',
             html: '',
             wrapper: '',
-            customFields: []
+            customFields: [],
+            availableCustomFields: []
         }
     }),
     actions: {
@@ -40,6 +41,7 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.html = data.content;
                 this.doc.wrapper = data.wrapper;
                 this.doc.customFields = data.customFields;
+                this.doc.availableCustomFields = this.doc.customFields.filter(field => field.isAvailable === 1);
             } catch (error) {
                 message.error(error.message);
             } finally {
