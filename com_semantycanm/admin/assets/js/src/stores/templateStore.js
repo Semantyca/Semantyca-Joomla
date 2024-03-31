@@ -17,7 +17,7 @@ export const useTemplateStore = defineStore('template', {
                 name: '',
                 type: '',
                 caption: '',
-                defaultValue: '[]',
+                defaultValue: '',
                 isAvailable: 0,
             };
             this.doc.customFields.push({...defaultFieldStructure, ...newField});

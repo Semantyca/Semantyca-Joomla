@@ -7,7 +7,7 @@
           require-mark-placement="right-hanging"
           label-width="180px"
           :style="{ maxWidth: '800px' }"
-          v-for="(field, index) in formCustomFields"
+          v-for="(field, fieldName) in fields"
           :key="field.id"
           :label="field.caption"
       >
@@ -17,18 +17,22 @@
                             size="large"
                             :show-alpha="false"
                             :actions="['confirm','clear']"
-                            @update:value="newValue => handleFieldChange(i, newValue)"
+                            @update:value="newValue => handleColorChange(field.name, i, newValue)"
                             style="margin-right: 5px; width: 80px"/>
           </div>
         </template>
         <template v-else-if="field.type === 501">
           <n-input-number v-model:value="field.defaultValue"
                           size="large"
-                          style="width: 100px"/>
+                          style="width: 100px"
+                          @update:value="newValue => handleFieldChange(field.name, newValue)"/>
+
         </template>
         <template v-else>
           <n-input v-model:value="field.defaultValue"
-                   size="large"/>
+                   size="large"
+                   @update:value="newValue => handleFieldChange(field.name, newValue)"/>
+
         </template>
       </n-form-item>
     </div>
@@ -48,12 +52,7 @@
         </div>
         <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
                @input="debouncedFetchArticles">
-        <div v-if="isLoading">
-          <n-skeleton text :repeat="4" size="medium"/>
-          <n-skeleton text style="width: 60%" size="medium"/>
-        </div>
-        <draggable v-else
-                   class="list-group dragdrop-list-short"
+        <draggable class="list-group dragdrop-list-short"
                    :list="articleStore.listPage.docs"
                    group="articles"
                    itemKey="id"
@@ -87,7 +86,7 @@
     <n-divider class="custom-divider" title-placement="left">Review</n-divider>
     <div class="row mt-3">
       <div class="col  d-flex align-items-center">
-        <n-button-group>
+        <n-space>
           <n-button size="large"
                     strong
                     error
@@ -102,7 +101,11 @@
                     type="primary"
                     @click="next">{{ store.translations.NEXT }}
           </n-button>
-        </n-button-group>
+          <n-button size="large"
+                    type="primary"
+                    @click="preview">{{ store.translations.PREVIEW }}
+          </n-button>
+        </n-space>
       </div>
       <div class="row mt-3">
         <editor
@@ -114,14 +117,15 @@
   </div>
 </template>
 
-<script>import {onMounted, ref} from 'vue';
+<script>
+import {computed, h, onMounted, ref} from 'vue';
 import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
+import HtmlWrapper from '../components/HtmlWrapper.vue';
 import {
   NButton,
-  NButtonGroup,
   NColorPicker,
   NDivider,
   NFormItem,
@@ -129,7 +133,9 @@ import {
   NInputNumber,
   NSelect,
   NSkeleton,
+  NSpace,
   NTag,
+  useDialog,
   useMessage
 } from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
@@ -143,7 +149,7 @@ export default {
     Editor,
     NSkeleton,
     NButton,
-    NButtonGroup,
+    NSpace,
     NDivider,
     NFormItem,
     NInput,
@@ -156,7 +162,6 @@ export default {
 
   setup(props, {emit}) {
     const articles = ref([]);
-    const isLoading = ref(false);
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
@@ -166,11 +171,9 @@ export default {
     const templateStore = useTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const message = useMessage();
-    const formCustomFields = ref([]);
-    const colorIndex = 0;
+    const dialog = useDialog();
+    const fields = computed(() => composerStore.formCustomFields);
     const dynamicBuilder = new DynamicBuilder(templateStore.doc);
-
-
 
     const composerEditorConfig = {
       apiKey: store.tinymceLic,
@@ -197,41 +200,19 @@ export default {
 
     onMounted(async () => {
       try {
-        await composerStore.fetchArticles('');
-        await templateStore.getTemplate('classic', message);
-        formCustomFields.value = templateStore.doc.availableCustomFields.map(field => {
-          if (field.type === 503) {
-            return {
-              ...field,
-              defaultValue: [...field.defaultValue]
-            };
-          } else {
-            return {
-              ...field
-            };
-          }
-        });
-
+        await composerStore.fetchArticles('', message);
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
     });
-
 
     const onDragEnd = () => {
       if (composerStore.selectedArticles.length === 0) {
         composerStore.editorCont = '';
         return;
       }
-      const colors = formCustomFields.value[colorIndex].defaultValue;
-      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
-      dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
-      dynamicBuilder.addVariable("maxContentDisplay", 5);
-      dynamicBuilder.addVariable("colorList", colors);
-      composerStore.editorCont = dynamicBuilder.buildContent();
+      updateEditorContent();
     };
-
-
 
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
@@ -261,16 +242,34 @@ export default {
       emit('change-tab', 'Newsletter');
     };
 
+    const preview = () => {
+      dialog.create({
+        title: 'The Newsletter Preview',
+        render: () => h(HtmlWrapper, {html: '<p>Dynamic content</p>'}),
+      });
+    };
 
-    const handleFieldChange = (fieldIndex, newValue) => {
-      formCustomFields.value[colorIndex].defaultValue[fieldIndex] = newValue;
-      const colors = formCustomFields.value[colorIndex].defaultValue;
-      dynamicBuilder.addVariable("colorList", colors);
+    const handleColorChange = (fieldName, index, newValue) => {
+      fields.value[fieldName].defaultValue[index] = newValue;
+      updateEditorContent();
+    };
+
+    const handleFieldChange = (fieldName, newValue) => {
+      console.log(fieldName + ' ' + newValue)
+      fields.value[fieldName].defaultValue = newValue;
+      updateEditorContent();
+    };
+
+
+    const updateEditorContent = () => {
       dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
-      dynamicBuilder.addVariable("bannerUrl", 'http://localhost/joomla/images/powered_by.png#joomlaImage://local-images/powered_by.png?width=294&height=44');
-      dynamicBuilder.addVariable("maxContentDisplay", 5);
+      Object.keys(fields.value).forEach((key) => {
+        const fieldValue = fields.value[key].defaultValue;
+        dynamicBuilder.addVariable(key, fieldValue);
+      });
       composerStore.editorCont = dynamicBuilder.buildContent();
     };
+
 
     const fetchArticlesDebounced = debounce(composerStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {
@@ -281,9 +280,8 @@ export default {
       articleStore: composerStore,
       articles,
       onDragEnd,
-      isLoading,
       store,
-      formCustomFields,
+      fields,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
@@ -293,6 +291,8 @@ export default {
       resetFunction,
       copyContentToClipboard,
       next,
+      preview,
+      handleColorChange,
       handleFieldChange
     };
   }

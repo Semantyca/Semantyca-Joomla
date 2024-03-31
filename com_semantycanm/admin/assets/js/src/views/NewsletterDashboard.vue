@@ -73,7 +73,7 @@
 
       <div class="row">
         <div class="col-5 d-flex align-items-center">
-          <n-button-group>
+          <n-space>
             <n-button type="success"
                       size="large"
                       @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
@@ -93,7 +93,7 @@
                                   @click="editContent">{{ globalStore.translations.EDIT }}
                         </n-button>-->
 
-          </n-button-group>
+          </n-space>
 
         </div>
         <!--        <div class="col-1 d-flex  flex-column align-items-start">
@@ -169,10 +169,10 @@ export default defineComponent({
     NSpace,
     NSwitch,
     NDataTable,
-    NInputGroup,
     NFormItem,
     NForm,
-    NProgress
+    NProgress,
+    NInputGroup
   },
   props: {
     messageContent: String,
@@ -431,9 +431,3 @@ export default defineComponent({
 });
 </script>
 
-<style>
-/*.send-actions-container button.btn {
-  margin-right: 5px;
-}*/
-
-</style>

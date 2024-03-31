@@ -1,20 +1,20 @@
 <template>
   <div class="container">
     <div class="row mt-3">
-      <n-button-group>
+      <n-space>
         <n-button
             type="primary"
             @click="saveTemplate"
         >
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button>
+        <n-button type="primary">
           Export
         </n-button>
-        <n-button>
+        <n-button type="primary">
           Import
         </n-button>
-      </n-button-group>
+      </n-space>
     </div>
   </div>
   <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
@@ -58,9 +58,11 @@
                        style="margin-right: 12px; width: 260px"/>
             </n-form-item>
             <n-form-item :show-label="false" path="defaultValue">
-              <n-input v-model:value="customFormFields[index].defaultValue"
+              <n-input :value="customFormFields[index].defaultValue.toString()"
+                       @update:modelValue="newValue => updateDefaultValueAsString(index, newValue)"
                        placeholder="Default value"
                        style="margin-right: 12px; width: 360px"/>
+
             </n-form-item>
             <n-form-item :show-label="false" path="valueType">
               <n-checkbox :checked="customFormFields[ index ].isAvailable === 1"
@@ -81,7 +83,7 @@
       </div>
       <div class="row mt-3">
         <div class="col d-flex align-items-center">
-          <n-button-group>
+          <n-space>
             <n-button type="primary"
                       size="large"
                       @click="saveTemplate">{{ globalStore.translations.SAVE }}
@@ -92,7 +94,7 @@
                       seconadry
                       @click="cancelTemplate">{{ globalStore.translations.CANCEL }}
             </n-button>
-          </n-button-group>
+          </n-space>
         </div>
       </div>
     </div>
@@ -106,7 +108,6 @@ import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
 import {
   NButton,
-  NButtonGroup,
   NCheckbox,
   NDivider,
   NDynamicInput,
@@ -120,19 +121,17 @@ import {
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 
-const TEMPLATE_SPINNER = 'loadingSpinner';
 export default {
   name: 'TemplateEditor',
   components: {
     Editor,
     NButton,
-    NButtonGroup,
+    NSpace,
     NInput,
     NSelect,
     NCheckbox,
     NForm,
     NFormItem,
-    NSpace,
     CodeMirror,
     NDivider,
     NDynamicInput
@@ -164,6 +163,11 @@ export default {
     const updateFieldIsAvailable = (index, value) => {
       templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
     };
+
+    const updateDefaultValueAsString = (index, newValue) => {
+      templateStore.doc.customFields[index].defaultValue = String(newValue);
+    };
+
 
     const saveTemplate = async () => {
       await templateStore.saveTemplate(message);
@@ -226,6 +230,7 @@ export default {
       saveTemplate,
       cancelTemplate,
       updateFieldIsAvailable,
+      updateDefaultValueAsString,
       rules,
       formValue,
       customFormFields,

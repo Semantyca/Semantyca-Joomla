@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import {useTemplateStore} from './templateStore';
 
 export const useComposerStore = defineStore('composer', {
     state: () => ({
@@ -8,10 +9,36 @@ export const useComposerStore = defineStore('composer', {
         selectedArticles: [],
         editorCont: '',
         isLoading: false,
+        formCustomFields: {}
     }),
     actions: {
-        async fetchArticles(searchTerm) {
+        processFormCustomFields(rawFields) {
+            this.formCustomFields = rawFields.reduce((acc, field) => {
+                const key = field.name;
+                console.log(key);
+                if (field.type === 503) {
+                    acc[key] = {
+                        ...field,
+                        defaultValue: [...field.defaultValue]
+                    };
+                } else {
+                    acc[key] = {
+                        ...field
+                    };
+                }
+                return acc;
+            }, {});
+        },
+
+        async fetchArticles(searchTerm, message) {
             this.isLoading = true;
+            if (Object.keys(this.formCustomFields).length === 0) {
+                const templateStore = useTemplateStore();
+                if (templateStore.doc.availableCustomFields.length === 0) {
+                    await templateStore.getTemplate('classic', message);
+                }
+                this.processFormCustomFields(templateStore.doc.availableCustomFields);
+            }
 
             try {
                 const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}`;

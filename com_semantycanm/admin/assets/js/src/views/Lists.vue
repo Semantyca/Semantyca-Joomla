@@ -36,7 +36,7 @@
           </n-form-item>
         </div>
         <div class="col  d-flex align-items-center">
-          <n-button-group>
+          <n-space>
             <n-button id="saveGroup"
                       type="primary"
                       size="large"
@@ -47,7 +47,7 @@
                       size="large"
                       @click="cancelList">{{ globalStore.translations.CANCEL }}
             </n-button>
-          </n-button-group>
+          </n-space>
         </div>
       </div>
       <n-divider title-placement="left">Available Mailing Lists</n-divider>
@@ -80,7 +80,6 @@
 import {h, onMounted, reactive, ref} from 'vue';
 import {
   NButton,
-  NButtonGroup,
   NDataTable,
   NDivider,
   NForm,
@@ -103,7 +102,6 @@ export default {
     NGrid,
     NGridItem,
     NButton,
-    NButtonGroup,
     NSpace,
     NInput,
     NDataTable,

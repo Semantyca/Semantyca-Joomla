@@ -18,35 +18,6 @@ function stopLoading(loadingSpinnerId) {
     document.getElementById(loadingSpinnerId).style.visibility = 'hidden';
 }
 
-function createRowButton(buttonText, buttonClass, eventHandler) {
-    const button = document.createElement('button');
-    button.className = buttonClass;
-    button.textContent = buttonText;
-    button.style.height = '30px';
-    button.style.width = '65px';
-    if (eventHandler) {
-        button.addEventListener('click', eventHandler);
-    }
-    return button;
-}
-
-function createRowCheckBox(id) {
-    const tdCheckbox = document.createElement('td');
-    tdCheckbox.className = 'col-1';
-    const checkbox = document.createElement('input');
-    checkbox.type = 'checkbox';
-    checkbox.name = 'selectedItems[]';
-    checkbox.value = id;
-    return checkbox;
-}
-
-function showInfoBar(message) {
-    showAlertBar(message, 'success');
-}
-
-function showWarnBar(message) {
-    showAlertBar(message, 'warning');
-}
 
 function showAlertBar(message, type = 'danger', duration = 5000) {
     const alertPlaceholder = document.getElementById('alertPlaceholder');
