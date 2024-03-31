@@ -244,8 +244,12 @@ export default {
 
     const preview = () => {
       dialog.create({
-        title: 'The Newsletter Preview',
-        render: () => h(HtmlWrapper, {html: '<p>Dynamic content</p>'}),
+        title: 'Preview',
+        style: 'width: 800px',
+        bordered: true,
+        content: () => h(HtmlWrapper, {
+          html: composerStore.editorCont
+        }),
       });
     };
 

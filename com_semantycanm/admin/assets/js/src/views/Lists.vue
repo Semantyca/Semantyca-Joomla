@@ -200,6 +200,25 @@ export default {
       selectedGroups: []
     });
 
+    const handleEdit = async (id) => {
+      try {
+        const entryDetails = await mailingListStore.fetchEntryDetails(id, message);
+
+        //showEditFormWithDetails(entryDetails); // This is a placeholder, replace with your actual implementation
+      } catch (error) {
+        message.error(error.message);
+      }
+    };
+
+    const handleDelete = async (id) => {
+      try {
+        await mailingListStore.deleteMailingListEntries([id], message);
+        message.success('Entry deleted successfully');
+      } catch (error) {
+        message.error(error.message);
+      }
+    };
+
     const createColumns = () => {
       return [
         {
@@ -216,8 +235,7 @@ export default {
           render(row) {
             return [
               h(NButton, {
-                onClick: () => { /* handle edit */
-                },
+                onClick: () => handleEdit(row.id),
                 style: 'margin-right: 8px;',
                 strong: true,
                 secondary: true,
@@ -225,8 +243,7 @@ export default {
                 size: "small",
               }, {default: () => 'Edit'}),
               h(NButton, {
-                onClick: () => { /* handle delete */
-                },
+                onClick: () => handleDelete(row.id),
                 strong: true,
                 secondary: true,
                 type: "error",
