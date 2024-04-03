@@ -1,5 +1,7 @@
 <%
-const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
+const currentYear = new Date().getFullYear();
+const currentMonth = new Date().toLocaleString('default', {month: 'long'}).toUpperCase();
+const currentDateFormatted = `${currentMonth} ${currentYear}`;
 %>
 
 <table width="100%" cellspacing="0" cellpadding="0" border="0">
@@ -14,20 +16,18 @@ const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
                     </td>
                 </tr>
                 <tr>
-                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;">
-                        <%= currentDateFormatted %>
-                    </td>
+                    <td style="font-size:18px; color:#003399; padding-top:10px; padding-bottom:10px;"><%= currentDateFormatted %></td>
                 </tr>
-                <% for(let i = 0; i < articles.length && i < maxArticles; i++) { %>
+                <% for(let i = 0; i < articles.length; i++) { %>
                     <% const article = articles[i]; %>
                     <% const backgroundColor = colorList[i % colorList.length]; %>
                     <!-- Dynamic -->
                     <tr>
                         <td>
-                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#152E52">
+                            <table width="100%" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td width="3" bgcolor="#152E52">&nbsp;</td>
-                                    <td valign="middle" bgcolor="#152E52">
+                                    <td width="3">&nbsp;</td>
+                                    <td valign="middle">
                                         <table width="100%" cellspacing="0" cellpadding="5" border="0">
                                             <tr>
                                                 <td bgcolor="<%= backgroundColor %>"
@@ -37,36 +37,36 @@ const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
                                             </tr>
                                         </table>
                                     </td>
-                                    <td bgcolor="#152E52">&nbsp;</td>
+                                    <td>&nbsp;</td>
                                 </tr>
                             </table>
-                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
-                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                            <table width="0" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td height="<%= spacerHeight %>"></td>
+                                    <td height="0"></td>
                                 </tr>
                             </table>
                             <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
                                 <tr>
                                     <td>
                                         <a href="<%= article.url %>"
-                                           style="font-size: <%= titleFontSize %>; color: #152E52; text-decoration: none; font-family: <%= titleFontFamily %>;">
+                                           style="font-size: 10; text-decoration: none; font-family: serif;">
                                             <%= article.title %>
                                         </a>
                                     </td>
                                 </tr>
                             </table>
-                            <table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>"
-                                   cellpadding="<%= spacerCellPadding %>" border="<%= spacerBorder %>">
+                            <table width="0" cellspacing="0" cellpadding="0" border="0">
                                 <tr>
-                                    <td height="<%= spacerHeight %>"></td>
+                                    <td height="0"></td>
                                 </tr>
                             </table>
-                            <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
-                                <tr>
-                                    <td><%= article.intro %></td>
-                                </tr>
-                            </table>
+                            <% if(i < maxContentDisplay) { %>
+                                <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">
+                                    <tr>
+                                        <td><%- article.intro %></td>
+                                    </tr>
+                                </table>
+                            <% } %>
                         </td>
                     </tr>
                 <% } %>
@@ -91,10 +91,10 @@ const colorList = ['#152E52', '#AEC127', '#5CA550', '#DF5F5A', '#F9AE4F'];
     </tr>
 </table>
 <!-- Ending -->
-<table width="<%= spacerWidth %>" cellspacing="<%= spacerCellSpacing %>" cellpadding="<%= spacerCellPadding %>"
-       border="<%= spacerBorder %>">
+<table width="0" cellspacing="0" cellpadding="0"
+       border="0">
     <tr>
-        <td height="<%= spacerHeight %>">&nbsp;</td>
+        <td height="0">&nbsp;</td>
     </tr>
 </table>
 <table width="100%" cellspacing="0" cellpadding="0" border="0" bgcolor="#FFFFFF">

@@ -36,7 +36,8 @@ export default class DynamicContentBuilder {
 
 
     getWrappedContent = (content) => {
-        const data = {content};
-        return ejs.render(this.template.wrapper, data);
+        let msgBody = {};
+        msgBody['content'] = content;
+        return ejs.render(this.template.wrapper, msgBody);
     };
 }

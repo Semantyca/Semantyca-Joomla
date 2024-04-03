@@ -52,7 +52,7 @@ $translations     = array(
 	'AVAILABLE_USER_GROUPS' => JText::_('AVAILABLE_USER_GROUPS'),
 	'SELECTED_USER_GROUPS'  => JText::_('SELECTED_USER_GROUPS'),
 	'CANCEL'                => JText::_('CANCEL'),
-	'PREVIEW' => JText::_('PREVIEW'),
+	'PREVIEW'  => JText::_('PREVIEW'),
 	'TEMPLATE' => JText::_('TEMPLATE'),
 
 );

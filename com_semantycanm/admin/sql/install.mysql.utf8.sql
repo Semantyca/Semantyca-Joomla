@@ -8,12 +8,13 @@ DROP TABLE IF EXISTS `#__semantyca_nm_templates`;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
-    id       INT AUTO_INCREMENT,
-    reg_date DATETIME DEFAULT CURRENT_TIMESTAMP,
-    type     VARCHAR(20),
-    name     VARCHAR(255) UNIQUE,
-    content  MEDIUMTEXT,
-    wrapper  MEDIUMTEXT,
+    id          INT AUTO_INCREMENT,
+    reg_date    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    type        VARCHAR(20),
+    name        VARCHAR(255) UNIQUE,
+    description MEDIUMTEXT,
+    content     MEDIUMTEXT,
+    wrapper     MEDIUMTEXT,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 

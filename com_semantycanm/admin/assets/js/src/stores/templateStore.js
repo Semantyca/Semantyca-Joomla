@@ -27,6 +27,9 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.customFields.splice(index, 1);
             }
         },
+        setTemplate(data) {
+            this.$state = {...this.$state, ...data};
+        },
         async getTemplate(name, message) {
             try {
                 startLoading('loadingSpinner');
@@ -67,7 +70,7 @@ export const useTemplateStore = defineStore('template', {
                 if (!response.ok) {
                     throw new Error(`HTTP error, status = ${response.status}`);
                 }
-                message.info('Template saved successfully');
+                message.success('Template saved successfully');
             } catch (error) {
                 message.error(error.message);
             } finally {

@@ -2,16 +2,13 @@
   <div class="container">
     <div class="row mt-3">
       <n-space>
-        <n-button
-            type="primary"
-            @click="saveTemplate"
-        >
+        <n-button type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary">
+        <n-button type="primary" @click="exportTemplate">
           Export
         </n-button>
-        <n-button type="primary">
+        <n-button type="primary" @click="importTemplate">
           Import
         </n-button>
       </n-space>
@@ -78,25 +75,11 @@
                        basic
                        :lang="lang"
                        :dark="dark"
+                       :style="{ width: '100%'}"
           />
         </div>
       </div>
-      <div class="row mt-3">
-        <div class="col d-flex align-items-center">
-          <n-space>
-            <n-button type="primary"
-                      size="large"
-                      @click="saveTemplate">{{ globalStore.translations.SAVE }}
-            </n-button>
-            <n-button size="large"
-                      strong
-                      error
-                      seconadry
-                      @click="cancelTemplate">{{ globalStore.translations.CANCEL }}
-            </n-button>
-          </n-space>
-        </div>
-      </div>
+
     </div>
   </n-form>
 </template>
@@ -173,11 +156,6 @@ export default {
       await templateStore.saveTemplate(message);
     };
 
-
-    const cancelTemplate = async () => {
-
-    }
-
     const addCustomField = () => {
       const newField = {
         type: 502,
@@ -191,6 +169,47 @@ export default {
 
     const removeCustomField = (index) => {
       templateStore.removeCustomField(index);
+    };
+
+    const exportTemplate = () => {
+      const filename = `${templateStore.doc.name || 'template'}.json`;
+      const jsonStr = JSON.stringify(templateStore.doc, (key, value) => {
+        if (key === "availableCustomFields") return undefined;
+        return value;
+      }, 2);
+      const blob = new Blob([jsonStr], {type: "application/json"});
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    };
+
+    const importTemplate = () => {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.json';
+      fileInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = async (e) => {
+            try {
+              const jsonObj = JSON.parse(e.target.result);
+              templateStore.setTemplate(jsonObj);
+              await templateStore.saveTemplate(message);
+              message.success('Template imported successfully');
+            } catch (err) {
+              message.error('Failed to import template');
+            }
+          };
+          reader.readAsText(file);
+        }
+      };
+      fileInput.click();
     };
 
 
@@ -228,7 +247,6 @@ export default {
       globalStore,
       store: templateStore,
       saveTemplate,
-      cancelTemplate,
       updateFieldIsAvailable,
       updateDefaultValueAsString,
       rules,
@@ -239,7 +257,9 @@ export default {
       formRef,
       options: typeOptions,
       addCustomField,
-      removeCustomField
+      removeCustomField,
+      exportTemplate,
+      importTemplate
     };
   }
 }
