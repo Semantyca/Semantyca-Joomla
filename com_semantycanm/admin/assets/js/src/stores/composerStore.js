@@ -15,7 +15,6 @@ export const useComposerStore = defineStore('composer', {
         processFormCustomFields(rawFields) {
             this.formCustomFields = rawFields.reduce((acc, field) => {
                 const key = field.name;
-                console.log(key);
                 if (field.type === 503) {
                     acc[key] = {
                         ...field,
@@ -29,16 +28,14 @@ export const useComposerStore = defineStore('composer', {
                 return acc;
             }, {});
         },
-
+        async updateFormCustomFields(message) {
+            this.formCustomFields = {};
+            const templateStore = useTemplateStore();
+            await templateStore.getTemplate('classic', message);
+            this.processFormCustomFields(templateStore.doc.availableCustomFields);
+        },
         async fetchArticles(searchTerm, message) {
-            this.isLoading = true;
-            if (Object.keys(this.formCustomFields).length === 0) {
-                const templateStore = useTemplateStore();
-                if (templateStore.doc.availableCustomFields.length === 0) {
-                    await templateStore.getTemplate('classic', message);
-                }
-                this.processFormCustomFields(templateStore.doc.availableCustomFields);
-            }
+            await this.updateFormCustomFields(message);
 
             try {
                 const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}`;
@@ -58,9 +55,9 @@ export const useComposerStore = defineStore('composer', {
                 }));
 
             } catch (error) {
-                console.error(`Problem fetching articles:`, error);
+                message.error(error);
             } finally {
-                this.isLoading = false;
+
             }
         }
     }

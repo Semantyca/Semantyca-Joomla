@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import {useComposerStore} from './composerStore';
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({
@@ -71,6 +72,8 @@ export const useTemplateStore = defineStore('template', {
                     throw new Error(`HTTP error, status = ${response.status}`);
                 }
                 message.success('Template saved successfully');
+                const composerStore = useComposerStore();
+                await composerStore.updateFormCustomFields(message);
             } catch (error) {
                 message.error(error.message);
             } finally {

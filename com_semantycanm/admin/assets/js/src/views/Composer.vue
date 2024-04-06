@@ -37,12 +37,11 @@
       </n-form-item>
     </div>
   </div>
-  <n-divider class="custom-divider" title-placement="left">Articles</n-divider>
+  <n-divider class="custom-divider" title-placement="left">{{ store.translations.AVAILABLE_ARTICLES }}</n-divider>
   <div class="container mt-3">
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">
-          <!--          <h3>{{ store.translations.AVAILABLE_ARTICLES }}</h3>-->
           <div id="composerSpinner"
                class="spinner-border text-info spinner-grow-sm mb-2"
                role="status"

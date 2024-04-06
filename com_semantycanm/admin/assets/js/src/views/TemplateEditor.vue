@@ -42,7 +42,9 @@
             <n-form-item :show-label="false" path="valueType">
               <n-select v-model:value="customFormFields[index].type"
                         :options="options"
-                        style="margin-right: 12px; width: 160px"/>
+                        style="margin-right: 12px; width: 160px"
+                        @update:value="() => handleTypeChange(index)"/>
+
             </n-form-item>
             <n-form-item :show-label="false" path="variableName">
               <n-input v-model:value="customFormFields[index].name"
@@ -55,12 +57,12 @@
                        style="margin-right: 12px; width: 260px"/>
             </n-form-item>
             <n-form-item :show-label="false" path="defaultValue">
-              <n-input :value="customFormFields[index].defaultValue.toString()"
-                       @update:modelValue="newValue => updateDefaultValueAsString(index, newValue)"
-                       placeholder="Default value"
+              <n-input :value="getTypedValue(customFormFields[index].defaultValue, customFormFields[index].type)"
+                       @input="value => setTypedValue(index, value)"
+                       placeholder="Value"
                        style="margin-right: 12px; width: 360px"/>
-
             </n-form-item>
+
             <n-form-item :show-label="false" path="valueType">
               <n-checkbox :checked="customFormFields[ index ].isAvailable === 1"
                           @update:checked="value => updateFieldIsAvailable(index, value)"/>
@@ -147,11 +149,6 @@ export default {
       templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
     };
 
-    const updateDefaultValueAsString = (index, newValue) => {
-      templateStore.doc.customFields[index].defaultValue = String(newValue);
-    };
-
-
     const saveTemplate = async () => {
       await templateStore.saveTemplate(message);
     };
@@ -212,6 +209,42 @@ export default {
       fileInput.click();
     };
 
+    function getTypedValue(value, type) {
+      console.log(type, value);
+      switch (type) {
+        case 501:
+          return String(value);
+        case 503:
+          //return value.split(',');
+          return String(value);
+        case 502:
+        default:
+          return value;
+      }
+    }
+
+    function setTypedValue(index, stringValue) {
+      const fieldType = customFormFields.value[index].type;
+      let convertedValue = stringValue;
+      switch (fieldType) {
+        case 501:
+          convertedValue = Number(stringValue);
+          break;
+        case 503:
+          convertedValue = stringValue.toString();
+          break;
+        case 502:
+        default:
+          break;
+      }
+
+      customFormFields.value[index].defaultValue = convertedValue;
+    }
+
+    function handleTypeChange(index) {
+      customFormFields.value[index].defaultValue = '';
+    }
+
 
     const rules = {
       templateName: {
@@ -248,7 +281,6 @@ export default {
       store: templateStore,
       saveTemplate,
       updateFieldIsAvailable,
-      updateDefaultValueAsString,
       rules,
       formValue,
       customFormFields,
@@ -259,7 +291,10 @@ export default {
       addCustomField,
       removeCustomField,
       exportTemplate,
-      importTemplate
+      importTemplate,
+      getTypedValue,
+      setTypedValue,
+      handleTypeChange
     };
   }
 }
