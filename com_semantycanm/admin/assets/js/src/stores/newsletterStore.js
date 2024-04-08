@@ -15,7 +15,6 @@ export const useNewsletterStore = defineStore('newsletter', {
     }),
     actions: {
         async fetchNewsLetter(page, size, pagination) {
-            //   showSpinner('newsletterSpinner');
             try {
                 const response = await fetch('index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + page + '&limit=' + size);
 
@@ -32,9 +31,9 @@ export const useNewsletterStore = defineStore('newsletter', {
                 }
             } catch (error) {
                 console.error(error);
-                //  showErrorBar('NewsLetter.findAll', error.message);
+
             } finally {
-                //  hideSpinner('newsletterSpinner');
+
             }
         },
         async fetchCurrentNewsLetterEvents() {

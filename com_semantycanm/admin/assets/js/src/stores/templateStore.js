@@ -8,8 +8,7 @@ export const useTemplateStore = defineStore('template', {
             name: '',
             html: '',
             wrapper: '',
-            customFields: [],
-            availableCustomFields: []
+            customFields: []
         }
     }),
     actions: {
@@ -29,7 +28,15 @@ export const useTemplateStore = defineStore('template', {
             }
         },
         setTemplate(data) {
-            this.$state = {...this.$state, ...data};
+            // Explicitly update `doc` properties to ensure detailed control over what gets updated
+            this.doc.id = data.id ?? this.doc.id; // Use nullish coalescing to fallback to current values if undefined
+            this.doc.name = data.name ?? this.doc.name;
+            this.doc.html = data.content ?? this.doc.html; // Assuming `content` from `data` matches `html` in `doc`
+            this.doc.wrapper = data.wrapper ?? this.doc.wrapper;
+            this.doc.customFields = data.customFields ?? this.doc.customFields;
+
+            // If there's additional logic needed to process `customFields` or other properties, add here
+            // For example, if you need to ensure `defaultValue` for each customField is correctly formatted
         },
         async getTemplate(name, message) {
             try {
@@ -45,7 +52,6 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.html = data.content;
                 this.doc.wrapper = data.wrapper;
                 this.doc.customFields = data.customFields;
-                this.doc.availableCustomFields = this.doc.customFields.filter(field => field.isAvailable === 1);
             } catch (error) {
                 message.error(error.message);
             } finally {
@@ -58,6 +64,25 @@ export const useTemplateStore = defineStore('template', {
             const data = {
                 doc: this.doc
             };
+
+            for (let field of this.doc.customFields) {
+                if (field.type === 504 || field.type === 503) {
+
+                    try {
+                        if (Array.isArray(field.defaultValue)) {
+                            // field.defaultValue = JSON.stringify(field.defaultValue);
+                        } else {
+                            // field.defaultValue = JSON.stringify(field.defaultValue);
+                            // message.error(`Invalid input in field "${field.caption}".`);
+                        }
+                    } catch (error) {
+                        // Handle any unexpected error during the JSON conversion
+                        message.error(`Unexpected error in field "${field.caption}": ${error}`);
+                        stopLoading('loadingSpinner');
+                        return; // Abort the save operation
+                    }
+                }
+            }
 
             try {
                 const response = await fetch(endpoint, {

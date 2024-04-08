@@ -131,12 +131,14 @@ export default {
     const formValue = ref({
       templateName: ''
     });
+    const codeMirrorRef = ref(null);
     const message = useMessage();
 
     const customFormFields = computed(() => templateStore.doc.customFields);
 
     onMounted(async () => {
       await templateStore.getTemplate('classic', message);
+      highlightText("bannerUrl");
     });
 
     watch(() => templateStore.doc.name, (newName) => {
@@ -153,6 +155,15 @@ export default {
       await templateStore.saveTemplate(message);
     };
 
+    const highlightText = (text) => {
+      const codeMirrorInstance = codeMirrorRef.value?.$refs?.editor?.cm || codeMirrorRef.value?.editor; // This line may need to change based on how you can access the actual CodeMirror instance
+      if (codeMirrorInstance) {
+        const cursor = codeMirrorInstance.getSearchCursor(text);
+        while (cursor.findNext()) {
+          codeMirrorInstance.markText(cursor.from(), cursor.to(), {className: "highlighted"});
+        }
+      }
+    };
     const addCustomField = () => {
       const newField = {
         type: 502,
@@ -210,7 +221,6 @@ export default {
     };
 
     function getTypedValue(value, type) {
-      console.log(type, value);
       switch (type) {
         case 501:
           return String(value);
@@ -231,11 +241,11 @@ export default {
           convertedValue = Number(stringValue);
           break;
         case 503:
-          convertedValue = stringValue.toString();
+          convertedValue = stringValue;
           break;
         case 502:
         default:
-          break;
+          convertedValue = stringValue;
       }
 
       customFormFields.value[index].defaultValue = convertedValue;
@@ -246,28 +256,38 @@ export default {
     }
 
 
+    function isValidJson(value) {
+      try {
+        JSON.parse(value);
+        return true;
+      } catch (error) {
+        return false;
+      }
+    }
+
     const rules = {
       templateName: {
         required: true,
-        message: 'Template name cannot be empty'
+        message: 'Template name cannot be empty',
       },
-      defaultValue: {
-        required: true,
-        message: 'Default value cannot be empty'
-      },
+      defaultValue: [
+        {required: true, message: 'Default value cannot be empty'},
+        {validator: (rule, value) => isValidJson(value), message: 'Please enter a valid JSON string'},
+      ],
       variableName: {
         required: true,
-        message: 'Variable name cannot be empty'
+        message: 'Variable name cannot be empty',
       },
       valueType: {
         required: true,
-        message: 'Value type cannot be empty'
+        message: 'Value type cannot be empty',
       },
       caption: {
         required: true,
-        message: 'Caption cannot be empty'
+        message: 'Caption cannot be empty',
       },
     };
+
 
     const typeOptions = [
       {label: "Number", value: 501},
@@ -294,7 +314,8 @@ export default {
       importTemplate,
       getTypedValue,
       setTypedValue,
-      handleTypeChange
+      handleTypeChange,
+      highlightText
     };
   }
 }

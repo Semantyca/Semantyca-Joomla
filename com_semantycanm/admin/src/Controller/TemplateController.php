@@ -55,11 +55,29 @@ class TemplateController extends BaseController
 			$inputJSON = file_get_contents('php://input');
 			$inputData = json_decode($inputJSON, true);
 
-			$doc     = $inputData['doc'] ?? '';
+			$doc = $inputData['doc'] ?? '';
 
 			if (empty($id))
 			{
 				throw new ValidationErrorException(['id is required']);
+			}
+
+			// Validate customFields defaultValue for specific field type to be a list
+			if (isset($doc['customFields']) && is_array($doc['customFields']))
+			{
+				foreach ($doc['customFields'] as $customField)
+				{
+					if ($customField['type'] == Constants::FIELD_TYPE_STRING_LIST)
+					{
+						$defaultValue = $customField['defaultValue'] ?? '';
+						// Attempt to decode the defaultValue to check if it's an array
+						$decodedValue = json_decode($defaultValue);
+						if (!is_array($decodedValue))
+						{
+							throw new ValidationErrorException(['defaultValue in customFields must be a list']);
+						}
+					}
+				}
 			}
 
 			$model   = $this->getModel('Template');
@@ -81,4 +99,6 @@ class TemplateController extends BaseController
 			$app->close();
 		}
 	}
+
+
 }

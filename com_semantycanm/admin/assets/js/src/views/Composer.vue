@@ -98,10 +98,6 @@
           </n-button>
           <n-button size="large"
                     type="primary"
-                    @click="next">{{ store.translations.NEXT }}
-          </n-button>
-          <n-button size="large"
-                    type="primary"
                     @click="preview">{{ store.translations.PREVIEW }}
           </n-button>
         </n-space>
@@ -234,13 +230,6 @@ export default {
       document.body.removeChild(tempTextArea);
     };
 
-    const next = () => {
-      const messageContent = dynamicBuilder.getWrappedContent(composerStore.editorCont);
-      newsLetterStore.currentNewsletterId = 0;
-      emit('content-changed', messageContent);
-      emit('change-tab', 'Newsletter');
-    };
-
     const preview = () => {
       dialog.create({
         title: 'Preview',
@@ -293,7 +282,6 @@ export default {
       debouncedFetchArticles,
       resetFunction,
       copyContentToClipboard,
-      next,
       preview,
       handleColorChange,
       handleFieldChange

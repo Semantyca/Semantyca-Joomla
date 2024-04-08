@@ -72,7 +72,7 @@ class TemplateModel extends BaseDatabaseModel
 
 		foreach ($customFieldsRows as $customFieldRow)
 		{
-			$decodedDefaultValue = json_decode($customFieldRow->default_value, true);
+			$decodedDefaultValue = $customFieldRow->default_value;
 			$template->customFields[] = [
 				'id'           => $customFieldRow->id,
 				'name'         => $customFieldRow->name,
@@ -145,7 +145,7 @@ class TemplateModel extends BaseDatabaseModel
 		{
 			$query            = $db->getQuery(true);
 			$columns          = ['template_id', 'name', 'type', 'caption', 'default_value', 'is_available'];
-			$defaultValueJson = json_encode($customField['defaultValue']);
+			$defaultValueJson = $customField['defaultValue'];
 			$values           = [
 				(int) $id,
 				$db->quote($customField['name']),
