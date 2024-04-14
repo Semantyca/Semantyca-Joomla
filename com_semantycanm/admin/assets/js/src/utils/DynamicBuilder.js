@@ -31,7 +31,7 @@ export default class DynamicContentBuilder {
             url: this.normalizeUrl(article.url),
             intro: this.makeImageUrlsAbsolute(decodeURIComponent(article.intro)),
         }));
-        return ejs.render(this.template.html, this.variables);
+        return ejs.render(this.template.content, this.variables);
     }
 
 

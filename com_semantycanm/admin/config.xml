@@ -47,6 +47,7 @@
         <field
                 name="default_banner"
                 type="media"
+                default="http://fpoimg.com/970x250?text=Billboard"
                 label="DEFAULT_BANNER"
         />
 

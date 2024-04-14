@@ -11,6 +11,9 @@
         <n-button type="primary" @click="importTemplate">
           Import
         </n-button>
+        <n-button type="error" @click="deleteTemplate">
+          {{ globalStore.translations.DELETE }}
+        </n-button>
       </n-space>
     </div>
   </div>
@@ -73,7 +76,7 @@
       <n-divider title-placement="left">Template source</n-divider>
       <div class="row">
         <div class="col">
-          <code-mirror v-model="store.doc.html"
+          <code-mirror v-model="store.doc.content"
                        basic
                        :lang="lang"
                        :dark="dark"
@@ -182,7 +185,7 @@ export default {
     const exportTemplate = () => {
       const filename = `${templateStore.doc.name || 'template'}.json`;
       const jsonStr = JSON.stringify(templateStore.doc, (key, value) => {
-        if (key === "availableCustomFields") return undefined;
+        if (key === "availableCustomFields" || key === "regDate") return undefined;
         return value;
       }, 2);
       const blob = new Blob([jsonStr], {type: "application/json"});
@@ -207,11 +210,11 @@ export default {
           reader.onload = async (e) => {
             try {
               const jsonObj = JSON.parse(e.target.result);
-              templateStore.setTemplate(jsonObj);
-              await templateStore.saveTemplate(message);
-              message.success('Template imported successfully');
+              templateStore.setTemplate(jsonObj);  // Set the template from the imported JSON
+              await saveTemplate();  // Immediately attempt to save the imported template
+              message.success('Template imported and saved successfully');
             } catch (err) {
-              message.error('Failed to import template');
+              message.error('Failed to import template: ' + err.message);
             }
           };
           reader.readAsText(file);
@@ -220,12 +223,20 @@ export default {
       fileInput.click();
     };
 
+
+    const deleteTemplate = async () => {
+      if (templateStore.doc.id) {
+        await templateStore.deleteTemplate(message);
+      } else {
+        message.error("No template selected for deletion.");
+      }
+    };
+
     function getTypedValue(value, type) {
       switch (type) {
         case 501:
           return String(value);
         case 503:
-          //return value.split(',');
           return String(value);
         case 502:
         default:
@@ -312,6 +323,7 @@ export default {
       removeCustomField,
       exportTemplate,
       importTemplate,
+      deleteTemplate,
       getTypedValue,
       setTypedValue,
       handleTypeChange,

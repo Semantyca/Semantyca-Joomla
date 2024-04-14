@@ -2,23 +2,39 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
 
+use DateTime;
+
 class TemplateDTO
 {
-	public $id;
-	public $regDate;
-	public $name;
-	public $content;
-	public $wrapper;
-	public $customFields = [];
+	public int $id;
+	public DateTime $regDate;
+	public string $name;
+	public string $type;
+	public string $description;
+	public string $content;
+	public string $wrapper;
+	public array $customFields = [];
 
-	public function toArray()
+	public function toArray(): array
 	{
 		return [
 			'id'           => $this->id,
+			'regDate'      => $this->regDate->format('Y-m-d H:i:s'),
 			'name'         => $this->name,
+			'type'         => $this->type,
+			'description'  => $this->description,
 			'content'      => $this->content,
 			'wrapper'      => $this->wrapper,
-			'customFields' => $this->customFields
+			'customFields' => array_map(function ($field) {
+				return [
+					'id'           => $field['id'],
+					'name'         => $field['name'],
+					'type'         => $field['type'],
+					'caption'      => $field['caption'],
+					'defaultValue' => $field['defaultValue'],
+					'isAvailable'  => $field['isAvailable'],
+				];
+			}, $this->customFields)
 		];
 	}
 }
