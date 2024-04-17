@@ -7,29 +7,28 @@
     <authorUrl>https://absolute.lv</authorUrl>
     <copyright>Nzimas</copyright>
     <license>GPL v3</license>
-    <version>0.0.8</version>
+    <version>0.0.10</version>
     <description>A newsletter manager</description>
 
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>
 
-    <files folder="../site/">
+    <files folder="./site/">
         <folder>language</folder>
         <folder>src</folder>
         <folder>tmpl</folder>
     </files>
 
     <languages>
-        <language tag="en-GB">language/en-GB/en-GB.com_semantycanm.ini</language>
-        <language tag="pt-PT">language/pt-PT/pt-PT.com_semantycanm.ini</language>
+        <language tag="en-GB">./site/language/en-GB/en-GB.com_semantycanm.ini</language>
+        <language tag="pt-PT">./site/language/pt-PT/pt-PT.com_semantycanm.ini</language>
     </languages>
 
     <administration>
 
         <menu link="index.php?option=com_semantycanm">Semantyca</menu>
-        <files folder="admin/">
+        <files folder="./admin/">
             <filename>access.xml</filename>
             <filename>config.xml</filename>
-            <filename>semantycanm.xml</filename>
             <folder>language</folder>
             <folder>assets</folder>
             <folder>services</folder>
@@ -39,10 +38,10 @@
         </files>
 
         <languages>
-            <language tag="en-GB">language/en-GB/en-GB.com_semantycanm.ini</language>
-            <language tag="en-GB">language/en-GB/en-GB.com_semantycanm.sys.ini</language>
-            <language tag="pt-PT">language/pt-PT/pt-PT.com_semantycanm.ini</language>
-            <language tag="pt-PT">language/pt-PT/pt-PT.com_semantycanm.sys.ini</language>
+            <language tag="en-GB">./admin/language/en-GB/en-GB.com_semantycanm.ini</language>
+            <language tag="en-GB">./admin/language/en-GB/en-GB.com_semantycanm.sys.ini</language>
+            <language tag="pt-PT">./admin/language/pt-PT/pt-PT.com_semantycanm.ini</language>
+            <language tag="pt-PT">./admin/language/pt-PT/pt-PT.com_semantycanm.sys.ini</language>
         </languages>
 
     </administration>

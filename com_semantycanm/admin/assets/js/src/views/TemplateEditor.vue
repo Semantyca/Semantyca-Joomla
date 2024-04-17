@@ -210,9 +210,9 @@ export default {
           reader.onload = async (e) => {
             try {
               const jsonObj = JSON.parse(e.target.result);
-              templateStore.setTemplate(jsonObj);  // Set the template from the imported JSON
-              await saveTemplate();  // Immediately attempt to save the imported template
-              message.success('Template imported and saved successfully');
+              templateStore.setTemplate(jsonObj);
+              await templateStore.saveTemplate(message);
+              message.success('Template imported and saved successfully.');
             } catch (err) {
               message.error('Failed to import template: ' + err.message);
             }
@@ -222,7 +222,6 @@ export default {
       };
       fileInput.click();
     };
-
 
     const deleteTemplate = async () => {
       if (templateStore.doc.id) {

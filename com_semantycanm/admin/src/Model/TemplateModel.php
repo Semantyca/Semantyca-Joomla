@@ -2,6 +2,7 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
+use Exception;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\TemplateDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
@@ -42,6 +43,7 @@ class TemplateModel extends BaseDatabaseModel
 
 	/**
 	 * @throws RecordNotFoundException
+	 * @throws Exception
 	 * @since 1.0.0
 	 */
 	public function getTemplateByName($name): TemplateDTO
@@ -109,7 +111,7 @@ class TemplateModel extends BaseDatabaseModel
 	}
 
 
-	public function update($id, $messageContent): true
+	public function update($id, $messageContent): bool
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
