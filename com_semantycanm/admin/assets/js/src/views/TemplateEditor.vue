@@ -91,7 +91,6 @@
 
 <script>
 import {computed, onMounted, ref, watch} from 'vue';
-import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
 import {
@@ -112,7 +111,6 @@ import {html} from '@codemirror/lang-html';
 export default {
   name: 'TemplateEditor',
   components: {
-    Editor,
     NButton,
     NSpace,
     NInput,

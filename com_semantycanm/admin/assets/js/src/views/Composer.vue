@@ -1,44 +1,44 @@
 <template>
-  <n-divider title-placement="left">Parameters</n-divider>
-  <div class="row">
-    <div class="col-8">
-      <n-form-item
-          label-placement="left"
-          require-mark-placement="right-hanging"
-          label-width="180px"
-          :style="{ maxWidth: '800px' }"
-          v-for="(field, fieldName) in fields"
-          :key="field.id"
-          :label="field.caption"
-      >
-        <template v-if="field.type === 503">
-          <div v-for="(color, i) in field.defaultValue" :key="i">
-            <n-color-picker :value="color"
-                            size="large"
-                            :show-alpha="false"
-                            :actions="['confirm','clear']"
-                            @update:value="newValue => handleColorChange(field.name, i, newValue)"
-                            style="margin-right: 5px; width: 80px"/>
-          </div>
-        </template>
-        <template v-else-if="field.type === 501">
-          <n-input-number v-model:value="field.defaultValue"
-                          size="large"
-                          style="width: 100px"
-                          @update:value="newValue => handleFieldChange(field.name, newValue)"/>
-
-        </template>
-        <template v-else>
-          <n-input v-model:value="field.defaultValue"
-                   size="large"
-                   @update:value="newValue => handleFieldChange(field.name, newValue)"/>
-
-        </template>
-      </n-form-item>
-    </div>
-  </div>
-  <n-divider class="custom-divider" title-placement="left">{{ store.translations.AVAILABLE_ARTICLES }}</n-divider>
   <div class="container mt-3">
+    <n-divider title-placement="left">Parameters</n-divider>
+    <div class="row">
+      <div class="col-8">
+        <n-form-item
+            label-placement="left"
+            require-mark-placement="right-hanging"
+            label-width="180px"
+            :style="{ maxWidth: '800px' }"
+            v-for="(field, fieldName) in fields"
+            :key="field.id"
+            :label="field.caption"
+        >
+          <template v-if="field.type === 503">
+            <div v-for="(color, i) in field.defaultValue" :key="i">
+              <n-color-picker :value="color"
+                              size="large"
+                              :show-alpha="false"
+                              :actions="['confirm','clear']"
+                              @update:value="newValue => handleColorChange(field.name, i, newValue)"
+                              style="margin-right: 5px; width: 80px"/>
+            </div>
+          </template>
+          <template v-else-if="field.type === 501">
+            <n-input-number v-model:value="field.defaultValue"
+                            size="large"
+                            style="width: 100px"
+                            @update:value="newValue => handleFieldChange(field.name, newValue)"/>
+
+          </template>
+          <template v-else>
+            <n-input v-model:value="field.defaultValue"
+                     size="large"
+                     @update:value="newValue => handleFieldChange(field.name, newValue)"/>
+
+          </template>
+        </n-form-item>
+      </div>
+    </div>
+    <n-divider class="custom-divider" title-placement="left">{{ store.translations.AVAILABLE_ARTICLES }}</n-divider>
     <div class="row">
       <div class="col-md-6">
         <div class="header-container">
@@ -102,11 +102,57 @@
           </n-button>
         </n-space>
       </div>
-      <div class="row mt-3">
-        <editor
-            :api-key="store.tinyMceLic"
-            :init="composerEditorConfig"
-            v-model="articleStore.editorCont"></editor>
+      <div class="row mt-4">
+        <div class="col">
+          <n-button-group>
+            <n-button @click="formatText('bold')" secondary>
+              <template #icon>
+                <n-icon>
+                  <BandageOutline/>
+                </n-icon>
+              </template>
+              Bold
+            </n-button>
+            <n-button @click="formatText('italic')" secondary>
+              <template #icon>
+                <n-icon>
+                  <BeerOutline/>
+                </n-icon>
+              </template>
+              Italic
+            </n-button>
+            <n-button @click="formatText('underline')" secondary>
+              <template #icon>
+                <n-icon>
+                  <BoatOutline/>
+                </n-icon>
+              </template>
+              Underline
+            </n-button>
+            <n-button @click="formatText('strikethrough')" secondary>
+              <template #icon>
+                <n-icon>
+                  <Car/>
+                </n-icon>
+              </template>
+              Strikethrough
+            </n-button>
+            <n-button @click="previewHtml" secondary disabled>
+              <template #icon>
+                <n-icon>
+                  <CodeOutline/>
+                </n-icon>
+              </template>
+              HTML Preview
+            </n-button>
+          </n-button-group>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col">
+          <div id="squire-editor"
+               style="height: 400px; overflow-y: auto; border: 1px solid #a1bce0; min-height: 200px;"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -114,16 +160,17 @@
 
 <script>
 import {computed, h, onMounted, ref} from 'vue';
-import Editor from '@tinymce/tinymce-vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
 import {useNewsletterStore} from "../stores/newsletterStore";
 import HtmlWrapper from '../components/HtmlWrapper.vue';
 import {
   NButton,
+  NButtonGroup,
   NColorPicker,
   NDivider,
   NFormItem,
+  NIcon,
   NInput,
   NInputNumber,
   NSelect,
@@ -133,16 +180,21 @@ import {
   useDialog,
   useMessage
 } from "naive-ui";
+import {BandageOutline, BeerOutline, BoatOutline, Car, CodeOutline} from '@vicons/ionicons5';
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useComposerStore} from "../stores/composerStore";
 import DynamicBuilder from "../utils/DynamicBuilder"
+import Squire from 'squire-rte';
+import DOMPurify from 'dompurify';
+import CodeMirror from 'vue-codemirror6';
+import {html} from '@codemirror/lang-html';
 
 export default {
   name: 'Composer',
   components: {
-    Editor,
     NSkeleton,
+    NButtonGroup,
     NButton,
     NSpace,
     NDivider,
@@ -152,10 +204,12 @@ export default {
     NSelect,
     NTag,
     NColorPicker,
-    draggable
+    draggable,
+    NIcon,
+    BandageOutline, BeerOutline, BoatOutline, Car, CodeOutline
   },
 
-  setup(props, {emit}) {
+  setup() {
     const articles = ref([]);
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
@@ -169,33 +223,14 @@ export default {
     const dialog = useDialog();
     const fields = computed(() => composerStore.formCustomFields);
     const dynamicBuilder = new DynamicBuilder(templateStore.doc);
+    const squireEditor = ref(null);
 
-    const composerEditorConfig = {
-      apiKey: store.tinymceLic,
-      model_url: 'components/com_semantycanm/assets/bundle/models/dom/model.js',
-      skin_url: 'components/com_semantycanm/assets/bundle/skins/ui/oxide',
-      content_css: 'components/com_semantycanm/assets/bundle/skins/content/default/content.css',
-      menubar: false,
-      statusbar: false,
-      relative_urls: false,
-      remove_script_host: false,
-      selector: 'textarea',
-      plugins: 'fullscreen table code',
-      toolbar: 'fullscreen code paste removeformat bold italic underline indent outdent tablecellbackgroundcolor ',
-      table_advtab: false,
-      table_cell_advtab: false,
-      table_row_advtab: false,
-      table_resize_bars: false,
-      table_background_color_map: [
-        {title: 'Red', value: 'FF0000'},
-        {title: 'White', value: 'FFFFFF'},
-        {title: 'Yellow', value: 'F1C40F'}
-      ],
-    };
 
     onMounted(async () => {
       try {
         await composerStore.fetchArticles('', message);
+        window.DOMPurify = DOMPurify;
+        squireEditor.value = new Squire(document.getElementById('squire-editor'));
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
@@ -216,7 +251,8 @@ export default {
     };
 
     const copyContentToClipboard = () => {
-      const completeHTML = dynamicBuilder.getWrappedContent(composerStore.editorCont);
+      //const completeHTML = dynamicBuilder.getWrappedContent(composerStore.editorCont);
+      const completeHTML = dynamicBuilder.getWrappedContent(squireEditor.value.getHTML());
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
       document.body.appendChild(tempTextArea);
@@ -236,10 +272,55 @@ export default {
         style: 'width: 800px',
         bordered: true,
         content: () => h(HtmlWrapper, {
-          html: composerStore.editorCont
+          //html: composerStore.editorCont
+          html: squireEditor.value.getHTML()
         }),
       });
     };
+
+    const previewHtml = () => {
+      dialog.create({
+        title: 'HTML Preview',
+        style: 'width: 800px',
+        bordered: true,
+        content: () => h('div', [
+          h(CodeMirror, {
+            modelValue: squireEditor.value.getHTML(),
+            basic: true,
+            lang: html(),
+            dark: false,
+            style: {width: '100%', height: '400px'},
+            readOnly: true,
+            extensions: [
+              html()
+            ],
+          }),
+        ]),
+      });
+    };
+
+    /*const previewHtml = () => {
+      const htmlSource = squireEditor.value.getHTML();
+      dialog.create({
+        title: 'HTML Preview',
+        style: 'width: 800px',
+        bordered: true,
+        content: () => h('div', [
+          h(CodeMirror, {
+            modelValue: htmlSource,
+            basic: true,
+            lang: html(),
+            dark: false,
+            style: { width: '100%', height: '400px' },
+            readOnly: true,
+            extensions: [
+              html(),
+              //EditorView.lineWrapping,
+            ],
+          }),
+        ]),
+      });
+    };*/
 
     const handleColorChange = (fieldName, index, newValue) => {
       fields.value[fieldName].defaultValue[index] = newValue;
@@ -259,13 +340,36 @@ export default {
         const fieldValue = fields.value[key].defaultValue;
         dynamicBuilder.addVariable(key, fieldValue);
       });
-      composerStore.editorCont = dynamicBuilder.buildContent();
+      //composerStore.editorCont = dynamicBuilder.buildContent();
+      squireEditor.value.setHTML(dynamicBuilder.buildContent());
     };
 
 
     const fetchArticlesDebounced = debounce(composerStore.fetchArticles, 300);
     const debouncedFetchArticles = (event) => {
       fetchArticlesDebounced(event.target.value);
+    };
+
+    const formatText = (format) => {
+      if (squireEditor.value) {
+        squireEditor.value.focus();
+        switch (format) {
+          case 'bold':
+            squireEditor.value.bold();
+            break;
+          case 'italic':
+            squireEditor.value.italic();
+            break;
+          case 'underline':
+            squireEditor.value.underline();
+            break;
+          case 'strikethrough':
+            squireEditor.value.strikethrough();
+            break;
+          default:
+            break;
+        }
+      }
     };
 
     return {
@@ -277,14 +381,15 @@ export default {
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
-      composerEditorConfig,
       activeTabName,
       debouncedFetchArticles,
       resetFunction,
       copyContentToClipboard,
       preview,
       handleColorChange,
-      handleFieldChange
+      handleFieldChange,
+      formatText,
+      previewHtml,
     };
   }
 };
