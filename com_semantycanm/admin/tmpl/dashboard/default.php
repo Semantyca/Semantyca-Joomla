@@ -9,13 +9,11 @@ $app = Joomla\CMS\Factory::getApplication();
 $doc = $app->getDocument();
 global $smtca_assets;
 
-
 $smtca_assets = "administrator/components/com_semantycanm/assets/";
 $rootUrl      = JUri::root();
 $host         = JUri::getInstance()->toString(['host']);
 $doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
-//$doc->addScript($rootUrl . $smtca_assets . "js/typeahead.bundle.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
@@ -35,7 +33,7 @@ $translations     = array(
 	'SELECTED_ARTICLES'     => JText::_('SELECTED_ARTICLES'),
 	'STATISTICS'            => JText::_('STATISTICS'),
 	'RESET'                 => JText::_('RESET'),
-	'COPY_CODE'             => JText::_('COPY_CODE'),
+	'COPY_CODE' => JText::_('COPY_CODE'),
 	'SAVE'                  => JText::_('SAVE'),
 	'IMPORT'   => JText::_('IMPORT'),
 	'EXPORT'   => JText::_('EXPORT'),
@@ -63,7 +61,6 @@ $jsonTranslations = json_encode($translations);
 
 ?>
 <script type="module">
-    window.tinymceLic = "<?php echo $this->tinymce_lic; ?>";
     window.globalTranslations = <?php echo $jsonTranslations; ?>;
 </script>
 

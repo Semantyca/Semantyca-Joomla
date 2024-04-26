@@ -37,14 +37,6 @@
         />
 
         <field
-                name="tinymce_license_key"
-                type="password"
-                label="TINYMCE_LICENSE_KEY"
-                default=""
-                extension="com_semantycanm"
-        />
-
-        <field
                 name="default_banner"
                 type="media"
                 default="http://fpoimg.com/970x250?text=Billboard"

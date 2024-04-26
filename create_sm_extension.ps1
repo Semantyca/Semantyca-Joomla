@@ -35,7 +35,7 @@ try
 
     $files = Get-ChildItem -Path $sourceDir -Recurse | Where-Object { -not $_.PSIsContainer -and $_.FullName -notmatch '\\node_modules\\' }
     $totalFiles = $files.Count
-    Write-Host "$totalFiles files found for compression."
+    Write-Host "$totalFiles fonts found for compression."
 
     $currentFile = 0
     foreach ($file in $files)
@@ -46,7 +46,7 @@ try
 
         # Show progress
         $progressParams = @{
-            Activity = "Compressing files..."
+            Activity = "Compressing fonts..."
             Status = "Adding ${file.FullName} to archive"
             PercentComplete = ($currentFile / $totalFiles) * 100
         }

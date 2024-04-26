@@ -108,7 +108,7 @@
             <n-button @click="formatText('bold')" secondary>
               <template #icon>
                 <n-icon>
-                  <BandageOutline/>
+                  <Bold/>
                 </n-icon>
               </template>
               Bold
@@ -116,7 +116,7 @@
             <n-button @click="formatText('italic')" secondary>
               <template #icon>
                 <n-icon>
-                  <BeerOutline/>
+                  <Italic/>
                 </n-icon>
               </template>
               Italic
@@ -124,7 +124,7 @@
             <n-button @click="formatText('underline')" secondary>
               <template #icon>
                 <n-icon>
-                  <BoatOutline/>
+                  <Underline/>
                 </n-icon>
               </template>
               Underline
@@ -132,7 +132,7 @@
             <n-button @click="formatText('strikethrough')" secondary>
               <template #icon>
                 <n-icon>
-                  <Car/>
+                  <Strikethrough/>
                 </n-icon>
               </template>
               Strikethrough
@@ -140,7 +140,7 @@
             <n-button @click="previewHtml" secondary disabled>
               <template #icon>
                 <n-icon>
-                  <CodeOutline/>
+                  <Code/>
                 </n-icon>
               </template>
               HTML Preview
@@ -180,7 +180,6 @@ import {
   useDialog,
   useMessage
 } from "naive-ui";
-import {BandageOutline, BeerOutline, BoatOutline, Car, CodeOutline} from '@vicons/ionicons5';
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useComposerStore} from "../stores/composerStore";
@@ -189,6 +188,7 @@ import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
+import {Bold, Code, Italic, Strikethrough, Underline} from '@vicons/tabler'
 
 export default {
   name: 'Composer',
@@ -204,9 +204,9 @@ export default {
     NSelect,
     NTag,
     NColorPicker,
-    draggable,
     NIcon,
-    BandageOutline, BeerOutline, BoatOutline, Car, CodeOutline
+    draggable,
+    Bold, Italic, Underline, Strikethrough, Code
   },
 
   setup() {
@@ -389,7 +389,7 @@ export default {
       handleColorChange,
       handleFieldChange,
       formatText,
-      previewHtml,
+      previewHtml
     };
   }
 };
