@@ -6,6 +6,7 @@ export const useComposerStore = defineStore('composer', {
         listPage: {
             docs: []
         },
+        articlesCache: [],
         selectedArticles: [],
         editorCont: '',
         isLoading: false,
@@ -16,43 +17,40 @@ export const useComposerStore = defineStore('composer', {
             this.formCustomFields = rawFields.reduce((acc, field) => {
                 if (field.isAvailable === 1) {
                     const key = field.name;
-                    if (field.type === 503) {
-                        try {
-                            const parsedValue = JSON.parse(field.defaultValue);
-                            acc[key] = {
-                                ...field,
-                                defaultValue: Array.isArray(parsedValue) ? parsedValue : []
-                            };
-                        } catch (error) {
-                            message.error(`Error parsing JSON for field "${field.caption}": ${error}`);
-                            acc[key] = {
-                                ...field,
-                                defaultValue: []
-                            };
-                        }
-                    } else if (field.type === 504) {
-                        let defaultValue = field.defaultValue;
-                        if (typeof defaultValue === 'string' && defaultValue.startsWith('"') && defaultValue.endsWith('"')) {
-                            defaultValue = defaultValue.substring(1, defaultValue.length - 1);
-                        }
-
-                        acc[key] = {
-                            ...field,
-                            defaultValue: defaultValue
-                        };
-                    } else if (field.type === 501) {
-                        acc[key] = {
-                            ...field,
-                            defaultValue: Number(field.defaultValue)
-                        };
-                    } else {
-                        acc[key] = {
-                            ...field
-                        };
-                    }
+                    acc[key] = this.adaptField(field);
                 }
                 return acc;
             }, {});
+        },
+
+        adaptField(field) {
+            switch (field.type) {
+                case 503:
+                    try {
+                        const parsedValue = JSON.parse(field.defaultValue);
+                        return {
+                            ...field,
+                            defaultValue: Array.isArray(parsedValue) ? parsedValue : []
+                        };
+                    } catch (error) {
+                        return {
+                            ...field,
+                            defaultValue: []
+                        };
+                    }
+                case 504:
+                    return {
+                        ...field,
+                        defaultValue: field.defaultValue.replace(/^"|"$/g, "")
+                    };
+                case 501:
+                    return {
+                        ...field,
+                        defaultValue: Number(field.defaultValue)
+                    };
+                default:
+                    return {...field};
+            }
         },
 
         async updateFormCustomFields(message) {
@@ -64,6 +62,11 @@ export const useComposerStore = defineStore('composer', {
         },
 
         async fetchArticles(searchTerm, message) {
+            if (searchTerm === "" && this.articlesCache.length > 0) {
+                this.listPage.docs = this.articlesCache;
+                return;
+            }
+
             await this.updateFormCustomFields(message);
 
             try {
@@ -82,6 +85,10 @@ export const useComposerStore = defineStore('composer', {
                     category: a.category,
                     intro: encodeURIComponent(a.introtext)
                 }));
+
+                if (searchTerm === "") {
+                    this.articlesCache = this.listPage.docs;
+                }
 
             } catch (error) {
                 message.error(error);

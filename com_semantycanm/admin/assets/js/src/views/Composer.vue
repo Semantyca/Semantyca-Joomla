@@ -51,22 +51,26 @@
         </div>
         <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
                @input="debouncedFetchArticles">
-        <draggable class="list-group dragdrop-list-short"
-                   :list="articleStore.listPage.docs"
-                   group="articles"
-                   itemKey="id"
-                   @end="onDragEnd">
-          <template #item="{ element }">
-            <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
-                 :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
-              <strong>{{ element.category }}</strong><br>{{ element.title }}
-            </div>
-          </template>
-        </draggable>
+        <div v-if="loading" class="col-md-12">
+          <n-skeleton text :repeat="3"/>
+        </div>
+        <div v-else class="col-md-12">
+          <draggable class="list-group dragdrop-list-short"
+                     :list="articleStore.listPage.docs"
+                     group="articles"
+                     itemKey="id"
+                     @end="onDragEnd">
+            <template #item="{ element }">
+              <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
+                   :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
+                <strong>{{ element.category }}</strong><br>{{ element.title }}
+              </div>
+            </template>
+          </draggable>
+        </div>
       </div>
       <div class="col-md-6">
         <div class="header-container">
-          <!--          <h3>{{ store.translations.SELECTED_ARTICLES }}</h3>-->
         </div>
         <draggable
             class="list-group dragdrop-list"
@@ -222,13 +226,14 @@ export default {
     const message = useMessage();
     const dialog = useDialog();
     const fields = computed(() => composerStore.formCustomFields);
-    const dynamicBuilder = new DynamicBuilder(templateStore.doc);
     const squireEditor = ref(null);
-
+    const loading = ref(true);
 
     onMounted(async () => {
       try {
+        loading.value = true;
         await composerStore.fetchArticles('', message);
+        loading.value = false;
         window.DOMPurify = DOMPurify;
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
       } catch (error) {
@@ -244,6 +249,20 @@ export default {
       updateEditorContent();
     };
 
+    const updateEditorContent = () => {
+      const dynamicBuilder = new DynamicBuilder(templateStore.doc);
+      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
+      Object.keys(fields.value).forEach((key) => {
+        const fieldValue = fields.value[key].defaultValue;
+        dynamicBuilder.addVariable(key, fieldValue);
+      });
+      const cont = dynamicBuilder.buildContent();
+      //  console.log('cont', cont);
+      //  console.log('squireEditor.value', squireEditor.value);
+      squireEditor.value.setHTML(cont);
+    };
+
+
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
       composerStore.editorCont = '';
@@ -251,7 +270,7 @@ export default {
     };
 
     const copyContentToClipboard = () => {
-      //const completeHTML = dynamicBuilder.getWrappedContent(composerStore.editorCont);
+      const dynamicBuilder = new DynamicBuilder(templateStore.doc);
       const completeHTML = dynamicBuilder.getWrappedContent(squireEditor.value.getHTML());
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
@@ -272,7 +291,6 @@ export default {
         style: 'width: 800px',
         bordered: true,
         content: () => h(HtmlWrapper, {
-          //html: composerStore.editorCont
           html: squireEditor.value.getHTML()
         }),
       });
@@ -334,15 +352,6 @@ export default {
     };
 
 
-    const updateEditorContent = () => {
-      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
-      Object.keys(fields.value).forEach((key) => {
-        const fieldValue = fields.value[key].defaultValue;
-        dynamicBuilder.addVariable(key, fieldValue);
-      });
-      //composerStore.editorCont = dynamicBuilder.buildContent();
-      squireEditor.value.setHTML(dynamicBuilder.buildContent());
-    };
 
 
     const fetchArticlesDebounced = debounce(composerStore.fetchArticles, 300);
@@ -389,7 +398,8 @@ export default {
       handleColorChange,
       handleFieldChange,
       formatText,
-      previewHtml
+      previewHtml,
+      loading
     };
   }
 };

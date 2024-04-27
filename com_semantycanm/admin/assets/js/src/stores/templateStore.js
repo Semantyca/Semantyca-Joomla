@@ -11,7 +11,8 @@ export const useTemplateStore = defineStore('template', {
             content: '',
             wrapper: '',
             customFields: []
-        }
+        },
+        templatesCache: {}
     }),
     actions: {
         addCustomField(newField) {
@@ -33,6 +34,10 @@ export const useTemplateStore = defineStore('template', {
             this.doc = {...this.doc, ...data};
         },
         async getTemplate(name, message) {
+            if (this.templatesCache[name]) {
+                this.setTemplate(this.templatesCache[name]);
+                return;
+            }
             startLoading('loadingSpinner');
             const url = `index.php?option=com_semantycanm&task=Template.find&name=${encodeURIComponent(name)}`;
             try {
@@ -41,6 +46,7 @@ export const useTemplateStore = defineStore('template', {
                     throw new Error(`The template \"${name}\" is not found`);
                 }
                 const {data} = await response.json();
+                this.templatesCache[name] = data;
                 this.setTemplate(data);
             } catch (error) {
                 message.error(error.message);
@@ -65,6 +71,7 @@ export const useTemplateStore = defineStore('template', {
                 }
                 const result = await response.json();
                 message.success(result.data.message);
+                this.templatesCache[this.doc.name] = this.doc;
                 const composerStore = useComposerStore();
                 await composerStore.updateFormCustomFields(message);
             } catch (error) {
@@ -91,6 +98,7 @@ export const useTemplateStore = defineStore('template', {
                 }
                 const result = await response.json();
                 message.success(result.data.message);
+                delete this.templatesCache[this.doc.name];
                 this.doc = {id: 0, name: '', type: '', description: '', content: '', wrapper: '', customFields: []};
             } catch (error) {
                 message.error(error.message);
