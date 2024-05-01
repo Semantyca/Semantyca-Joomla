@@ -17,29 +17,67 @@ class TemplateModel extends BaseDatabaseModel
 		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
+		// Include 'content' and 'wrapper' in the select statement
 		$query
-			->select($db->quoteName(array('id', 'name', 'reg_date')))
+			->select('id, reg_date, name, type, description, content, wrapper, is_default')
 			->from($db->quoteName('#__semantyca_nm_templates'))
-			->order('reg_date DESC')
+			->order(array('is_default DESC', 'reg_date DESC'))
 			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
-		$templates = $db->loadObjectList();
+		$rows = $db->loadObjectList();
 
+		$templates = [];
+		foreach ($rows as $row)
+		{
+			$template              = new TemplateDTO();
+			$template->id          = $row->id;
+			$template->regDate     = new \DateTime($row->reg_date);
+			$template->name        = $row->name;
+			$template->type        = $row->type;
+			$template->description = $row->description;
+			$template->content     = $row->content; // Setting content
+			$template->wrapper     = $row->wrapper; // Setting wrapper
+
+			// Fetch and add custom fields
+			$customFieldsQuery = $db->getQuery(true)
+				->select('id, template_id, name, type, caption, default_value, is_available')
+				->from($db->quoteName('#__semantyca_nm_custom_fields'))
+				->where('template_id = ' . (int) $row->id);
+			$db->setQuery($customFieldsQuery);
+			$customFieldsRows = $db->loadObjectList();
+
+			foreach ($customFieldsRows as $field)
+			{
+				$template->customFields[] = [
+					'id'           => $field->id,
+					'name'         => $field->name,
+					'type'         => $field->type,
+					'caption'      => $field->caption,
+					'defaultValue' => $field->default_value,
+					'isAvailable'  => $field->is_available,
+				];
+			}
+
+			$templates[] = $template;
+		}
+
+		// Count total templates to manage pagination
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
 			->from($db->quoteName('#__semantyca_nm_templates'));
 		$db->setQuery($queryCount);
-		$count   = $db->loadResult();
-		$maxPage = (int) ceil($count / $itemsPerPage);
+		$totalItems = $db->loadResult();
+		$maxPage    = (int) ceil($totalItems / $itemsPerPage);
 
 		return [
 			'templates' => $templates,
-			'count'     => $count,
+			'count' => $totalItems,
 			'current'   => $currentPage,
 			'maxPage'   => $maxPage
 		];
 	}
+
 
 	/**
 	 * @throws RecordNotFoundException
@@ -116,11 +154,18 @@ class TemplateModel extends BaseDatabaseModel
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
-		$query->select($db->quoteName('id'))
-			->from($db->quoteName('#__semantyca_nm_templates'))
-			->where($db->quoteName('id') . ' = ' . (int) $id);
-		$db->setQuery($query);
-		$exists = $db->loadResult();
+		if ($id === "")
+		{
+			$exists = false;
+		}
+		else
+		{
+			$query->select($db->quoteName('id'))
+				->from($db->quoteName('#__semantyca_nm_templates'))
+				->where($db->quoteName('id') . ' = ' . (int) $id);
+			$db->setQuery($query);
+			$exists = $db->loadResult();
+		}
 
 		if ($exists)
 		{
@@ -136,6 +181,9 @@ class TemplateModel extends BaseDatabaseModel
 				->update($db->quoteName('#__semantyca_nm_templates'))
 				->set($fields)
 				->where($conditions);
+			$db->setQuery($query);
+			$db->execute();
+			$parent_template_id = $id;
 		}
 		else
 		{
@@ -152,14 +200,15 @@ class TemplateModel extends BaseDatabaseModel
 				->insert($db->quoteName('#__semantyca_nm_templates'))
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
+			$db->setQuery($query);
+			$db->execute();
+			$parent_template_id = $db->insertid();
 		}
 
-		$db->setQuery($query);
-		$db->execute();
 
 		$query->clear()
 			->delete($db->quoteName('#__semantyca_nm_custom_fields'))
-			->where($db->quoteName('template_id') . ' = ' . (int) $id);
+			->where($db->quoteName('template_id') . ' = ' . (int) $parent_template_id);
 		$db->setQuery($query);
 		$db->execute();
 
@@ -168,7 +217,7 @@ class TemplateModel extends BaseDatabaseModel
 			$query   = $db->getQuery(true);
 			$columns = ['template_id', 'name', 'type', 'caption', 'default_value', 'is_available'];
 			$values  = [
-				(int) $id,
+				(int) $parent_template_id,
 				$db->quote($customField['name']),
 				(int) $customField['type'],
 				$db->quote($customField['caption']),

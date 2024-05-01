@@ -16,6 +16,30 @@ use Throwable;
 
 class TemplateController extends BaseController
 {
+	public function findAll()
+	{
+		$app = Factory::getApplication();
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
+			$currentPage  = $this->input->getInt('page', 1);
+			$itemsPerPage = $this->input->getInt('limit', 10);
+
+			$model  = $this->getModel('Template');
+			$result = $model->getList($currentPage, $itemsPerPage);
+
+			echo new JsonResponse($result);
+		}
+		catch (Exception $e)
+		{
+			http_response_code(500);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			$app->close();
+		}
+	}
+
 	public function find()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -56,11 +80,6 @@ class TemplateController extends BaseController
 			$inputData = json_decode($inputJSON, true);
 
 			$doc = $inputData['doc'] ?? '';
-
-			if (empty($id))
-			{
-				throw new ValidationErrorException(['id is required']);
-			}
 
 			if (isset($doc['customFields']) && is_array($doc['customFields']))
 			{

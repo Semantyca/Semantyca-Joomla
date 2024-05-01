@@ -12,7 +12,14 @@ export const useTemplateStore = defineStore('template', {
             wrapper: '',
             customFields: []
         },
-        templatesCache: {}
+        activeTemplCache: {},
+        templatesList: [],
+        pagination: {
+            currentPage: 1,
+            itemsPerPage: 10,
+            totalItems: 0,
+            totalPages: 0
+        }
     }),
     actions: {
         addCustomField(newField) {
@@ -33,9 +40,36 @@ export const useTemplateStore = defineStore('template', {
         setTemplate(data) {
             this.doc = {...this.doc, ...data};
         },
+        async fetchTemplates(currentPage = 1, itemsPerPage = 10) {
+            const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
+            startLoading('loadingSpinner');
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch templates, HTTP status = ${response.status}`);
+                }
+                const jsonResponse = await response.json();
+
+                if (jsonResponse.success && jsonResponse.data) {
+                    this.templatesList = jsonResponse.data.templates;
+                    this.pagination = {
+                        currentPage: jsonResponse.data.current,
+                        itemsPerPage: itemsPerPage,
+                        totalItems: jsonResponse.data.count,
+                        totalPages: jsonResponse.data.maxPage
+                    };
+                } else {
+                    throw new Error('Failed to fetch templates: No data returned');
+                }
+            } catch (error) {
+                console.error('Error fetching templates:', error.message);
+            } finally {
+                stopLoading('loadingSpinner');
+            }
+        },
         async getTemplate(name, message) {
-            if (this.templatesCache[name]) {
-                this.setTemplate(this.templatesCache[name]);
+            if (this.activeTemplCache[name]) {
+                this.setTemplate(this.activeTemplCache[name]);
                 return;
             }
             startLoading('loadingSpinner');
@@ -43,25 +77,35 @@ export const useTemplateStore = defineStore('template', {
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`The template \"${name}\" is not found`);
+                    message.warning(`The template \"${name}\" is not found`);
+                } else {
+                    const {data} = await response.json();
+                    this.activeTemplCache[name] = data;
+                    this.setTemplate(data);
                 }
-                const {data} = await response.json();
-                this.templatesCache[name] = data;
-                this.setTemplate(data);
             } catch (error) {
                 message.error(error.message);
             } finally {
                 stopLoading('loadingSpinner');
             }
         },
-        async saveTemplate(message) {
+        async saveTemplate(message, isNew = false) {
             startLoading('loadingSpinner');
-            const endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(this.doc.id)}`;
+
+            let endpoint, method;
+            if (isNew) {
+                endpoint = `index.php?option=com_semantycanm&task=Template.update&id=`;
+                method = 'POST';
+            } else {
+                endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(this.doc.id)}`;
+                method = 'POST';
+            }
+
             const data = {doc: this.doc};
 
             try {
                 const response = await fetch(endpoint, {
-                    method: 'POST',
+                    method: method,
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
                 });
@@ -71,7 +115,7 @@ export const useTemplateStore = defineStore('template', {
                 }
                 const result = await response.json();
                 message.success(result.data.message);
-                this.templatesCache[this.doc.name] = this.doc;
+                this.activeTemplCache[this.doc.name] = this.doc;
                 const composerStore = useComposerStore();
                 await composerStore.updateFormCustomFields(message);
             } catch (error) {
@@ -98,7 +142,7 @@ export const useTemplateStore = defineStore('template', {
                 }
                 const result = await response.json();
                 message.success(result.data.message);
-                delete this.templatesCache[this.doc.name];
+                delete this.activeTemplCache[this.doc.name];
                 this.doc = {id: 0, name: '', type: '', description: '', content: '', wrapper: '', customFields: []};
             } catch (error) {
                 message.error(error.message);

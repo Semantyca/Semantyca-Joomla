@@ -22,14 +22,20 @@
     <div class="container">
       <div class="row">
         <div class="col-8">
-          <n-form-item label="Template name" label-placement="left" path="templateName" class="w-100">
-            <n-input v-model:value="formValue.templateName"
-                     disabled
-                     size="large"
-                     style="width: 100%"
-                     id="templateName"
-                     type="text"
-                     placeholder="Template name"/>
+          <n-form-item label="Template name" label-placement="left" path="templateName">
+            <n-select v-model:value="formValue.templateName"
+                      :options="templateOptions"
+                      size="large"
+                      style="width: 100%; max-width: 600px;"
+                      placeholder="Select a template"
+            />
+          </n-form-item>
+          <n-form-item label="Description" label-placement="left" path="description">
+            <n-input v-model:value="formValue.description"
+                     type="textarea"
+                     placeholder="Enter template description"
+                     style="width: 100%; max-width: 600px; height: 150px;"
+                     autosize/>
           </n-form-item>
         </div>
       </div>
@@ -130,22 +136,35 @@ export default {
     const lang = html();
     const dark = ref(false);
     const formValue = ref({
-      templateName: ''
+      templateName: '',
+      description: ''
     });
-    const codeMirrorRef = ref(null);
+
     const message = useMessage();
 
     const customFormFields = computed(() => templateStore.doc.customFields);
 
     onMounted(async () => {
-      await templateStore.getTemplate('classic', message);
-      highlightText("bannerUrl");
+      await templateStore.fetchTemplates();
+      const defaultTemplate = templateStore.templatesList.find(template => template.is_default === 1);
+      if (defaultTemplate) {
+        formValue.value.templateName = defaultTemplate.id;
+        formValue.value.description = defaultTemplate.description;
+        templateStore.setTemplate(defaultTemplate);
+      }
     });
 
-    watch(() => templateStore.doc.name, (newName) => {
-      formValue.value.templateName = newName;
-    }, {
-      immediate: true
+    const templateOptions = computed(() => templateStore.templatesList.map(template => ({
+      label: template.name,
+      value: template.id
+    })));
+
+    watch(() => formValue.value.templateName, (newVal) => {
+      const selectedTemplate = templateStore.templatesList.find(t => t.id === newVal);
+      if (selectedTemplate) {
+        formValue.value.description = selectedTemplate.description;
+        templateStore.setTemplate(selectedTemplate);
+      }
     });
 
     const updateFieldIsAvailable = (index, value) => {
@@ -156,15 +175,6 @@ export default {
       await templateStore.saveTemplate(message);
     };
 
-    const highlightText = (text) => {
-      const codeMirrorInstance = codeMirrorRef.value?.$refs?.editor?.cm || codeMirrorRef.value?.editor; // This line may need to change based on how you can access the actual CodeMirror instance
-      if (codeMirrorInstance) {
-        const cursor = codeMirrorInstance.getSearchCursor(text);
-        while (cursor.findNext()) {
-          codeMirrorInstance.markText(cursor.from(), cursor.to(), {className: "highlighted"});
-        }
-      }
-    };
     const addCustomField = () => {
       const newField = {
         type: 502,
@@ -183,7 +193,7 @@ export default {
     const exportTemplate = () => {
       const filename = `${templateStore.doc.name || 'template'}.json`;
       const jsonStr = JSON.stringify(templateStore.doc, (key, value) => {
-        if (key === "availableCustomFields" || key === "regDate") return undefined;
+        if (key === "id" || key === "availableCustomFields" || key === "regDate") return undefined;
         return value;
       }, 2);
       const blob = new Blob([jsonStr], {type: "application/json"});
@@ -209,7 +219,7 @@ export default {
             try {
               const jsonObj = JSON.parse(e.target.result);
               templateStore.setTemplate(jsonObj);
-              await templateStore.saveTemplate(message);
+              await templateStore.saveTemplate(message, true);
               message.success('Template imported and saved successfully.');
             } catch (err) {
               message.error('Failed to import template: ' + err.message);
@@ -324,7 +334,7 @@ export default {
       getTypedValue,
       setTypedValue,
       handleTypeChange,
-      highlightText
+      templateOptions,
     };
   }
 }

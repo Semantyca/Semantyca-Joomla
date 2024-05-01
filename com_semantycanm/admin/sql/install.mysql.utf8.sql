@@ -1,4 +1,3 @@
-
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
     id            INT AUTO_INCREMENT,
@@ -6,12 +5,12 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
     modified_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     type          VARCHAR(20),
     name          VARCHAR(255) UNIQUE,
+    is_default BOOL DEFAULT false,
     description   MEDIUMTEXT,
     content       MEDIUMTEXT,
     wrapper       MEDIUMTEXT,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
-
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
 (
@@ -26,7 +25,7 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
     is_available  BOOL     DEFAULT false,
     PRIMARY KEY (id),
     CONSTRAINT `fk_semantyca_nm_template` FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE,
-    UNIQUE KEY `unique_type_name` (type, name)
+    UNIQUE KEY `unique_type_name` (template_id, type, name)
 ) ENGINE = InnoDB;
 
 
