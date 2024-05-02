@@ -18,13 +18,13 @@
     </div>
   </div>
   <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
-  <n-form inline ref="formRef" :rules="rules" :model="formValue">
+  <n-form inline ref="formRef" :rules="rules" :model="formValue" label-placement="left" label-width="auto">
     <div class="container">
       <div class="row">
         <div class="col-8">
           <n-form-item label="Template name" label-placement="left" path="templateName">
             <n-select v-model:value="formValue.templateName"
-                      :options="templateOptions"
+                      :options="templateSelectList"
                       size="large"
                       style="width: 100%; max-width: 600px;"
                       placeholder="Select a template"
@@ -34,7 +34,7 @@
             <n-input v-model:value="formValue.description"
                      type="textarea"
                      placeholder="Enter template description"
-                     style="width: 100%; max-width: 600px; height: 150px;"
+                     style="width: 100%; max-width: 600px; height: 50px;"
                      autosize/>
           </n-form-item>
         </div>
@@ -136,6 +136,7 @@ export default {
     const lang = html();
     const dark = ref(false);
     const formValue = ref({
+      id: '',
       templateName: '',
       description: ''
     });
@@ -148,13 +149,13 @@ export default {
       await templateStore.fetchTemplates();
       const defaultTemplate = templateStore.templatesList.find(template => template.is_default === 1);
       if (defaultTemplate) {
-        formValue.value.templateName = defaultTemplate.id;
+        formValue.value.id = defaultTemplate.id;
         formValue.value.description = defaultTemplate.description;
         templateStore.setTemplate(defaultTemplate);
       }
     });
 
-    const templateOptions = computed(() => templateStore.templatesList.map(template => ({
+    const templateSelectList = computed(() => templateStore.templatesList.map(template => ({
       label: template.name,
       value: template.id
     })));
@@ -162,6 +163,7 @@ export default {
     watch(() => formValue.value.templateName, (newVal) => {
       const selectedTemplate = templateStore.templatesList.find(t => t.id === newVal);
       if (selectedTemplate) {
+        formValue.value.id = selectedTemplate.id;
         formValue.value.description = selectedTemplate.description;
         templateStore.setTemplate(selectedTemplate);
       }
@@ -334,7 +336,7 @@ export default {
       getTypedValue,
       setTypedValue,
       handleTypeChange,
-      templateOptions,
+      templateSelectList,
     };
   }
 }

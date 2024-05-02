@@ -17,11 +17,10 @@ class TemplateModel extends BaseDatabaseModel
 		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
-		// Include 'content' and 'wrapper' in the select statement
 		$query
 			->select('id, reg_date, name, type, description, content, wrapper, is_default')
 			->from($db->quoteName('#__semantyca_nm_templates'))
-			->order(array('is_default DESC', 'reg_date DESC'))
+			->order(array('reg_date DESC'))
 			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
@@ -35,11 +34,11 @@ class TemplateModel extends BaseDatabaseModel
 			$template->regDate     = new \DateTime($row->reg_date);
 			$template->name        = $row->name;
 			$template->type        = $row->type;
+			$template->isDefault = $row->is_default;
 			$template->description = $row->description;
-			$template->content     = $row->content; // Setting content
-			$template->wrapper     = $row->wrapper; // Setting wrapper
+			$template->content = $row->content;
+			$template->wrapper = $row->wrapper;
 
-			// Fetch and add custom fields
 			$customFieldsQuery = $db->getQuery(true)
 				->select('id, template_id, name, type, caption, default_value, is_available')
 				->from($db->quoteName('#__semantyca_nm_custom_fields'))
@@ -62,7 +61,6 @@ class TemplateModel extends BaseDatabaseModel
 			$templates[] = $template;
 		}
 
-		// Count total templates to manage pagination
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
 			->from($db->quoteName('#__semantyca_nm_templates'));
@@ -88,7 +86,7 @@ class TemplateModel extends BaseDatabaseModel
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true)
-			->select('id, reg_date, name, type, description, content, wrapper')
+			->select('id, reg_date, name, type, description, content, wrapper, is_default')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->where('name = ' . $db->quote($name));
 
@@ -187,14 +185,15 @@ class TemplateModel extends BaseDatabaseModel
 		}
 		else
 		{
-			$columns = ['id', 'content', 'name', 'type', 'wrapper', 'description'];
+			$columns = ['id', 'content', 'name', 'type', 'wrapper', 'description', 'is_default'];
 			$values  = [
 				(int) $id,
 				$db->quote($messageContent['content']),
 				$db->quote($messageContent['name']),
 				$db->quote($messageContent['type']),
 				$db->quote($messageContent['wrapper']),
-				$db->quote($messageContent['description'])
+				$db->quote($messageContent['description']),
+				$db->quote(1)
 			];
 			$query->clear()
 				->insert($db->quoteName('#__semantyca_nm_templates'))

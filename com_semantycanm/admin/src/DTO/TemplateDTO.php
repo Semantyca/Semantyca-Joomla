@@ -10,6 +10,7 @@ class TemplateDTO
 	public DateTime $regDate;
 	public string $name;
 	public string $type;
+	public bool $isDefault;
 	public string $description;
 	public string $content;
 	public string $wrapper;
@@ -22,6 +23,7 @@ class TemplateDTO
 			'regDate'      => $this->regDate->format('Y-m-d H:i:s'),
 			'name'         => $this->name,
 			'type'         => $this->type,
+			'isDefault'    => $this->isDefault,
 			'description'  => $this->description,
 			'content'      => $this->content,
 			'wrapper'      => $this->wrapper,
@@ -30,6 +32,7 @@ class TemplateDTO
 					'id'           => $field['id'],
 					'name'         => $field['name'],
 					'type'         => $field['type'],
+					'isDefault' => $field['isDefault'],
 					'caption'      => $field['caption'],
 					'defaultValue' => $field['defaultValue'],
 					'isAvailable'  => $field['isAvailable'],

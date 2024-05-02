@@ -56,7 +56,7 @@ export const useComposerStore = defineStore('composer', {
         async updateFormCustomFields(message) {
             this.formCustomFields = {};
             const templateStore = useTemplateStore();
-            await templateStore.getTemplate('classic', message);
+            await templateStore.fetchTemplates();
             const availableCustomFields = templateStore.doc.customFields.filter(field => field.isAvailable === 1);
             this.processFormCustomFields(availableCustomFields, message);
         },

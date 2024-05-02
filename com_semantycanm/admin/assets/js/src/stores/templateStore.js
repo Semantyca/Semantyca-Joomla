@@ -10,6 +10,7 @@ export const useTemplateStore = defineStore('template', {
             description: '',
             content: '',
             wrapper: '',
+            isDefault: false,
             customFields: []
         },
         activeTemplCache: {},
