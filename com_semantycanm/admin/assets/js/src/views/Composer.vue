@@ -166,7 +166,6 @@
 import {computed, h, onMounted, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {debounce} from 'lodash';
-import {useNewsletterStore} from "../stores/newsletterStore";
 import HtmlWrapper from '../components/HtmlWrapper.vue';
 import {
   NButton,
@@ -222,7 +221,6 @@ export default {
     const composerStore = useComposerStore();
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
-    const newsLetterStore = useNewsletterStore();
     const message = useMessage();
     const dialog = useDialog();
     const fields = computed(() => composerStore.formCustomFields);
@@ -232,7 +230,7 @@ export default {
     onMounted(async () => {
       try {
         loading.value = true;
-        await composerStore.fetchArticles('', message);
+        await composerStore.fetchEverything('', message);
         loading.value = false;
         window.DOMPurify = DOMPurify;
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
@@ -257,8 +255,6 @@ export default {
         dynamicBuilder.addVariable(key, fieldValue);
       });
       const cont = dynamicBuilder.buildContent();
-      //  console.log('cont', cont);
-      //  console.log('squireEditor.value', squireEditor.value);
       squireEditor.value.setHTML(cont);
     };
 
@@ -266,7 +262,7 @@ export default {
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
       composerStore.editorCont = '';
-      await composerStore.fetchArticles('');
+      await composerStore.fetchEverything('');
     };
 
     const copyContentToClipboard = () => {
@@ -352,9 +348,7 @@ export default {
     };
 
 
-
-
-    const fetchArticlesDebounced = debounce(composerStore.fetchArticles, 300);
+    const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
     const debouncedFetchArticles = (event) => {
       fetchArticlesDebounced(event.target.value);
     };

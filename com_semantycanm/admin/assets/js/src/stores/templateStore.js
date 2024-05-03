@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
-import {useComposerStore} from './composerStore';
+import {adaptField, processFormCustomFields} from './utils/fieldUtilities';
+import {deleteTemplate, saveTemplate} from './utils/templateStoreActions';
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({
@@ -11,10 +12,10 @@ export const useTemplateStore = defineStore('template', {
             content: '',
             wrapper: '',
             isDefault: false,
-            customFields: []
+            customFields: [],
+            availableCustomFields: {}
         },
-        activeTemplCache: {},
-        templatesList: [],
+        templatesMap: {},
         pagination: {
             currentPage: 1,
             itemsPerPage: 10,
@@ -41,115 +42,48 @@ export const useTemplateStore = defineStore('template', {
         setTemplate(data) {
             this.doc = {...this.doc, ...data};
         },
-        async fetchTemplates(currentPage = 1, itemsPerPage = 10) {
+        changeTemplate(templateDoc) {
+            this.doc.id = templateDoc.id;
+            this.doc.name = templateDoc.name;
+            this.doc.type = templateDoc.type;
+            this.doc.description = templateDoc.description;
+            this.doc.content = templateDoc.content;
+            this.doc.wrapper = templateDoc.wrapper;
+            this.doc.isDefault = templateDoc.isDefault;
+            this.doc.customFields = templateDoc.customFields;
+            this.formCustomFields = processFormCustomFields(templateDoc.customFields.filter(field => field.isAvailable === 1), adaptField);
+        },
+        async getTemplates(msgPopup, currentPage = 1, itemsPerPage = 10) {
             const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
-            startLoading('loadingSpinner');
             try {
                 const response = await fetch(url);
                 if (!response.ok) {
                     throw new Error(`Failed to fetch templates, HTTP status = ${response.status}`);
                 }
                 const jsonResponse = await response.json();
-
                 if (jsonResponse.success && jsonResponse.data) {
-                    this.templatesList = jsonResponse.data.templates;
+                    this.templatesMap = jsonResponse.data.templates.reduce((acc, template) => {
+                        acc[template.id] = template;
+                        return acc;
+                    }, {});
                     this.pagination = {
                         currentPage: jsonResponse.data.current,
                         itemsPerPage: itemsPerPage,
                         totalItems: jsonResponse.data.count,
                         totalPages: jsonResponse.data.maxPage
                     };
+                    const defaultTemplateId = Object.keys(this.templatesMap).find(id => this.templatesMap[id].isDefault);
+                    if (defaultTemplateId) {
+                        this.changeTemplate(this.templatesMap[defaultTemplateId]);
+                    }
                 } else {
                     throw new Error('Failed to fetch templates: No data returned');
                 }
             } catch (error) {
-                console.error('Error fetching templates:', error.message);
-            } finally {
-                stopLoading('loadingSpinner');
+                msgPopup.error('Error fetching templates: ' + error.message);
             }
         },
-        async getTemplate(name, message) {
-            if (this.activeTemplCache[name]) {
-                this.setTemplate(this.activeTemplCache[name]);
-                return;
-            }
-            startLoading('loadingSpinner');
-            const url = `index.php?option=com_semantycanm&task=Template.find&name=${encodeURIComponent(name)}`;
-            try {
-                const response = await fetch(url);
-                if (!response.ok) {
-                    message.warning(`The template \"${name}\" is not found`);
-                } else {
-                    const {data} = await response.json();
-                    this.activeTemplCache[name] = data;
-                    this.setTemplate(data);
-                }
-            } catch (error) {
-                message.error(error.message);
-            } finally {
-                stopLoading('loadingSpinner');
-            }
-        },
-        async saveTemplate(message, isNew = false) {
-            startLoading('loadingSpinner');
-
-            let endpoint, method;
-            if (isNew) {
-                endpoint = `index.php?option=com_semantycanm&task=Template.update&id=`;
-                method = 'POST';
-            } else {
-                endpoint = `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(this.doc.id)}`;
-                method = 'POST';
-            }
-
-            const data = {doc: this.doc};
-
-            try {
-                const response = await fetch(endpoint, {
-                    method: method,
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify(data)
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error, status = ${response.status}`);
-                }
-                const result = await response.json();
-                message.success(result.data.message);
-                this.activeTemplCache[this.doc.name] = this.doc;
-                const composerStore = useComposerStore();
-                await composerStore.updateFormCustomFields(message);
-            } catch (error) {
-                message.error(error.message);
-            } finally {
-                stopLoading('loadingSpinner');
-            }
-        },
-        async deleteTemplate(message) {
-            if (!this.doc.id) {
-                message.error("Template ID is missing");
-                return;
-            }
-            startLoading('loadingSpinner');
-            const endpoint = `index.php?option=com_semantycanm&task=Template.delete&id=${encodeURIComponent(this.doc.id)}`;
-
-            try {
-                const response = await fetch(endpoint, {
-                    method: 'DELETE'
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Failed to delete template, HTTP status = ${response.status}`);
-                }
-                const result = await response.json();
-                message.success(result.data.message);
-                delete this.activeTemplCache[this.doc.name];
-                this.doc = {id: 0, name: '', type: '', description: '', content: '', wrapper: '', customFields: []};
-            } catch (error) {
-                message.error(error.message);
-            } finally {
-                stopLoading('loadingSpinner');
-            }
-        }
+        saveTemplate,
+        deleteTemplate
     }
 });

@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {useTemplateStore} from './templateStore';
+import {adaptField} from "./utils/fieldUtilities";
 
 export const useComposerStore = defineStore('composer', {
     state: () => ({
@@ -13,61 +14,30 @@ export const useComposerStore = defineStore('composer', {
         formCustomFields: {}
     }),
     actions: {
-        processFormCustomFields(rawFields, message) {
+        processFormCustomFields(rawFields, msgPopup) {
             this.formCustomFields = rawFields.reduce((acc, field) => {
                 if (field.isAvailable === 1) {
                     const key = field.name;
-                    acc[key] = this.adaptField(field);
+                    acc[key] = adaptField(field);
                 }
                 return acc;
             }, {});
         },
-
-        adaptField(field) {
-            switch (field.type) {
-                case 503:
-                    try {
-                        const parsedValue = JSON.parse(field.defaultValue);
-                        return {
-                            ...field,
-                            defaultValue: Array.isArray(parsedValue) ? parsedValue : []
-                        };
-                    } catch (error) {
-                        return {
-                            ...field,
-                            defaultValue: []
-                        };
-                    }
-                case 504:
-                    return {
-                        ...field,
-                        defaultValue: field.defaultValue.replace(/^"|"$/g, "")
-                    };
-                case 501:
-                    return {
-                        ...field,
-                        defaultValue: Number(field.defaultValue)
-                    };
-                default:
-                    return {...field};
-            }
-        },
-
-        async updateFormCustomFields(message) {
+        async updateFormCustomFields(msgPopup) {
             this.formCustomFields = {};
             const templateStore = useTemplateStore();
-            await templateStore.fetchTemplates();
+            await templateStore.getTemplates(msgPopup);
             const availableCustomFields = templateStore.doc.customFields.filter(field => field.isAvailable === 1);
-            this.processFormCustomFields(availableCustomFields, message);
+            this.processFormCustomFields(availableCustomFields, msgPopup);
         },
 
-        async fetchArticles(searchTerm, message) {
+        async fetchEverything(searchTerm, msgPopup) {
             if (searchTerm === "" && this.articlesCache.length > 0) {
                 this.listPage.docs = this.articlesCache;
                 return;
             }
 
-            await this.updateFormCustomFields(message);
+            await this.updateFormCustomFields(msgPopup);
 
             try {
                 const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}`;
@@ -91,7 +61,7 @@ export const useComposerStore = defineStore('composer', {
                 }
 
             } catch (error) {
-                message.error(error);
+                msgPopup.error(error);
             } finally {
 
             }
