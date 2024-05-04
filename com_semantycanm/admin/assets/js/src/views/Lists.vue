@@ -149,7 +149,10 @@ export default {
 
       const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
       if (!selectedGroupsValidation) {
-        message.error(rules.selectedGroups.message);
+        message.error(rules.selectedGroups.message, {
+          closable: true,
+          duration: 10000
+        });
         return;
       }
 
@@ -161,13 +164,19 @@ export default {
             formValue.value.selectedGroups = [];
           }).catch((error) => {
             console.error("Error saving the list:", error);
-            message.error("Failed to save the list.");
+            message.error("Failed to save the list.", {
+              closable: true,
+              duration: 10000
+            });
           });
         } else {
           Object.keys(errors).forEach(fieldName => {
             const fieldError = errors[fieldName];
             if (fieldError && fieldError.length > 0) {
-              message.error(fieldError[0].message);
+              message.error(fieldError[0].message, {
+                closable: true,
+                duration: 10000
+              });
             }
           });
         }
@@ -206,7 +215,10 @@ export default {
 
         //showEditFormWithDetails(entryDetails); // This is a placeholder, replace with your actual implementation
       } catch (error) {
-        message.error(error.message);
+        message.error(error.message, {
+          closable: true,
+          duration: 10000
+        });
       }
     };
 
@@ -215,7 +227,10 @@ export default {
         await mailingListStore.deleteMailingListEntries([id], message);
         message.success('Entry deleted successfully');
       } catch (error) {
-        message.error(error.message);
+        message.error(error.message, {
+          closable: true,
+          duration: 10000
+        });
       }
     };
 

@@ -115,15 +115,8 @@ import {
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 import {getTypedValue, rules, setTypedValue, typeOptions} from '../utils/templateEditorUtils';
-import {
-  addCustomField,
-  deleteCurrentTemplate,
-  exportTemplate,
-  handleTypeChange,
-  importTemplate,
-  removeCustomField,
-  saveTemplate
-} from '../utils/templateEditorHandlers';
+import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
+import TemplateManager from "../utils/TemplateManager";
 
 export default {
   name: 'TemplateEditor',
@@ -146,6 +139,7 @@ export default {
     const globalStore = useGlobalStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
+    const templateManager = new TemplateManager(templateStore, msgPopup);
     const customFormFields = computed(() => templateStore.doc.customFields);
 
     const templateSelectList = computed(() => {
@@ -183,10 +177,10 @@ export default {
     return {
       globalStore,
       store: templateStore,
-      saveTemplate: () => saveTemplate(templateStore, msgPopup),
-      deleteTemplate: () => deleteCurrentTemplate(templateStore, msgPopup),
-      exportTemplate: () => exportTemplate(templateStore),
-      importTemplate: () => importTemplate(templateStore, msgPopup),
+      saveTemplate: () => templateManager.saveTemplate(),
+      deleteTemplate: () => templateManager.deleteCurrentTemplate(),
+      exportTemplate: () => templateManager.exportTemplate(),
+      importTemplate: () => templateManager.importTemplate(),
       addCustomField: () => addCustomField(templateStore),
       removeCustomField: (index) => removeCustomField(templateStore, index),
       handleTypeChange: (index) => handleTypeChange(customFormFields, index),

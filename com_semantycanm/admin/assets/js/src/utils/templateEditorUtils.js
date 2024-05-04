@@ -1,3 +1,4 @@
+
 export function getTypedValue(value, type) {
     switch (type) {
         case 501:
@@ -12,7 +13,7 @@ export function getTypedValue(value, type) {
 
 export function setTypedValue(customFormFields, index, stringValue) {
     const fieldType = customFormFields[index].type;
-    let convertedValue = stringValue;
+    let convertedValue;
     switch (fieldType) {
         case 501:
             convertedValue = Number(stringValue);

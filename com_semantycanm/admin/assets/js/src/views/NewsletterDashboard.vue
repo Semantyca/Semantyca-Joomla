@@ -286,14 +286,20 @@ export default defineComponent({
                 })
                 .catch(error => {
                   console.log('err', error);
-                  message.error(error.toString());
+                  message.error(error.toString(), {
+                    closable: true,
+                    duration: 10000
+                  });
                 });
           }
         } else {
           Object.keys(errors).forEach(fieldName => {
             const fieldError = errors[fieldName];
             if (fieldError && fieldError.length > 0) {
-              message.error(fieldError[0].message);
+              message.error(fieldError[0].message, {
+                closable: true,
+                duration: 10000
+              });
             }
           });
         }

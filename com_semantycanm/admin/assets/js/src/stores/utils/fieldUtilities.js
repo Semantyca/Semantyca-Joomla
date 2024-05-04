@@ -1,3 +1,16 @@
+export function setCurrentTemplate(store, defaultTemplateId) {
+    const templateDoc = store.templatesMap[defaultTemplateId]
+    store.doc.id = templateDoc.id;
+    store.doc.name = templateDoc.name;
+    store.doc.type = templateDoc.type;
+    store.doc.description = templateDoc.description;
+    store.doc.content = templateDoc.content;
+    store.doc.wrapper = templateDoc.wrapper;
+    store.doc.isDefault = templateDoc.isDefault;
+    store.doc.customFields = templateDoc.customFields;
+    store.formCustomFields = processFormCustomFields(templateDoc.customFields.filter(field => field.isAvailable === 1), adaptField);
+}
+
 export function adaptField(field) {
     switch (field.type) {
         case 503:

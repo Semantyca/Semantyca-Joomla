@@ -57,7 +57,10 @@ export const useMailingListStore = defineStore('mailingList', {
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
-                message.error(error.message);
+                message.error(error.message, {
+                    closable: true,
+                    duration: 10000
+                });
                 throw error; // Rethrow error if you want calling code to handle it
             } finally {
                 stopLoading('loadingSpinner');
@@ -88,7 +91,10 @@ export const useMailingListStore = defineStore('mailingList', {
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
-                message.error(error.message);
+                message.error(error.message, {
+                    closable: true,
+                    duration: 10000
+                });
             } finally {
                 stopLoading('loadingSpinner');
             }

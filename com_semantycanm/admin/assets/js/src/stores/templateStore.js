@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
-import {adaptField, processFormCustomFields} from './utils/fieldUtilities';
-import {deleteTemplate, saveTemplate} from './utils/templateStoreActions';
+import {setCurrentTemplate} from './utils/fieldUtilities';
+
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({
@@ -42,17 +42,6 @@ export const useTemplateStore = defineStore('template', {
         setTemplate(data) {
             this.doc = {...this.doc, ...data};
         },
-        changeTemplate(templateDoc) {
-            this.doc.id = templateDoc.id;
-            this.doc.name = templateDoc.name;
-            this.doc.type = templateDoc.type;
-            this.doc.description = templateDoc.description;
-            this.doc.content = templateDoc.content;
-            this.doc.wrapper = templateDoc.wrapper;
-            this.doc.isDefault = templateDoc.isDefault;
-            this.doc.customFields = templateDoc.customFields;
-            this.formCustomFields = processFormCustomFields(templateDoc.customFields.filter(field => field.isAvailable === 1), adaptField);
-        },
         async getTemplates(msgPopup, currentPage = 1, itemsPerPage = 10) {
             const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
             try {
@@ -74,16 +63,17 @@ export const useTemplateStore = defineStore('template', {
                     };
                     const defaultTemplateId = Object.keys(this.templatesMap).find(id => this.templatesMap[id].isDefault);
                     if (defaultTemplateId) {
-                        this.changeTemplate(this.templatesMap[defaultTemplateId]);
+                        setCurrentTemplate(this, defaultTemplateId);
                     }
                 } else {
                     throw new Error('Failed to fetch templates: No data returned');
                 }
             } catch (error) {
-                msgPopup.error('Error fetching templates: ' + error.message);
+                msgPopup.error('Error fetching templates: ' + error.message, {
+                    closable: true,
+                    duration: this.$errorTimeout
+                });
             }
-        },
-        saveTemplate,
-        deleteTemplate
+        }
     }
 });
