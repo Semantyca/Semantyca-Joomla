@@ -185,9 +185,8 @@ class TemplateModel extends BaseDatabaseModel
 		}
 		else
 		{
-			$columns = ['id', 'content', 'name', 'type', 'wrapper', 'description', 'is_default'];
+			$columns = ['content', 'name', 'type', 'wrapper', 'description', 'is_default'];
 			$values  = [
-				(int) $id,
 				$db->quote($messageContent['content']),
 				$db->quote($messageContent['name']),
 				$db->quote($messageContent['type']),

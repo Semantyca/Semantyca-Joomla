@@ -23,8 +23,8 @@
       <div class="row">
         <div class="col-8">
           <n-form-item label="Template name" label-placement="left" path="templateName">
-            <n-select v-model:value="selectedTemplateId"
-                      :options="templateSelectList"
+            <n-select v-model:value="selectedTemplateRef"
+                      :options="templateSelectOptions"
                       size="large"
                       style="width: 100%; max-width: 600px;"
                       placeholder="Select a template"
@@ -51,7 +51,7 @@
           >
             <n-form-item :show-label="false" path="valueType">
               <n-select v-model:value="customFormFields[index].type"
-                        :options="options"
+                        :options="typeOptions"
                         style="margin-right: 12px; width: 160px"
                         @update:value="() => handleTypeChange(index)"/>
 
@@ -83,12 +83,24 @@
       <n-divider title-placement="left">Template source</n-divider>
       <div class="row">
         <div class="col">
-          <code-mirror v-model="store.doc.content"
-                       basic
-                       :lang="lang"
-                       :dark="dark"
-                       :style="{ width: '100%'}"
-          />
+          <n-tabs v-model:value="activeTabRef">
+            <n-tab-pane name="content" tab="Content">
+              <code-mirror v-model="store.doc.content"
+                           basic
+                           :lang="lang"
+                           :dark="dark"
+                           :style="{ width: '100%'}"
+              />
+            </n-tab-pane>
+            <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
+              <code-mirror v-model="store.doc.wrapper"
+                           basic
+                           :lang="lang"
+                           :dark="dark"
+                           :style="{ width: '100%'}"
+              />
+            </n-tab-pane>
+          </n-tabs>
         </div>
       </div>
 
@@ -110,6 +122,8 @@ import {
   NInput,
   NSelect,
   NSpace,
+  NTabPane,
+  NTabs,
   useMessage
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
@@ -130,35 +144,19 @@ export default {
     NFormItem,
     CodeMirror,
     NDivider,
-    NDynamicInput
+    NDynamicInput,
+    NTabPane,
+    NTabs
   },
 
   setup() {
     const formRef = ref(null);
-    const selectedTemplateIdRef = ref(null);
+    const selectedTemplateRef = ref(null);
     const globalStore = useGlobalStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
-    const templateManager = new TemplateManager(templateStore, msgPopup);
     const customFormFields = computed(() => templateStore.doc.customFields);
-
-    const templateSelectList = computed(() => {
-      return Object.values(templateStore.templatesMap).map(template => {
-        return {
-          label: template.name,
-          value: template.id
-        };
-      });
-    });
-
-    const updateSelectedTemplateId = (newId) => {
-      selectedTemplateIdRef.value = newId;
-    };
-
-    const handleTemplateChange = (newTemplateId) => {
-      templateStore.changeTemplate(templateStore.templatesMap[newTemplateId]);
-      updateSelectedTemplateId(newTemplateId);
-    };
+    const templateManager = new TemplateManager(templateStore, msgPopup);
 
     const updateFieldIsAvailable = (index, value) => {
       templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
@@ -166,38 +164,38 @@ export default {
 
     onMounted(async () => {
       await templateStore.getTemplates(msgPopup);
-      for (const id in templateStore.templatesMap) {
-        if (templateStore.templatesMap[id].isDefault) {
-          selectedTemplateIdRef.value = Number(id);
-          break;
-        }
-      }
+      selectedTemplateRef.value = templateStore.doc.id;
     });
 
     return {
       globalStore,
       store: templateStore,
-      saveTemplate: () => templateManager.saveTemplate(),
+      saveTemplate: () => templateManager.saveTemplate(templateStore.doc, false),
       deleteTemplate: () => templateManager.deleteCurrentTemplate(),
-      exportTemplate: () => templateManager.exportTemplate(),
+      exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),
       addCustomField: () => addCustomField(templateStore),
       removeCustomField: (index) => removeCustomField(templateStore, index),
       handleTypeChange: (index) => handleTypeChange(customFormFields, index),
-      updateSelectedTemplateId,
-      selectedTemplateId: selectedTemplateIdRef,
-      handleTemplateChange,
+      templateSelectOptions: computed(() => {
+        return templateStore.templateOptions.map(item => ({
+          label: item.name,
+          value: item.id
+        }))
+      }),
+      description: computed(() => templateStore.doc.description),
+      selectedTemplateRef: computed(() => templateStore.doc.name),
+      handleTemplateChange: (index) => templateManager.handleTemplateChange(index),
       updateFieldIsAvailable,
       rules,
       customFormFields,
       lang: html(),
       dark: ref(false),
       formRef,
-      options: typeOptions,
+      typeOptions,
       getTypedValue,
       setTypedValue,
-      templateSelectList,
-      description: computed(() => templateStore.doc.description)
+      activeTabRef: ref('content')
     };
   }
 }

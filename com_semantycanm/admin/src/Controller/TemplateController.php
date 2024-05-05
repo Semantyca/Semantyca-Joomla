@@ -79,7 +79,7 @@ class TemplateController extends BaseController
 			$inputJSON = file_get_contents('php://input');
 			$inputData = json_decode($inputJSON, true);
 
-			$doc = $inputData['doc'] ?? '';
+			$doc = $inputData ?? '';
 
 			if (isset($doc['customFields']) && is_array($doc['customFields']))
 			{

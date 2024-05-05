@@ -1,7 +1,6 @@
 import {defineStore} from 'pinia';
 import {setCurrentTemplate} from './utils/fieldUtilities';
 
-
 export const useTemplateStore = defineStore('template', {
     state: () => ({
         doc: {
@@ -15,7 +14,7 @@ export const useTemplateStore = defineStore('template', {
             customFields: [],
             availableCustomFields: {}
         },
-        templatesMap: {},
+        templateMap: {},
         pagination: {
             currentPage: 1,
             itemsPerPage: 10,
@@ -23,6 +22,12 @@ export const useTemplateStore = defineStore('template', {
             totalPages: 0
         }
     }),
+    getters: {
+        templateOptions: (state) => Object.keys(state.templateMap).map(key => ({
+            id: key,
+            name: state.templateMap[key].name
+        }))
+    },
     actions: {
         addCustomField(newField) {
             const defaultFieldStructure = {
@@ -39,9 +44,6 @@ export const useTemplateStore = defineStore('template', {
                 this.doc.customFields.splice(index, 1);
             }
         },
-        setTemplate(data) {
-            this.doc = {...this.doc, ...data};
-        },
         async getTemplates(msgPopup, currentPage = 1, itemsPerPage = 10) {
             const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
             try {
@@ -51,7 +53,7 @@ export const useTemplateStore = defineStore('template', {
                 }
                 const jsonResponse = await response.json();
                 if (jsonResponse.success && jsonResponse.data) {
-                    this.templatesMap = jsonResponse.data.templates.reduce((acc, template) => {
+                    this.templateMap = jsonResponse.data.templates.reduce((acc, template) => {
                         acc[template.id] = template;
                         return acc;
                     }, {});
@@ -61,7 +63,7 @@ export const useTemplateStore = defineStore('template', {
                         totalItems: jsonResponse.data.count,
                         totalPages: jsonResponse.data.maxPage
                     };
-                    const defaultTemplateId = Object.keys(this.templatesMap).find(id => this.templatesMap[id].isDefault);
+                    const defaultTemplateId = Object.keys(this.templateMap).find(id => this.templateMap[id].isDefault);
                     if (defaultTemplateId) {
                         setCurrentTemplate(this, defaultTemplateId);
                     }

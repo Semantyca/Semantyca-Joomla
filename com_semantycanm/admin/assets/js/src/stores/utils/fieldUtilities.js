@@ -1,5 +1,5 @@
 export function setCurrentTemplate(store, defaultTemplateId) {
-    const templateDoc = store.templatesMap[defaultTemplateId]
+    const templateDoc = store.templateMap[defaultTemplateId]
     store.doc.id = templateDoc.id;
     store.doc.name = templateDoc.name;
     store.doc.type = templateDoc.type;
