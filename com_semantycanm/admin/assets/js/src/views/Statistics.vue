@@ -45,14 +45,8 @@ export default defineComponent({
     const globalStore = useGlobalStore();
     const statStore = useStatStore();
 
-    const pagination = reactive({
-      page: 1,
-      pageSize: 10,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large',
-      showSizePicker: true,
-      pageSizes: [10, 20, 50]
+    onMounted(() => {
+      statStore.fetchStatisticsData(1, 10, pagination);
     });
 
     function handlePageChange(page) {
@@ -62,10 +56,6 @@ export default defineComponent({
     function handlePageSizeChange(pageSize) {
       statStore.fetchStatisticsData(pagination.page, pageSize, pagination);
     }
-
-    onMounted(() => {
-      statStore.fetchStatisticsData(1, 10, pagination);
-    });
 
     const createColumns = () => {
       return [
@@ -120,13 +110,19 @@ export default defineComponent({
         }
       ]
     }
-
-
     return {
       globalStore,
       statsTabRef,
       columns: createColumns(),
-      pagination,
+      pagination: reactive({
+        page: 1,
+        pageSize: 10,
+        pageCount: 1,
+        itemCount: 0,
+        size: 'large',
+        showSizePicker: true,
+        pageSizes: [10, 20, 50]
+      }),
       statStore,
       handlePageSizeChange,
       handlePageChange

@@ -63,7 +63,7 @@ export const useComposerStore = defineStore('composer', {
             } catch (error) {
                 msgPopup.error(error, {
                     closable: true,
-                    duration: 10000
+                    duration: this.$errorTimeout
                 });
             } finally {
 

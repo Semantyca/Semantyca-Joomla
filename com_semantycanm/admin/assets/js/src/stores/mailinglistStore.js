@@ -39,7 +39,7 @@ export const useMailingListStore = defineStore('mailingList', {
                     stopLoading('loadingSpinner');
                 });
         },
-        async fetchEntryDetails(id, message) {
+        async fetchEntryDetails(id, msgPopup) {
             startLoading('loadingSpinner');
             const url = `index.php?option=com_yourcomponent&task=find&id=${encodeURIComponent(id)}`;
 
@@ -57,16 +57,16 @@ export const useMailingListStore = defineStore('mailingList', {
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
-                message.error(error.message, {
+                msgPopup.error(error.message, {
                     closable: true,
-                    duration: 10000
+                    duration: this.$errorTimeout
                 });
-                throw error; // Rethrow error if you want calling code to handle it
+                throw error;
             } finally {
                 stopLoading('loadingSpinner');
             }
         },
-        async deleteMailingListEntries(ids, message) {
+        async deleteMailingListEntries(ids, msgPopup) {
             startLoading('loadingSpinner');
             const idsParam = ids.join(',');
             const url = 'index.php?option=com_semantycanm&task=delete&ids=' + encodeURIComponent(idsParam);
@@ -83,17 +83,14 @@ export const useMailingListStore = defineStore('mailingList', {
                 const respData = await response.json();
 
                 if (respData.success) {
-                    message.info('The mailing list deleted');
-                    // Handle success. For instance, you could refresh the list:
-                    // await this.fetchMailingList(/* appropriate parameters */);
+                    msgPopup.info('The mailing list deleted');
                 } else {
-                    // Handle backend validation or other errors
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
-                message.error(error.message, {
+                msgPopup.error(error.message, {
                     closable: true,
-                    duration: 10000
+                    duration: this.$errorTimeout
                 });
             } finally {
                 stopLoading('loadingSpinner');

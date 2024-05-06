@@ -116,18 +116,15 @@ export default {
     const globalStore = useGlobalStore();
     const userGroupStore = useUserGroupStore();
     const mailingListStore = useMailingListStore();
-    const message = useMessage();
-
+    const msgPopup = useMessage();
     const state = reactive({
       mailingListMode: ''
     });
 
-    const pagination = reactive({
-      page: 1,
-      pageSize: 5,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large'
+    onMounted(async () => {
+      await userGroupStore.getList();
+      await mailingListStore.fetchMailingList(1, 5, pagination);
+      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
     });
 
     function handlePageChange(page) {
@@ -138,18 +135,12 @@ export default {
       mailingListStore.fetchMailingList(pagination.page, pageSize, pagination);
     }
 
-    onMounted(async () => {
-      await userGroupStore.getList();
-      await mailingListStore.fetchMailingList(1, 5, pagination);
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
-    });
-
     const validateAndSave = (e) => {
       e.preventDefault();
 
       const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
       if (!selectedGroupsValidation) {
-        message.error(rules.selectedGroups.message, {
+        msgPopup.error(rules.selectedGroups.message, {
           closable: true,
           duration: 10000
         });
@@ -164,7 +155,7 @@ export default {
             formValue.value.selectedGroups = [];
           }).catch((error) => {
             console.error("Error saving the list:", error);
-            message.error("Failed to save the list.", {
+            msgPopup.error("Failed to save the list.", {
               closable: true,
               duration: 10000
             });
@@ -173,7 +164,7 @@ export default {
           Object.keys(errors).forEach(fieldName => {
             const fieldError = errors[fieldName];
             if (fieldError && fieldError.length > 0) {
-              message.error(fieldError[0].message, {
+              msgPopup.error(fieldError[0].message, {
                 closable: true,
                 duration: 10000
               });
@@ -211,11 +202,11 @@ export default {
 
     const handleEdit = async (id) => {
       try {
-        const entryDetails = await mailingListStore.fetchEntryDetails(id, message);
+        const entryDetails = await mailingListStore.fetchEntryDetails(id, msgPopup);
 
         //showEditFormWithDetails(entryDetails); // This is a placeholder, replace with your actual implementation
       } catch (error) {
-        message.error(error.message, {
+        msgPopup.error(error.message, {
           closable: true,
           duration: 10000
         });
@@ -224,10 +215,10 @@ export default {
 
     const handleDelete = async (id) => {
       try {
-        await mailingListStore.deleteMailingListEntries([id], message);
-        message.success('Entry deleted successfully');
+        await mailingListStore.deleteMailingListEntries([id], msgPopup);
+        msgPopup.success('Entry deleted successfully');
       } catch (error) {
-        message.error(error.message, {
+        msgPopup.error(error.message, {
           closable: true,
           duration: 10000
         });
@@ -269,8 +260,6 @@ export default {
         }
       ];
     };
-
-
     return {
       state,
       globalStore,
@@ -280,10 +269,16 @@ export default {
       validateAndSave,
       rules,
       columns: createColumns(),
-      pagination,
+      pagination: reactive({
+        page: 1,
+        pageSize: 5,
+        pageCount: 1,
+        itemCount: 0,
+        size: 'large'
+      }),
       formValue,
       formRef,
-      message,
+      message: msgPopup,
       handlePageSizeChange,
       handlePageChange
     };
