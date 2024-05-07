@@ -13,6 +13,18 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 
+CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates_autosave`
+(
+    autosave_id     INT AUTO_INCREMENT PRIMARY KEY,
+    template_id     INT NOT NULL,
+    description     MEDIUMTEXT,
+    content         MEDIUMTEXT,
+    wrapper         MEDIUMTEXT,
+    auto_saved_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (template_id) REFERENCES `#__semantyca_nm_templates` (id) ON DELETE CASCADE
+) ENGINE = InnoDB;
+
+
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_custom_fields`
 (
     id            INT AUTO_INCREMENT,

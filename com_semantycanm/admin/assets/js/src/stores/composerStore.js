@@ -1,6 +1,7 @@
 import {defineStore} from 'pinia';
 import {useTemplateStore} from './templateStore';
 import {adaptField} from "./utils/fieldUtilities";
+import TemplateManager from "../utils/TemplateManager";
 
 export const useComposerStore = defineStore('composer', {
     state: () => ({
@@ -26,7 +27,8 @@ export const useComposerStore = defineStore('composer', {
         async updateFormCustomFields(msgPopup) {
             this.formCustomFields = {};
             const templateStore = useTemplateStore();
-            await templateStore.getTemplates(msgPopup);
+            const templateManager = new TemplateManager(templateStore, msgPopup);
+            await templateManager.getTemplates(msgPopup);
             const availableCustomFields = templateStore.doc.customFields.filter(field => field.isAvailable === 1);
             this.processFormCustomFields(availableCustomFields, msgPopup);
         },

@@ -221,7 +221,7 @@ export default {
     const composerStore = useComposerStore();
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
-    const message = useMessage();
+    const msgPopup = useMessage();
     const dialog = useDialog();
     const fields = computed(() => composerStore.formCustomFields);
     const squireEditor = ref(null);
@@ -230,10 +230,11 @@ export default {
     onMounted(async () => {
       try {
         loading.value = true;
-        await composerStore.fetchEverything('', message);
+        await composerStore.fetchEverything('', msgPopup);
         loading.value = false;
         window.DOMPurify = DOMPurify;
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
+        updateEditorContent();
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
@@ -254,8 +255,15 @@ export default {
         const fieldValue = fields.value[key].defaultValue;
         dynamicBuilder.addVariable(key, fieldValue);
       });
-      const cont = dynamicBuilder.buildContent();
-      squireEditor.value.setHTML(cont);
+      try {
+        const cont = dynamicBuilder.buildContent();
+        squireEditor.value.setHTML(cont);
+      } catch (e) {
+        msgPopup.error(e.message, {
+          closable: true,
+          duration: 100000
+        })
+      }
     };
 
 
@@ -274,9 +282,9 @@ export default {
       tempTextArea.select();
       const successful = document.execCommand('copy');
       if (successful) {
-        message.info('HTML code copied to clipboard!');
+        msgPopup.info('HTML code copied to clipboard!');
       } else {
-        message.warning('Failed to copy. Please try again.');
+        msgPopup.warning('Failed to copy. Please try again.');
       }
       document.body.removeChild(tempTextArea);
     };

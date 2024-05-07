@@ -126,6 +126,60 @@ class TemplateController extends BaseController
 	}
 
 	/**
+	 * Handles auto-saving a template via PUT method.
+	 *
+	 * @since 1.0.0
+	 */
+	public function autoSave()
+	{
+		$app = Factory::getApplication();
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
+			$id = $this->input->getInt('id');
+			if (empty($id))
+			{
+				throw new ValidationErrorException(['id is required for auto-save']);
+			}
+
+			$inputJSON = file_get_contents('php://input');
+			$inputData = json_decode($inputJSON, true);
+
+			if (!$inputData)
+			{
+				throw new ValidationErrorException(['Invalid JSON data provided.']);
+			}
+
+			$model  = $this->getModel('Template');
+			$result = $model->autoSaveTemplate($id, $inputData);
+
+			if ($result)
+			{
+				echo new JsonResponse(['success' => true, 'message' => 'Template auto-saved successfully.']);
+			}
+			else
+			{
+				throw new Exception('Failed to auto-save the template.');
+			}
+
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'validationError', true);
+		}
+		catch (Throwable $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			$app->close();
+		}
+	}
+
+	/**
 	 * Deletes a template.
 	 *
 	 * @since 1.0.0

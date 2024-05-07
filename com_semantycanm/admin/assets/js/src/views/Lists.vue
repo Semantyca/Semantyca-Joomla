@@ -4,7 +4,6 @@
     <div class="container mt-3">
       <div class="row">
         <div class="col">
-          <!--          <h3>{{ globalStore.translations.AVAILABLE_USER_GROUPS }}</h3>-->
           <draggable v-model="formValue.availableGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -14,7 +13,6 @@
           </draggable>
         </div>
         <div class="col">
-          <!--          <h3>{{ globalStore.translations.SELECTED_USER_GROUPS }}</h3>-->
           <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
             <template #item="{ element }">
               <div class="list-group-item" :key="element.id">
@@ -51,11 +49,6 @@
         </div>
       </div>
       <n-divider title-placement="left">Available Mailing Lists</n-divider>
-      <!--      <div class="row mt-3">
-              <div class="col">
-                <h3>{{ globalStore.translations.MAILING_LISTS }}</h3>
-              </div>
-            </div>-->
       <div class="row">
         <div class="col">
           <n-data-table
@@ -119,6 +112,13 @@ export default {
     const msgPopup = useMessage();
     const state = reactive({
       mailingListMode: ''
+    });
+    const pagination = reactive({
+      page: 1,
+      pageSize: 5,
+      pageCount: 1,
+      itemCount: 0,
+      size: 'large'
     });
 
     onMounted(async () => {
@@ -269,13 +269,7 @@ export default {
       validateAndSave,
       rules,
       columns: createColumns(),
-      pagination: reactive({
-        page: 1,
-        pageSize: 5,
-        pageCount: 1,
-        itemCount: 0,
-        size: 'large'
-      }),
+      pagination,
       formValue,
       formRef,
       message: msgPopup,

@@ -233,6 +233,47 @@ class TemplateModel extends BaseDatabaseModel
 		return true;
 	}
 
+	public function autoSaveTemplate($id, $data): bool
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query->select('id')
+			->from($db->quoteName('#__semantyca_nm_templates'))
+			->where('id = ' . (int) $id);
+		$db->setQuery($query);
+		$exists = $db->loadResult();
+
+		if (!$exists)
+		{
+			throw new RecordNotFoundException(["The template with ID $id has not been found."]);
+		}
+
+		$query->clear();
+
+		$fields = [];
+		foreach ($data as $key => $value)
+		{
+			if (in_array($key, ['content', 'wrapper', 'description']))
+			{
+				$fields[] = $db->quoteName($key) . ' = ' . $db->quote($value);
+			}
+		}
+
+		if (empty($fields))
+		{
+			throw new Exception("No valid fields provided for update.");
+		}
+
+		$query->update($db->quoteName('#__semantyca_nm_templates'))
+			->set($fields)
+			->where('id = ' . (int) $id);
+		$db->setQuery($query);
+		$db->execute();
+
+		return true;
+	}
+
+
 	public function deleteTemplate($id): bool
 	{
 		$db         = $this->getDatabase();

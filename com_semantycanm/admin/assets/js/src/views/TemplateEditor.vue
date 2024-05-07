@@ -86,6 +86,7 @@
           <n-tabs v-model:value="activeTabRef">
             <n-tab-pane name="content" tab="Content">
               <code-mirror v-model="store.doc.content"
+                           @change="debouncedAutosave"
                            basic
                            :lang="lang"
                            :dark="dark"
@@ -94,6 +95,7 @@
             </n-tab-pane>
             <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
               <code-mirror v-model="store.doc.wrapper"
+                           @change="debouncedAutosave"
                            basic
                            :lang="lang"
                            :dark="dark"
@@ -109,7 +111,7 @@
 </template>
 
 <script>
-import {computed, onMounted, ref} from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
 import {
@@ -127,10 +129,12 @@ import {
   useMessage
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
+//import {ejs} from 'codemirror-lang-ejs';
 import {html} from '@codemirror/lang-html';
 import {getTypedValue, rules, setTypedValue, typeOptions} from '../utils/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
 import TemplateManager from "../utils/TemplateManager";
+import {debounce} from 'lodash-es';
 
 export default {
   name: 'TemplateEditor',
@@ -157,15 +161,26 @@ export default {
     const msgPopup = useMessage();
     const customFormFields = computed(() => templateStore.doc.customFields);
     const templateManager = new TemplateManager(templateStore, msgPopup);
+    const autosaveTemplate = () => {
+      if (templateStore.doc && templateStore.doc.content && templateStore.doc.content.length > 0) {
+        templateManager.autoSave('content', templateStore.doc.content);
+      }
+    };
+    const debouncedAutosave = debounce(autosaveTemplate, 2000);
 
     const updateFieldIsAvailable = (index, value) => {
       templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
     };
 
     onMounted(async () => {
-      await templateStore.getTemplates(msgPopup);
+      await templateManager.getTemplates(msgPopup);
       selectedTemplateRef.value = templateStore.doc.id;
     });
+
+    onUnmounted(() => {
+      debouncedAutosave.cancel();
+    });
+
 
     return {
       globalStore,
@@ -195,7 +210,8 @@ export default {
       typeOptions,
       getTypedValue,
       setTypedValue,
-      activeTabRef: ref('content')
+      activeTabRef: ref('content'),
+      debouncedAutosave
     };
   }
 }

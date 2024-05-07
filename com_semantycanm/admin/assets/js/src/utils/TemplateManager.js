@@ -9,6 +9,76 @@ class TemplateManager {
         this.errorTimeout = 50000;
     }
 
+    async getTemplates(msgPopup, currentPage = 1, itemsPerPage = 10) {
+        this.startBusyMessage('Fetching templates ...')
+        const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch templates, HTTP status = ${response.status}`);
+            }
+            const jsonResponse = await response.json();
+            if (jsonResponse.success && jsonResponse.data) {
+                this.store.templateMap = jsonResponse.data.templates.reduce((acc, template) => {
+                    acc[template.id] = template;
+                    return acc;
+                }, {});
+                this.store.pagination = {
+                    currentPage: jsonResponse.data.current,
+                    itemsPerPage: itemsPerPage,
+                    totalItems: jsonResponse.data.count,
+                    totalPages: jsonResponse.data.maxPage
+                };
+                const defaultTemplateId = Object.keys(this.store.templateMap).find(id => this.store.templateMap[id].isDefault);
+                if (defaultTemplateId) {
+                    setCurrentTemplate(this.store, defaultTemplateId);
+                }
+            } else {
+                throw new Error('Failed to fetch templates: No data returned');
+            }
+        } catch (error) {
+            msgPopup.error('Error fetching templates: ' + error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
+        } finally {
+            this.stopBusyMessage()
+        }
+    }
+
+    async autoSave(field, dataToUpdate) {
+        this.startBusyMessage('Saving ...')
+        const endpoint = `index.php?option=com_semantycanm&task=Template.autoSave&id=${encodeURIComponent(this.store.doc.id)}`;
+        const method = 'PUT';
+        const payload = {
+            [field]: dataToUpdate
+        };
+
+        try {
+            const response = await fetch(endpoint, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error, status = ${response.status}`);
+            }
+
+            const jsonResponse = await response.json();
+            if (!jsonResponse.success) {
+                throw new Error(jsonResponse.message || "Failed to auto-save the template.");
+            }
+        } catch (error) {
+            this.msgPopup.error(error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
+        } finally {
+            this.stopBusyMessage()
+        }
+    }
+
     async saveTemplate(doc, isNew = false) {
         this.startBusyMessage('Saving template ...')
         const endpoint = isNew ? `index.php?option=com_semantycanm&task=Template.update&id=` :
