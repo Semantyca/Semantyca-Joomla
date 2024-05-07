@@ -9,7 +9,7 @@ class TemplateManager {
         this.errorTimeout = 50000;
     }
 
-    async getTemplates(msgPopup, currentPage = 1, itemsPerPage = 10) {
+    async getTemplates(currentPage = 1, itemsPerPage = 10) {
         this.startBusyMessage('Fetching templates ...')
         const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
         try {
@@ -47,7 +47,9 @@ class TemplateManager {
     }
 
     async autoSave(field, dataToUpdate) {
-        this.startBusyMessage('Saving ...')
+        // this.startBusyMessage('Saving ...')
+        console.log(new Date().toLocaleTimeString(), "Autosaving ...");
+
         const endpoint = `index.php?option=com_semantycanm&task=Template.autoSave&id=${encodeURIComponent(this.store.doc.id)}`;
         const method = 'PUT';
         const payload = {
@@ -75,7 +77,7 @@ class TemplateManager {
                 duration: this.errorTimeout
             });
         } finally {
-            this.stopBusyMessage()
+            // this.stopBusyMessage()
         }
     }
 
@@ -150,7 +152,7 @@ class TemplateManager {
                         this.startBusyMessage('Importing template ...')
                         const jsonObj = JSON.parse(e.target.result);
                         await this.saveTemplate(jsonObj, true);
-                        await this.store.getTemplates(this.msgPopup);
+                        await this.getTemplates();
                         this.msgPopup.success('Template imported and saved successfully.');
                     } catch (err) {
                         this.msgPopup.error('Failed to import template: ' + err, {

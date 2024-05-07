@@ -86,6 +86,7 @@
           <n-tabs v-model:value="activeTabRef">
             <n-tab-pane name="content" tab="Content">
               <code-mirror v-model="store.doc.content"
+                           @focus="handleEditorFocus"
                            @change="debouncedAutosave"
                            basic
                            :lang="lang"
@@ -95,7 +96,7 @@
             </n-tab-pane>
             <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
               <code-mirror v-model="store.doc.wrapper"
-                           @change="debouncedAutosave"
+                           @focus="handleEditorFocus"
                            basic
                            :lang="lang"
                            :dark="dark"
@@ -111,7 +112,7 @@
 </template>
 
 <script>
-import {computed, onMounted, onUnmounted, ref} from 'vue';
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/templateStore";
 import {
@@ -161,8 +162,9 @@ export default {
     const msgPopup = useMessage();
     const customFormFields = computed(() => templateStore.doc.customFields);
     const templateManager = new TemplateManager(templateStore, msgPopup);
+    const editorFocused = ref(false);
     const autosaveTemplate = () => {
-      if (templateStore.doc && templateStore.doc.content && templateStore.doc.content.length > 0) {
+      if (editorFocused.value) {
         templateManager.autoSave('content', templateStore.doc.content);
       }
     };
@@ -173,7 +175,7 @@ export default {
     };
 
     onMounted(async () => {
-      await templateManager.getTemplates(msgPopup);
+      await templateManager.getTemplates();
       selectedTemplateRef.value = templateStore.doc.id;
     });
 
@@ -181,6 +183,15 @@ export default {
       debouncedAutosave.cancel();
     });
 
+    watch(content, (newVal, oldVal) => {
+      if (newVal !== oldVal && editorFocused.value) {
+        debouncedAutosave();
+      }
+    });
+
+    const handleEditorFocus = () => {
+      editorFocused.value = true;
+    };
 
     return {
       globalStore,
@@ -211,7 +222,8 @@ export default {
       getTypedValue,
       setTypedValue,
       activeTabRef: ref('content'),
-      debouncedAutosave
+      debouncedAutosave,
+      handleEditorFocus
     };
   }
 }

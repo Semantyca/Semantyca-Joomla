@@ -28,7 +28,7 @@ export const useComposerStore = defineStore('composer', {
             this.formCustomFields = {};
             const templateStore = useTemplateStore();
             const templateManager = new TemplateManager(templateStore, msgPopup);
-            await templateManager.getTemplates(msgPopup);
+            await templateManager.getTemplates();
             const availableCustomFields = templateStore.doc.customFields.filter(field => field.isAvailable === 1);
             this.processFormCustomFields(availableCustomFields, msgPopup);
         },
