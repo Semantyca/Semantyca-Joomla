@@ -4,14 +4,21 @@ export const useMailingListStore = defineStore('mailingList', {
     state: () => ({
         docsListPage: {
             docs: []
+        },
+        dialog: {
+            isOpen: false,
+            formData: {
+                groupName: '',
+                availableGroups: [],
+                selectedGroups: []
+            }
         }
     }),
     actions: {
-        async fetchMailingList(currentPage, size, pagination) {
-            startLoading('loadingSpinner');
+        async fetchMailingList(currentPage, size, pagination, msgPopup, loadingBar) {
+            loadingBar.start()
 
             const url = 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=' + size;
-
             fetch(url, {
                 method: 'GET',
             })
@@ -33,14 +40,16 @@ export const useMailingListStore = defineStore('mailingList', {
                     }
                 })
                 .catch(error => {
-                    showErrorBar('MailingList.findall', error.message);
+                    loadingBar.error()
+                    msgPopup.error(error.message);
                 })
                 .finally(() => {
-                    stopLoading('loadingSpinner');
+                    loadingBar.finish()
                 });
         },
-        async fetchEntryDetails(id, msgPopup) {
-            startLoading('loadingSpinner');
+        async fetchEntryDetails(id, msgPopup,  loadingBar) {
+            loadingBar.start()
+
             const url = `index.php?option=com_yourcomponent&task=find&id=${encodeURIComponent(id)}`;
 
             try {
@@ -57,17 +66,18 @@ export const useMailingListStore = defineStore('mailingList', {
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
+                loadingBar.error()
                 msgPopup.error(error.message, {
                     closable: true,
                     duration: this.$errorTimeout
                 });
                 throw error;
             } finally {
-                stopLoading('loadingSpinner');
+                loadingBar.finish()
             }
         },
-        async deleteMailingListEntries(ids, msgPopup) {
-            startLoading('loadingSpinner');
+        async deleteMailingListEntries(ids, msgPopup, loadingBar) {
+            loadingBar.start()
             const idsParam = ids.join(',');
             const url = 'index.php?option=com_semantycanm&task=delete&ids=' + encodeURIComponent(idsParam);
 
@@ -88,12 +98,13 @@ export const useMailingListStore = defineStore('mailingList', {
                     throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
                 }
             } catch (error) {
+                loadingBar.error()
                 msgPopup.error(error.message, {
                     closable: true,
                     duration: this.$errorTimeout
                 });
             } finally {
-                stopLoading('loadingSpinner');
+                loadingBar.finish()
             }
         }
     }

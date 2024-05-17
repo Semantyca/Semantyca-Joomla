@@ -1,5 +1,6 @@
 import {defineStore} from 'pinia';
 import {useMailingListStore} from './mailinglistStore.js';
+import MailingListRequest from '../utils/MailingListRequest';
 
 export const useUserGroupStore = defineStore('userGroup', {
     state: () => ({
@@ -18,32 +19,36 @@ export const useUserGroupStore = defineStore('userGroup', {
         }
     },
     actions: {
-        async getList() {
-            if (this.documentsPage.docs.length === 0 || this.isDataStale) {
-                try {
-                    const url = `index.php?option=com_semantycanm&task=UserGroup.find`;
-                    const response = await fetch(url);
-                    if (!response.ok) {
-                        throw new Error(`Network response was not 200 for name ${name}`);
-                    }
-                    const json = await response.json();
-                    this.documentsPage.total = json.data.count;
-                    this.documentsPage.current = json.data.current;
-                    this.documentsPage.maxPage = json.data.maxPage;
-                    this.documentsPage.docs = json.data.docs;
-                    this.lastFetch = Date.now();
-                } catch (error) {
-                    console.log(error);
-                    //  showErrorBar('UserGroup.find', error.message);
+        async getList(msgPopup, loadingBar) {
+            loadingBar.start();
+            try {
+                const url = `index.php?option=com_semantycanm&task=UserGroup.find`;
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Network response was not 200 for name ${name}`);
                 }
+                const json = await response.json();
+                this.documentsPage.total = json.data.count;
+                this.documentsPage.current = json.data.current;
+                this.documentsPage.maxPage = json.data.maxPage;
+                this.documentsPage.docs = json.data.docs;
+                this.lastFetch = Date.now();
+            } catch (error) {
+                loadingBar.error();
+                msgPopup.error(error.message, {
+                    closable: true,
+                    duration: this.$errorTimeout
+                });
+            } finally {
+                loadingBar.finish();
             }
         },
-        async saveList(model, mode) {
+        async saveList(model, mode, msgPopup, loadingBar) {
+            loadingBar.start();
             try {
                 const mailingListName = model.groupName;
                 const listItems = model.selectedGroups.map(group => group.id);
                 const request = new MailingListRequest(mode);
-                startLoading('loadingSpinner');
                 request.process(
                     mailingListName,
                     listItems,
@@ -52,9 +57,12 @@ export const useUserGroupStore = defineStore('userGroup', {
                     }
                 );
             } catch (error) {
-                console.log(error);
+                msgPopup.error(error.message, {
+                    closable: true,
+                    duration: this.$errorTimeout
+                });
             } finally {
-                stopLoading('loadingSpinner');
+                loadingBar.finish();
             }
         }
     }

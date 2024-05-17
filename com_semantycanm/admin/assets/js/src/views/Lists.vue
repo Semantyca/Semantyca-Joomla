@@ -1,73 +1,30 @@
 <template>
-  <n-divider title-placement="left">User Groups</n-divider>
-  <n-form inline ref="formRef" :rules="rules" :model="formValue">
-    <div class="container mt-3">
-      <div class="row">
-        <div class="col">
-          <draggable v-model="formValue.availableGroups" class="list-group" group="shared" itemKey="id">
-            <template #item="{ element }">
-              <div class="list-group-item" :key="element.id">
-                {{ element.title }}
-              </div>
-            </template>
-          </draggable>
-        </div>
-        <div class="col">
-          <draggable v-model="formValue.selectedGroups" class="list-group" group="shared" itemKey="id">
-            <template #item="{ element }">
-              <div class="list-group-item" :key="element.id">
-                {{ element.title }}
-              </div>
-            </template>
-          </draggable>
-        </div>
-      </div>
-      <div class="row mt-3">
-        <div class="col-3 d-flex align-items-center">
-          <n-form-item label="Mailing List Name" path="groupName" class="w-100">
-            <n-input v-model:value="formValue.groupName"
-                     size="large"
-                     style="width: 100%"
-                     id="mailingListName"
-                     type="text"
-                     placeholder="Mailing List Name"/>
-          </n-form-item>
-        </div>
-        <div class="col  d-flex align-items-center">
-          <n-space>
-            <n-button id="saveGroup"
-                      type="primary"
-                      size="large"
-                      @click="validateAndSave">{{ globalStore.translations.SAVE }}
-            </n-button>
-            <n-button id="cancelEditing"
-                      type="success"
-                      size="large"
-                      @click="cancelList">{{ globalStore.translations.CANCEL }}
-            </n-button>
-          </n-space>
-        </div>
-      </div>
-      <n-divider title-placement="left">Available Mailing Lists</n-divider>
-      <div class="row">
-        <div class="col">
-          <n-data-table
-              remote
-              size="large"
-              :columns="columns"
-              :data="mailingListStore.docsListPage.docs"
-              :bordered="false"
-              :pagination="pagination"
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
-          />
-          <input type="hidden" id="mailingListMode" value=""/>
-        </div>
-      </div>
-    </div>
-  </n-form>
-
+  <n-grid>
+    <n-gi :span="24" class="mt-3">
+      <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
+        Edit Group
+      </n-button>
+      <n-button type="error" disabled class="button-margin">
+        {{ globalStore.translations.DELETE }}
+      </n-button>
+    </n-gi>
+    <n-gi :span="24">
+      <n-data-table
+          remote
+          size="large"
+          :columns="columns"
+          :data="mailingListStore.docsListPage.docs"
+          :bordered="false"
+          :pagination="pagination"
+          :row-key="rowKey"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
+          @update:checked-row-keys="handleCheck"
+      />
+    </n-gi>
+  </n-grid>
 </template>
+
 
 <script>
 import {h, onMounted, reactive, ref} from 'vue';
@@ -78,21 +35,28 @@ import {
   NForm,
   NFormItem,
   NFormItemGi,
+  NGi,
   NGrid,
   NGridItem,
   NInput,
+  NScrollbar,
   NSpace,
-  useMessage
+  useDialog,
+  useLoadingBar,
+  useMessage,
 } from "naive-ui";
 import {useUserGroupStore} from "../stores/userGroupStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
 import {useGlobalStore} from "../stores/globalStore";
 import draggable from 'vuedraggable';
+import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 
 export default {
   name: 'Lists',
   components: {
     NGrid,
+    NGi,
+    NScrollbar,
     NGridItem,
     NButton,
     NSpace,
@@ -102,14 +66,19 @@ export default {
     NFormItem,
     NFormItemGi,
     NDivider,
-    draggable
+    draggable,
+    GroupEditorDialog
   },
   setup() {
     const formRef = ref(null);
+    const editorDialogRef = ref(null);
+    const checkedRowKeysRef = ref([]);
     const globalStore = useGlobalStore();
     const userGroupStore = useUserGroupStore();
     const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
+    const dialog = useDialog();
+    const loadingBar = useLoadingBar()
     const state = reactive({
       mailingListMode: ''
     });
@@ -122,9 +91,7 @@ export default {
     });
 
     onMounted(async () => {
-      await userGroupStore.getList();
-      await mailingListStore.fetchMailingList(1, 5, pagination);
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
+      await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
     });
 
     function handlePageChange(page) {
@@ -135,65 +102,6 @@ export default {
       mailingListStore.fetchMailingList(pagination.page, pageSize, pagination);
     }
 
-    const validateAndSave = (e) => {
-      e.preventDefault();
-
-      const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
-      if (!selectedGroupsValidation) {
-        msgPopup.error(rules.selectedGroups.message, {
-          closable: true,
-          duration: 10000
-        });
-        return;
-      }
-
-      formRef.value.validate((errors) => {
-        if (!errors) {
-          userGroupStore.saveList(formRef.value.model, '').then(() => {
-            state.mailingListMode = '';
-            formValue.value.groupName = '';
-            formValue.value.selectedGroups = [];
-          }).catch((error) => {
-            console.error("Error saving the list:", error);
-            msgPopup.error("Failed to save the list.", {
-              closable: true,
-              duration: 10000
-            });
-          });
-        } else {
-          Object.keys(errors).forEach(fieldName => {
-            const fieldError = errors[fieldName];
-            if (fieldError && fieldError.length > 0) {
-              msgPopup.error(fieldError[0].message, {
-                closable: true,
-                duration: 10000
-              });
-            }
-          });
-        }
-      });
-    };
-
-    const cancelList = () => {
-      formValue.value.groupName = '';
-      formValue.value.selectedGroups = [];
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
-      state.mailingListMode = '';
-    };
-
-    const rules = {
-      groupName: {
-        required: true,
-        message: 'Mailing list name cannot be empty'
-      },
-      selectedGroups: {
-        validator(rule, value) {
-          return value && value.length > 0;
-        },
-        message: 'At least one group should be selected'
-      }
-    };
-
     const formValue = ref({
       groupName: '',
       availableGroups: [],
@@ -202,7 +110,7 @@ export default {
 
     const handleEdit = async (id) => {
       try {
-        const entryDetails = await mailingListStore.fetchEntryDetails(id, msgPopup);
+        const entryDetails = await mailingListStore.fetchEntryDetails(id, msgPopup, loadingBar);
 
         //showEditFormWithDetails(entryDetails); // This is a placeholder, replace with your actual implementation
       } catch (error) {
@@ -215,7 +123,7 @@ export default {
 
     const handleDelete = async (id) => {
       try {
-        await mailingListStore.deleteMailingListEntries([id], msgPopup);
+        await mailingListStore.deleteMailingListEntries([id], msgPopup, loadingBar);
         msgPopup.success('Entry deleted successfully');
       } catch (error) {
         msgPopup.error(error.message, {
@@ -225,8 +133,23 @@ export default {
       }
     };
 
+    const showGroupEditor = (id = 0) => {
+      dialog.create({
+        title: 'Edit Group',
+        content: () => h(GroupEditorDialog, { id }),
+        style: 'width: 40%'
+      });
+    };
+
+
     const createColumns = () => {
       return [
+        {
+          type: "selection",
+          disabled(row) {
+            return row.name === "Edward King 3";
+          }
+        },
         {
           title: 'Name',
           key: 'name'
@@ -265,17 +188,26 @@ export default {
       globalStore,
       userGroupStore,
       mailingListStore,
-      cancelList,
-      validateAndSave,
-      rules,
       columns: createColumns(),
+      rowKey: (row) => row.id,
+      handleCheck(rowKeys) {
+        checkedRowKeysRef.value = rowKeys;
+      },
       pagination,
       formValue,
       formRef,
-      message: msgPopup,
+      editorDialogRef,
       handlePageSizeChange,
-      handlePageChange
+      handlePageChange,
+      showGroupEditor
     };
   }
 };
 </script>
+
+<style scoped>
+.button-margin {
+  margin-left: 8px;
+  margin-bottom: 12px;
+}
+</style>

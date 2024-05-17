@@ -10,8 +10,8 @@ class NewsLetterModel extends BaseDatabaseModel
 {
 	public function getList($currentPage, $itemsPerPage)
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
@@ -58,6 +58,28 @@ class NewsLetterModel extends BaseDatabaseModel
 
 		return $db->loadObjectList();
 
+	}
+
+	public function findUnprocessedEvent($id)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query->select($db->quoteName([
+			'nl.subject',
+			'nl.message_content',
+			'e.subscriber_email',
+			'e.trigger_token',
+			'e.id']))
+			->from($db->quoteName('#__semantyca_nm_newsletters', 'nl'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_stats', 's') . ' ON ' . $db->quoteName('nl.id') . ' = ' . $db->quoteName('s.newsletter_id'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_subscriber_events', 'e') . ' ON ' . $db->quoteName('e.stats_id') . ' = ' . $db->quoteName('s.id'))
+			->where($db->quoteName('e.event_type') . ' = 100')
+			->where($db->quoteName('e.fulfilled') . ' = 0')
+			->where($db->quoteName('nl.id') . ' = ' . $db->quote($id));
+
+		$db->setQuery($query);
+
+		return $db->loadObjectList();
 	}
 
 	public function findRelevantEvent($id, $eventTypes)
@@ -125,8 +147,6 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 
 		return $id;
-
-
 	}
 
 	public function add($subject_value, $message_content): int

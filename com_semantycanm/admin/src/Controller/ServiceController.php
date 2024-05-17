@@ -9,6 +9,7 @@ use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
@@ -50,8 +51,8 @@ class ServiceController extends BaseController
 			}
 
 			$newLetterModel   = $this->getModel('NewsLetter');
-			$statModel      = $this->getModel('Stat');
-			$eventModel     = $this->getModel('SubscriberEvent');
+			$statModel        = $this->getModel('Stat');
+			$eventModel       = $this->getModel('SubscriberEvent');
 			$mailingListModel = $this->getModel('MailingList');
 
 			$newsletterId = $newLetterModel->upsert($subject, $encodedBody);
@@ -59,8 +60,8 @@ class ServiceController extends BaseController
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
-			$messagingHelper = new Messaging($statModel, $eventModel, $mailingListModel);
-			$result       = $messagingHelper->sendEmailAsync($user_group, $newsletterId);
+			$messagingHelper = new Messaging($newLetterModel, $statModel, $eventModel, $mailingListModel);
+			$result          = $messagingHelper->sendEmail($user_group, $newsletterId);
 			if ($result)
 			{
 				echo new JsonResponse($newsletterId);
@@ -71,20 +72,38 @@ class ServiceController extends BaseController
 			}
 
 		}
-		catch (ValidationErrorException|MessagingException $e)
+		catch (ValidationErrorException|MessagingException|NewsletterSenderException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'Error', true);
+			echo new JsonResponse([
+				'message' => $e->getMessage(),
+				'errors'  => $e->getErrors()
+			], 'error', true);
 		}
-		catch (\Throwable  $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			$errorMessage = $e->getMessage();
+			$errorData    = $e->getErrors();
+
+			if ($errorData)
+			{
+				Log::add($errorMessage . ' | Additional details: ' . json_encode($errorData), Log::ERROR, Constants::COMPONENT_NAME);
+			}
+			else
+			{
+				Log::add($errorMessage, Log::ERROR, Constants::COMPONENT_NAME);
+			}
+
+			echo new JsonResponse([
+				'message' => $errorMessage,
+				'errors'  => $errorData
+			], 'error', true);
 		} finally
 		{
 			Factory::getApplication()->close();
 		}
+
 	}
 
 	public function getSubject()

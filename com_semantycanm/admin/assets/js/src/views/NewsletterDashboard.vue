@@ -159,6 +159,7 @@ import {
 } from "naive-ui";
 import {useNewsletterStore} from "../stores/newsletterStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
+import NewsletterHandler from "../utils/NewsletterHandler"
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -184,7 +185,7 @@ export default defineComponent({
     const globalStore = useGlobalStore();
     const mailingListStore = useMailingListStore();
     const newsLetterStore = useNewsletterStore();
-    const message = useMessage();
+    const msgPopup = useMessage();
 
 
     const state = reactive({
@@ -207,14 +208,6 @@ export default defineComponent({
       size: 'large'
     });
 
-    function handlePageChange(page) {
-      newsLetterStore.fetchNewsLetter(page, pagination.pageSize, pagination);
-    }
-
-    function handlePageSizeChange(pageSize) {
-      newsLetterStore.fetchNewsLetter(pagination.page, pageSize, pagination);
-    }
-
     onMounted(() => {
       mailingListStore.fetchMailingList(1, 100, undefined);
       newsLetterStore.fetchNewsLetter(1, 10, pagination);
@@ -233,6 +226,14 @@ export default defineComponent({
     watch(() => props.messageContent, (newVal) => {
       newsLetterFormValue.value.localMessageContent = newVal;
     });
+
+    function handlePageChange(page) {
+      newsLetterStore.fetchNewsLetter(page, pagination.pageSize, pagination);
+    }
+
+    function handlePageSizeChange(pageSize) {
+      newsLetterStore.fetchNewsLetter(pagination.page, pageSize, pagination);
+    }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -259,9 +260,9 @@ export default defineComponent({
         if (!errors) {
           const subj = newsLetterFormValue.value.subject;
           const msgContent = newsLetterFormValue.value.localMessageContent;
-          const newsletterRequest = new NewsletterRequest();
+          const newsletterHandler = new NewsletterHandler(msgPopup);
           if (onlySave) {
-            newsletterRequest.addNewsletter(subj, msgContent)
+            newsletterHandler.saveNewsletter(subj, msgContent)
                 .then(() => {
                   newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
@@ -273,11 +274,11 @@ export default defineComponent({
               listItems = Array.from(document.querySelectorAll('#selectedLists li'))
                   .map(li => li.textContent.trim());
               if (listItems.length === 0) {
-                message.warning("The list is empty");
+                msgPopup.warning("The list is empty");
                 return;
               }
             }
-            newsletterRequest.sendEmail(subj, msgContent, listItems)
+            newsletterHandler.sendEmail(subj, msgContent, listItems)
                 .then((response) => {
                   console.log(response.data);
                   newsLetterStore.currentNewsletterId = response.data;
@@ -286,7 +287,7 @@ export default defineComponent({
                 })
                 .catch(error => {
                   console.log('err', error);
-                  message.error(error.toString(), {
+                  msgPopup.error(error.toString(), {
                     closable: true,
                     duration: 10000
                   });
@@ -296,7 +297,7 @@ export default defineComponent({
           Object.keys(errors).forEach(fieldName => {
             const fieldError = errors[fieldName];
             if (fieldError && fieldError.length > 0) {
-              message.error(fieldError[0].message, {
+              msgPopup.error(fieldError[0].message, {
                 closable: true,
                 duration: 10000
               });

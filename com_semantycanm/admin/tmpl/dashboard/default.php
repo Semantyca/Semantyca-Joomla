@@ -12,8 +12,7 @@ global $smtca_assets;
 $smtca_assets = "administrator/components/com_semantycanm/assets/";
 $rootUrl      = JUri::root();
 $host         = JUri::getInstance()->toString(['host']);
-$doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
-$doc->addScript($rootUrl . $smtca_assets . "js/bootstrap.min.js");
+//$doc->addScript($rootUrl . $smtca_assets . "js/Sortable.min.js");
 $doc->addScript($rootUrl . $smtca_assets . "js/common.js");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/default.css");
 $doc->addStyleSheet($rootUrl . $smtca_assets . "css/dragdrop.css");
@@ -33,11 +32,11 @@ $translations     = array(
 	'SELECTED_ARTICLES'     => JText::_('SELECTED_ARTICLES'),
 	'STATISTICS'            => JText::_('STATISTICS'),
 	'RESET'                 => JText::_('RESET'),
-	'COPY_CODE' => JText::_('COPY_CODE'),
+	'COPY_CODE'             => JText::_('COPY_CODE'),
 	'SAVE'                  => JText::_('SAVE'),
-	'IMPORT'   => JText::_('IMPORT'),
-	'EXPORT'   => JText::_('EXPORT'),
-	'DELETE'   => JText::_('DELETE'),
+	'IMPORT'                => JText::_('IMPORT'),
+	'EXPORT'                => JText::_('EXPORT'),
+	'DELETE'                => JText::_('DELETE'),
 	'AVAILABLE_LISTS'       => JText::_('AVAILABLE_LISTS'),
 	'SELECTED_LISTS'        => JText::_('SELECTED_LISTS'),
 	'SEND_NEWSLETTER'       => JText::_('SEND_NEWSLETTER'),
@@ -53,8 +52,8 @@ $translations     = array(
 	'AVAILABLE_USER_GROUPS' => JText::_('AVAILABLE_USER_GROUPS'),
 	'SELECTED_USER_GROUPS'  => JText::_('SELECTED_USER_GROUPS'),
 	'CANCEL'                => JText::_('CANCEL'),
-	'PREVIEW'  => JText::_('PREVIEW'),
-	'TEMPLATE' => JText::_('TEMPLATE'),
+	'PREVIEW'               => JText::_('PREVIEW'),
+	'TEMPLATE'              => JText::_('TEMPLATE'),
 
 );
 $jsonTranslations = json_encode($translations);

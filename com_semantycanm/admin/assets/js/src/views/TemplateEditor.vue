@@ -183,7 +183,7 @@ export default {
       debouncedAutosave.cancel();
     });
 
-    watch(content, (newVal, oldVal) => {
+    watch(() => templateStore.doc.content, (newVal, oldVal) => {
       if (newVal !== oldVal && editorFocused.value) {
         debouncedAutosave();
       }

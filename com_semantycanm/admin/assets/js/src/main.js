@@ -1,7 +1,16 @@
 import {createApp} from 'vue';
 import {createPinia} from 'pinia';
 import Workspace from "./views/Workspace.vue";
-import {darkTheme, lightTheme, NConfigProvider, NDialogProvider, NGlobalStyle, NMessageProvider} from "naive-ui";
+import {
+    darkTheme,
+    lightTheme,
+    NConfigProvider,
+    NDialogProvider,
+    NGlobalStyle,
+    NLoadingBarProvider,
+    NMessageProvider
+} from "naive-ui";
+import '../../tailwind.css';
 
 const smtcaTheme = {
     common: {
@@ -18,6 +27,7 @@ const pinia = createPinia();
 
 const app = createApp({
     components: {
+        NLoadingBarProvider,
         NGlobalStyle,
         NConfigProvider,
         Workspace,
@@ -26,14 +36,16 @@ const app = createApp({
     },
     template: `
       <div>
-        <n-message-provider>
-          <n-dialog-provider>
-            <n-config-provider :theme-overrides="smtcaTheme">
-              <!-- <n-global-style />-->
-              <Workspace/>
-            </n-config-provider>
-          </n-dialog-provider>
-        </n-message-provider>
+        <n-loading-bar-provider>
+          <n-message-provider>
+            <n-dialog-provider>
+              <n-config-provider :theme-overrides="smtcaTheme">
+                <!-- <n-global-style />-->
+                <Workspace/>
+              </n-config-provider>
+            </n-dialog-provider>
+          </n-message-provider>
+        </n-loading-bar-provider>
       </div>
     `,
     setup() {
