@@ -67,8 +67,7 @@
                        style="margin-right: 12px; width: 260px"/>
             </n-form-item>
             <n-form-item :show-label="false" path="defaultValue">
-              <n-input :value="getTypedValue(customFormFields[index].defaultValue, customFormFields[index].type)"
-                       @input="value => setTypedValue(index, value)"
+              <n-input v-model:value="customFormFields[index].defaultValue"
                        placeholder="Value"
                        style="margin-right: 12px; width: 360px"/>
             </n-form-item>
@@ -131,8 +130,9 @@ import {
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
 //import {ejs} from 'codemirror-lang-ejs';
+//import {json} from '@codemirror/lang-json';
 import {html} from '@codemirror/lang-html';
-import {getTypedValue, rules, setTypedValue, typeOptions} from '../utils/templateEditorUtils';
+import {rules, typeOptions} from '../utils/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
 import TemplateManager from "../utils/TemplateManager";
 import {debounce} from 'lodash-es';
@@ -209,7 +209,10 @@ export default {
           value: item.id
         }))
       }),
-      description: computed(() => templateStore.doc.description),
+      description: computed({
+        get: () => templateStore.doc.description,
+        set: (value) => { templateStore.doc.description = value }
+      }),
       selectedTemplateRef: computed(() => templateStore.doc.name),
       handleTemplateChange: (index) => templateManager.handleTemplateChange(index),
       updateFieldIsAvailable,
@@ -219,8 +222,6 @@ export default {
       dark: ref(false),
       formRef,
       typeOptions,
-      getTypedValue,
-      setTypedValue,
       activeTabRef: ref('content'),
       debouncedAutosave,
       handleEditorFocus

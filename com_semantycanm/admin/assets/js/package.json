@@ -12,6 +12,7 @@
   "license": "ISC",
   "dependencies": {
     "@codemirror/lang-html": "^6.4.9",
+    "@codemirror/lang-json": "^6.0.1",
     "@codemirror/language": "^6.10.1",
     "@codemirror/view": "^6.26.3",
     "@vicons/tabler": "^0.12.0",

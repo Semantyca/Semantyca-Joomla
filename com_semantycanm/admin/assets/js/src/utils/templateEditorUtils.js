@@ -1,33 +1,4 @@
 
-export function getTypedValue(value, type) {
-    switch (type) {
-        case 501:
-            return String(value);
-        case 503:
-            return String(value);
-        case 502:
-        default:
-            return value;
-    }
-}
-
-export function setTypedValue(customFormFields, index, stringValue) {
-    const fieldType = customFormFields[index].type;
-    let convertedValue;
-    switch (fieldType) {
-        case 501:
-            convertedValue = Number(stringValue);
-            break;
-        case 503:
-            convertedValue = stringValue;
-            break;
-        case 502:
-        default:
-            convertedValue = stringValue;
-    }
-    customFormFields[index].defaultValue = convertedValue;
-}
-
 export const rules = {
     templateName: {
         required: true,
