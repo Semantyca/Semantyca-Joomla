@@ -14,18 +14,22 @@ export const useUserGroupStore = defineStore('userGroup', {
     }),
     getters: {
         isDataStale: (state) => {
-            const tenMinutes = 2 * 60 * 1000;
-            return Date.now() - state.lastFetch > tenMinutes;
+            const cacheTime = 60 * 1000;
+            return Date.now() - state.lastFetch > cacheTime;
         }
     },
     actions: {
         async getList(msgPopup, loadingBar) {
+            if (!this.isDataStale && this.documentsPage.docs.length > 0) {
+                return;
+            }
+
             loadingBar.start();
             try {
                 const url = `index.php?option=com_semantycanm&task=UserGroup.find`;
                 const response = await fetch(url);
                 if (!response.ok) {
-                    throw new Error(`Network response was not 200 for name ${name}`);
+                    throw new Error(`Network response was not 200`);
                 }
                 const json = await response.json();
                 this.documentsPage.total = json.data.count;

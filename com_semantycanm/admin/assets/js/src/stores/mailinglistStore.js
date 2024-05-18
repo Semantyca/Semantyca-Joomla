@@ -50,7 +50,7 @@ export const useMailingListStore = defineStore('mailingList', {
         async fetchEntryDetails(id, msgPopup,  loadingBar) {
             loadingBar.start()
 
-            const url = `index.php?option=com_yourcomponent&task=find&id=${encodeURIComponent(id)}`;
+            const url = `index.php?option=com_semantycanm&task=MailingList.find&id=${encodeURIComponent(id)}`;
 
             try {
                 const response = await fetch(url, {
@@ -79,7 +79,7 @@ export const useMailingListStore = defineStore('mailingList', {
         async deleteMailingListEntries(ids, msgPopup, loadingBar) {
             loadingBar.start()
             const idsParam = ids.join(',');
-            const url = 'index.php?option=com_semantycanm&task=delete&ids=' + encodeURIComponent(idsParam);
+            const url = 'index.php?option=com_semantycanm&task=MailingList.delete&ids=' + encodeURIComponent(idsParam);
 
             try {
                 const response = await fetch(url, {

@@ -2,7 +2,7 @@
   <n-grid>
     <n-gi :span="24" class="mt-3">
       <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
-        Edit Group
+        Create
       </n-button>
       <n-button type="error" disabled class="button-margin">
         {{ globalStore.translations.DELETE }}
@@ -32,9 +32,6 @@ import {
   NButton,
   NDataTable,
   NDivider,
-  NForm,
-  NFormItem,
-  NFormItemGi,
   NGi,
   NGrid,
   NGridItem,
@@ -48,7 +45,6 @@ import {
 import {useUserGroupStore} from "../stores/userGroupStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
 import {useGlobalStore} from "../stores/globalStore";
-import draggable from 'vuedraggable';
 import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 
 export default {
@@ -62,15 +58,10 @@ export default {
     NSpace,
     NInput,
     NDataTable,
-    NForm,
-    NFormItem,
-    NFormItemGi,
     NDivider,
-    draggable,
     GroupEditorDialog
   },
   setup() {
-    const formRef = ref(null);
     const editorDialogRef = ref(null);
     const checkedRowKeysRef = ref([]);
     const globalStore = useGlobalStore();
@@ -79,9 +70,6 @@ export default {
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar()
-    const state = reactive({
-      mailingListMode: ''
-    });
     const pagination = reactive({
       page: 1,
       pageSize: 5,
@@ -95,36 +83,18 @@ export default {
     });
 
     function handlePageChange(page) {
-      mailingListStore.fetchMailingList(page, pagination.pageSize, pagination);
+      mailingListStore.fetchMailingList(page, pagination.pageSize, pagination, msgPopup, loadingBar);
     }
 
     function handlePageSizeChange(pageSize) {
-      mailingListStore.fetchMailingList(pagination.page, pageSize, pagination);
+      mailingListStore.fetchMailingList(pagination.page, pageSize, pagination, msgPopup, loadingBar);
     }
-
-    const formValue = ref({
-      groupName: '',
-      availableGroups: [],
-      selectedGroups: []
-    });
-
-    const handleEdit = async (id) => {
-      try {
-        const entryDetails = await mailingListStore.fetchEntryDetails(id, msgPopup, loadingBar);
-
-        //showEditFormWithDetails(entryDetails); // This is a placeholder, replace with your actual implementation
-      } catch (error) {
-        msgPopup.error(error.message, {
-          closable: true,
-          duration: 10000
-        });
-      }
-    };
 
     const handleDelete = async (id) => {
       try {
         await mailingListStore.deleteMailingListEntries([id], msgPopup, loadingBar);
-        msgPopup.success('Entry deleted successfully');
+        msgPopup.success('The mailing list deleted successfully');
+        await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
       } catch (error) {
         msgPopup.error(error.message, {
           closable: true,
@@ -140,7 +110,6 @@ export default {
         style: 'width: 40%'
       });
     };
-
 
     const createColumns = () => {
       return [
@@ -164,7 +133,7 @@ export default {
           render(row) {
             return [
               h(NButton, {
-                onClick: () => handleEdit(row.id),
+                onClick: () => showGroupEditor(row.id),
                 style: 'margin-right: 8px;',
                 strong: true,
                 secondary: true,
@@ -184,7 +153,6 @@ export default {
       ];
     };
     return {
-      state,
       globalStore,
       userGroupStore,
       mailingListStore,
@@ -194,8 +162,6 @@ export default {
         checkedRowKeysRef.value = rowKeys;
       },
       pagination,
-      formValue,
-      formRef,
       editorDialogRef,
       handlePageSizeChange,
       handlePageChange,

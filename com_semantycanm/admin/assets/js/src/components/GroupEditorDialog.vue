@@ -4,13 +4,18 @@
       <n-grid :cols="2">
         <n-grid-item style="padding-right: 10px;">
           <n-scrollbar style="max-height: 300px;">
-            <draggable v-model="formValue.availableGroups" class="list-group" group="shared" item-key="id">
-              <template #item="{ element }">
-                <div class="list-group-item" :key="element.id">
-                  {{ element.title }}
-                </div>
-              </template>
-            </draggable>
+            <template v-if="loading">
+              <n-skeleton height="40px" text :repeat="5" style="margin-bottom: 8px;" :sharp="false" />
+            </template>
+            <template v-else>
+              <draggable v-model="formValue.availableGroups" class="list-group" group="shared" item-key="id">
+                <template #item="{ element }">
+                  <div class="list-group-item" :key="element.id">
+                    {{ element.title }}
+                  </div>
+                </template>
+              </draggable>
+            </template>
           </n-scrollbar>
         </n-grid-item>
         <n-grid-item style="padding-left: 10px;">
@@ -45,7 +50,7 @@
 </template>
 
 <script>
-import {onMounted, reactive, ref} from 'vue';
+import {onMounted, reactive, ref, watch} from 'vue';
 import {
   NButton,
   NForm,
@@ -54,6 +59,7 @@ import {
   NGridItem,
   NInput,
   NScrollbar,
+  NSkeleton,
   NSpace,
   useLoadingBar,
   useMessage
@@ -73,6 +79,7 @@ export default {
     NGrid,
     NGridItem,
     NScrollbar,
+    NSkeleton,
     draggable
   },
   props: {
@@ -92,29 +99,27 @@ export default {
     const userGroupStore = useUserGroupStore();
     const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
-    const loadingBar = useLoadingBar()
+    const loadingBar = useLoadingBar();
+    const loading = ref(true); // Add loading state
     const state = reactive({
       mailingListMode: ''
     });
-    const pagination = reactive({
-      page: 1,
-      pageSize: 5,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large'
-    });
 
-    onMounted(async (id) => {
+    onMounted(async () => {
       await userGroupStore.getList(msgPopup, loadingBar);
       if (props.id) {
-        alert(id)
         const entryDetails = await mailingListStore.fetchEntryDetails(props.id, msgPopup, loadingBar);
+        formValue.value.groupName = entryDetails.name;
       }
       formValue.value.availableGroups = userGroupStore.documentsPage.docs;
+      loading.value = false; // Set loading to false after data is fetched
+    });
+
+    watch(() => formValue.value.groupName, (newVal) => {
+      console.log('groupName changed:', newVal);
     });
 
     const saveGroup = () => {
-
       const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
       if (!selectedGroupsValidation) {
         msgPopup.error(rules.selectedGroups.message, {
@@ -175,8 +180,7 @@ export default {
       formRef,
       saveGroup,
       cancelGroupEdit,
-      pagination
-
+      loading // Return loading state
     };
   }
 };
