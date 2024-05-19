@@ -1,5 +1,5 @@
 <template>
-  <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-1">
+  <n-grid :cols="1" x-gap="5" y-gap="5" class="mt-1">
     <n-gi :span="24" class="mt-3">
       <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
         Create

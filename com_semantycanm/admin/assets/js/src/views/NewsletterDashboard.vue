@@ -1,6 +1,6 @@
 <template>
   <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" :model="newsLetterFormValue">
-    <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-3">
+    <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-3">
       <n-gi>
         <n-grid :cols="2" x-gap="12">
           <n-gi>

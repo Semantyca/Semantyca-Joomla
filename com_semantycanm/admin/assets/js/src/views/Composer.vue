@@ -1,5 +1,5 @@
 <template>
-  <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-1">
+  <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
     <n-gi>
       <n-divider title-placement="left">Parameters</n-divider>
     </n-gi>
