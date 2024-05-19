@@ -1,12 +1,6 @@
 <template>
-
-  <div class="container mt-1">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="header-container d-flex justify-content-between align-items-center">
-          <h3>{{ globalStore.translations.STATISTICS }}</h3>
-        </div>
-      </div>
+  <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-1">
+    <n-gi>
       <n-data-table
           remote
           size="large"
@@ -18,14 +12,13 @@
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
       />
-    </div>
-  </div>
-
+    </n-gi>
+  </n-grid>
 </template>
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {NDataTable, NPagination, NTag} from 'naive-ui';
+import {NDataTable, NGi, NGrid, NPagination, NTag, useLoadingBar, useMessage} from 'naive-ui';
 import {useStatStore} from "../stores/statStore";
 import {useGlobalStore} from "../stores/globalStore";
 import EventTable from "../components/EventTable.vue";
@@ -36,6 +29,8 @@ export default defineComponent({
     spinnerIconUrl: String
   },
   components: {
+    NGrid,
+    NGi,
     NDataTable,
     NPagination
   },
@@ -44,6 +39,8 @@ export default defineComponent({
     const statsTabRef = ref(null);
     const globalStore = useGlobalStore();
     const statStore = useStatStore();
+    const msgPopup = useMessage();
+    const loadingBar = useLoadingBar()
     const pagination = reactive({
       page: 1,
       pageSize: 10,
@@ -55,15 +52,15 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      statStore.fetchStatisticsData(1, 10, pagination);
+      statStore.fetchStatisticsData(1, 10, pagination, msgPopup, loadingBar);
     });
 
     function handlePageChange(page) {
-      statStore.fetchStatisticsData(page, pagination.pageSize, pagination);
+      statStore.fetchStatisticsData(page, pagination.pageSize, pagination, msgPopup, loadingBar);
     }
 
     function handlePageSizeChange(pageSize) {
-      statStore.fetchStatisticsData(pagination.page, pageSize, pagination);
+      statStore.fetchStatisticsData(pagination.page, pageSize, pagination, msgPopup, loadingBar);
     }
 
     const createColumns = () => {
@@ -77,7 +74,7 @@ export default defineComponent({
           renderExpand: (rowData) => {
             if (!statStore.eventListPage.docs[rowData.key]) {
               console.log('Fetching data for row', rowData.key);
-              statStore.fetchEvents(rowData.key);
+              statStore.fetchEvents(rowData.key, msgPopup, loadingBar);
             }
             return h(EventTable, {
               data: statStore.eventListPage.docs[rowData.key],

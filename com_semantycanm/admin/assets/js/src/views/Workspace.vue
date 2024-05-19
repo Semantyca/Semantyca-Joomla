@@ -1,5 +1,4 @@
 <template>
-  <div id="alertPlaceholder"></div>
   <n-tabs v-model:value="activeTab">
     <n-tab-pane name="Lists" tab="Lists">
       <Lists></Lists>

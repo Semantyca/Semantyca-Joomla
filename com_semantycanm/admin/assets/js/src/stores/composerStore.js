@@ -1,6 +1,5 @@
 import {defineStore} from 'pinia';
 import {useTemplateStore} from './templateStore';
-import {adaptField} from "./utils/fieldUtilities";
 import TemplateManager from "../utils/TemplateManager";
 
 export const useComposerStore = defineStore('composer', {
@@ -12,25 +11,12 @@ export const useComposerStore = defineStore('composer', {
         selectedArticles: [],
         editorCont: '',
         isLoading: false,
-        formCustomFields: {}
     }),
     actions: {
-        processFormCustomFields(rawFields, msgPopup) {
-            this.formCustomFields = rawFields.reduce((acc, field) => {
-                if (field.isAvailable === 1) {
-                    const key = field.name;
-                    acc[key] = adaptField(field);
-                }
-                return acc;
-            }, {});
-        },
         async updateFormCustomFields(msgPopup) {
-            this.formCustomFields = {};
-            const templateStore = useTemplateStore();
+            const templateStore= useTemplateStore();
             const templateManager = new TemplateManager(templateStore, msgPopup);
-            await templateManager.getTemplates();
-            const availableCustomFields = templateStore.doc.customFields.filter(field => field.isAvailable === 1);
-            this.processFormCustomFields(availableCustomFields, msgPopup);
+            await templateManager.getTemplates(msgPopup);
         },
 
         async fetchEverything(searchTerm, msgPopup) {

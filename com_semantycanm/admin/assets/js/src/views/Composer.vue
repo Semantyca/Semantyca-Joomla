@@ -1,118 +1,148 @@
 <template>
-  <div class="container mt-3">
-    <n-divider title-placement="left">Parameters</n-divider>
-    <div class="row">
-      <div class="col-8">
-        <n-form-item
-            label-placement="left"
-            require-mark-placement="right-hanging"
-            label-width="180px"
-            :style="{ maxWidth: '800px' }"
-            v-for="(field, fieldName) in fields"
-            :key="field.id"
-            :label="field.caption"
-        >
-          <template v-if="field.type === 503">
-            <div v-for="(color, i) in field.defaultValue" :key="i">
-              <n-color-picker :value="color"
-                              size="large"
-                              :show-alpha="false"
-                              :actions="['confirm','clear']"
-                              @update:value="newValue => handleColorChange(field.name, i, newValue)"
-                              style="margin-right: 5px; width: 80px"/>
-            </div>
-          </template>
-          <template v-else-if="field.type === 501">
-            <n-input-number v-model:value="field.defaultValue"
-                            size="large"
-                            style="width: 100px"
-                            @update:value="newValue => handleFieldChange(field.name, newValue)"/>
-
-          </template>
-          <template v-else>
-            <n-input v-model:value="field.defaultValue"
-                     size="large"
-                     @update:value="newValue => handleFieldChange(field.name, newValue)"/>
-
-          </template>
-        </n-form-item>
-      </div>
-    </div>
-    <n-divider class="custom-divider" title-placement="left">{{ store.translations.AVAILABLE_ARTICLES }}</n-divider>
-    <div class="row">
-      <div class="col-md-6">
-        <div class="header-container">
-          <div id="composerSpinner"
-               class="spinner-border text-info spinner-grow-sm mb-2"
-               role="status"
-               style="display: none;">
-            <span class="visually-hidden">Loading...</span>
+  <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-1">
+    <n-gi>
+      <n-divider title-placement="left">Parameters</n-divider>
+    </n-gi>
+    <n-gi>
+      <n-grid :cols="8">
+        <n-gi span="8">
+          <n-form-item
+              label-placement="left"
+              require-mark-placement="right-hanging"
+              label-width="180px"
+              :style="{ maxWidth: '800px' }"
+              v-for="(field, fieldName) in customFields"
+              :key="field.id"
+              :label="field.caption"
+          >
+            <template v-if="field.type === 503">
+              <div v-for="(color, i) in field.defaultValue" :key="i">
+                <n-color-picker
+                    :value="color"
+                    :show-alpha="false"
+                    :actions="['confirm', 'clear']"
+                    @update:value="newValue => handleColorChange(field.name, i, newValue)"
+                    style="margin-right: 5px; width: 80px"
+                />
+              </div>
+            </template>
+            <template v-else-if="field.type === 501">
+              <n-input-number
+                  v-model:value="field.defaultValue"
+                  @update:value="newValue => handleFieldChange(field.name, newValue)"
+                  style="width: 150px;"
+              />
+            </template>
+            <template v-else>
+              <n-input
+                  v-model:value="field.defaultValue"
+                  @update:value="newValue => handleFieldChange(field.name, newValue)"
+                  style="width: 100%;"
+              />
+            </template>
+          </n-form-item>
+        </n-gi>
+      </n-grid>
+    </n-gi>
+    <n-gi>
+      <n-divider class="custom-divider" title-placement="left">{{ store.translations.AVAILABLE_ARTICLES }}</n-divider>
+    </n-gi>
+    <n-gi>
+      <n-grid :cols="2" :x-gap="24">
+        <n-gi span="1">
+          <n-input
+              type="text"
+              id="articleSearchInput"
+              class="form-control mb-2"
+              placeholder="Search articles..."
+              @input="debouncedFetchArticles"
+          />
+          <div v-if="loading" class="col-md-12">
+            <n-skeleton text :repeat="5" height="40px" />
           </div>
-        </div>
-        <input type="text" id="articleSearchInput" class="form-control mb-2" placeholder="Search articles..."
-               @input="debouncedFetchArticles">
-        <div v-if="loading" class="col-md-12">
-          <n-skeleton text :repeat="3"/>
-        </div>
-        <div v-else class="col-md-12">
-          <draggable class="list-group dragdrop-list-short"
-                     :list="articleStore.listPage.docs"
-                     group="articles"
-                     itemKey="id"
-                     @end="onDragEnd">
+          <div v-else class="col-md-12">
+            <draggable
+                class="list-group dragdrop-list-short"
+                :list="composerStore.listPage.docs"
+                group="articles"
+                itemKey="id"
+                @end="onDragEnd"
+            >
+              <template #item="{ element }">
+                <div
+                    class="list-group-item"
+                    :key="element.id"
+                    :id="element.id"
+                    :title="element.title"
+                    :data-url="element.url"
+                    :data-category="element.category"
+                    :data-intro="element.intro"
+                >
+                  <strong>{{ element.category }}</strong><br />{{ element.title }}
+                </div>
+              </template>
+            </draggable>
+          </div>
+        </n-gi>
+        <n-gi span="1">
+          <div class="header-container"></div>
+          <draggable
+              class="list-group dragdrop-list"
+              :list="composerStore.selectedArticles"
+              group="articles"
+              itemKey="id"
+              @end="onDragEnd"
+          >
             <template #item="{ element }">
-              <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
-                   :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
-                <strong>{{ element.category }}</strong><br>{{ element.title }}
+              <div
+                  class="list-group-item"
+                  :key="element.id"
+                  :id="element.id"
+                  :title="element.title"
+                  :data-url="element.url"
+                  :data-category="element.category"
+                  :data-intro="element.intro"
+              >
+                <strong>{{ element.category }}</strong><br />{{ element.title }}
               </div>
             </template>
           </draggable>
-        </div>
-      </div>
-      <div class="col-md-6">
-        <div class="header-container">
-        </div>
-        <draggable
-            class="list-group dragdrop-list"
-            :list="articleStore.selectedArticles"
-            group="articles" itemKey="id"
-            @end="onDragEnd">
-          <template #item="{ element }">
-            <div class="list-group-item" :key="element.id" :id="element.id" :title="element.title"
-                 :data-url="element.url" :data-category="element.category" :data-intro="element.intro">
-              <strong>{{ element.category }}</strong><br>{{ element.title }}
-            </div>
-          </template>
-        </draggable>
-      </div>
-    </div>
-    <n-divider class="custom-divider" title-placement="left">Review</n-divider>
-    <div class="row mt-3">
-      <div class="col  d-flex align-items-center">
-        <n-space>
-          <n-button size="large"
-                    strong
-                    error
-                    seconadry
-                    @click="resetFunction">{{ store.translations.RESET }}
-          </n-button>
-          <n-button size="large"
-                    type="primary"
-                    @click="copyContentToClipboard">{{ store.translations.COPY_CODE }}
-          </n-button>
-          <n-button size="large"
-                    type="primary"
-                    @click="preview">{{ store.translations.PREVIEW }}
-          </n-button>
-        </n-space>
-      </div>
-      <div class="row mt-4">
-        <div class="col">
+        </n-gi>
+      </n-grid>
+    </n-gi>
+
+    <n-gi>
+      <n-divider class="custom-divider" title-placement="left">Review</n-divider>
+    </n-gi>
+    <n-gi>
+      <n-grid :cols="1" class="mt-3">
+        <n-gi>
+          <n-space>
+            <n-button
+                size="large"
+                strong
+                error
+                secondary
+                @click="resetFunction"
+            >{{ store.translations.RESET }}</n-button>
+            <n-button
+                size="large"
+                type="primary"
+                @click="copyContentToClipboard"
+            >{{ store.translations.COPY_CODE }}</n-button>
+            <n-button
+                size="large"
+                type="primary"
+                @click="preview"
+            >{{ store.translations.PREVIEW }}</n-button>
+          </n-space>
+        </n-gi>
+        <n-gi class="mt-4">
           <n-button-group>
             <n-button @click="formatText('bold')" secondary>
               <template #icon>
                 <n-icon>
-                  <Bold/>
+                  <Bold />
                 </n-icon>
               </template>
               Bold
@@ -120,7 +150,7 @@
             <n-button @click="formatText('italic')" secondary>
               <template #icon>
                 <n-icon>
-                  <Italic/>
+                  <Italic />
                 </n-icon>
               </template>
               Italic
@@ -128,7 +158,7 @@
             <n-button @click="formatText('underline')" secondary>
               <template #icon>
                 <n-icon>
-                  <Underline/>
+                  <Underline />
                 </n-icon>
               </template>
               Underline
@@ -136,7 +166,7 @@
             <n-button @click="formatText('strikethrough')" secondary>
               <template #icon>
                 <n-icon>
-                  <Strikethrough/>
+                  <Strikethrough />
                 </n-icon>
               </template>
               Strikethrough
@@ -144,22 +174,22 @@
             <n-button @click="previewHtml" secondary disabled>
               <template #icon>
                 <n-icon>
-                  <Code/>
+                  <Code />
                 </n-icon>
               </template>
               HTML Preview
             </n-button>
           </n-button-group>
-        </div>
-      </div>
-      <div class="row">
-        <div class="col">
-          <div id="squire-editor"
-               style="height: 400px; overflow-y: auto; border: 1px solid #a1bce0; min-height: 200px;"></div>
-        </div>
-      </div>
-    </div>
-  </div>
+        </n-gi>
+        <n-gi>
+          <div
+              id="squire-editor"
+              style="height: 400px; overflow-y: auto; border: 1px solid #a1bce0; min-height: 200px;"
+          ></div>
+        </n-gi>
+      </n-grid>
+    </n-gi>
+  </n-grid>
 </template>
 
 <script>
@@ -173,25 +203,25 @@ import {
   NColorPicker,
   NDivider,
   NFormItem,
+  NGi,
+  NGrid,
   NIcon,
   NInput,
   NInputNumber,
-  NSelect,
   NSkeleton,
   NSpace,
-  NTag,
   useDialog,
   useMessage
 } from "naive-ui";
 import {useTemplateStore} from "../stores/templateStore";
 import draggable from 'vuedraggable';
 import {useComposerStore} from "../stores/composerStore";
-import DynamicBuilder from "../utils/DynamicBuilder"
+import DynamicBuilder from "../utils/DynamicBuilder";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
-import {Bold, Code, Italic, Strikethrough, Underline} from '@vicons/tabler'
+import {Bold, Code, Italic, Strikethrough, Underline} from '@vicons/tabler';
 
 export default {
   name: 'Composer',
@@ -204,10 +234,10 @@ export default {
     NFormItem,
     NInput,
     NInputNumber,
-    NSelect,
-    NTag,
     NColorPicker,
     NIcon,
+    NGrid,
+    NGi,
     draggable,
     Bold, Italic, Underline, Strikethrough, Code
   },
@@ -223,7 +253,7 @@ export default {
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
     const dialog = useDialog();
-    const fields = computed(() => composerStore.formCustomFields);
+    const customFields = computed(() => templateStore.availableCustomFields);
     const squireEditor = ref(null);
     const loading = ref(true);
 
@@ -249,10 +279,10 @@ export default {
     };
 
     const updateEditorContent = () => {
-      const dynamicBuilder = new DynamicBuilder(templateStore.doc);
+      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
       dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
-      Object.keys(fields.value).forEach((key) => {
-        const fieldValue = fields.value[key].defaultValue;
+      Object.keys(customFields.value).forEach((key) => {
+        const fieldValue = customFields.value[key].defaultValue;
         dynamicBuilder.addVariable(key, fieldValue);
       });
       try {
@@ -262,10 +292,9 @@ export default {
         msgPopup.error(e.message, {
           closable: true,
           duration: 100000
-        })
+        });
       }
     };
-
 
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
@@ -274,7 +303,7 @@ export default {
     };
 
     const copyContentToClipboard = () => {
-      const dynamicBuilder = new DynamicBuilder(templateStore.doc);
+      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
       const completeHTML = dynamicBuilder.getWrappedContent(squireEditor.value.getHTML());
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
@@ -311,7 +340,7 @@ export default {
             basic: true,
             lang: html(),
             dark: false,
-            style: {width: '100%', height: '400px'},
+            style: { width: '100%', height: '400px' },
             readOnly: true,
             extensions: [
               html()
@@ -321,44 +350,20 @@ export default {
       });
     };
 
-    /*const previewHtml = () => {
-      const htmlSource = squireEditor.value.getHTML();
-      dialog.create({
-        title: 'HTML Preview',
-        style: 'width: 800px',
-        bordered: true,
-        content: () => h('div', [
-          h(CodeMirror, {
-            modelValue: htmlSource,
-            basic: true,
-            lang: html(),
-            dark: false,
-            style: { width: '100%', height: '400px' },
-            readOnly: true,
-            extensions: [
-              html(),
-              //EditorView.lineWrapping,
-            ],
-          }),
-        ]),
-      });
-    };*/
-
     const handleColorChange = (fieldName, index, newValue) => {
-      fields.value[fieldName].defaultValue[index] = newValue;
+      customFields.value[fieldName].defaultValue[index] = newValue;
       updateEditorContent();
     };
 
     const handleFieldChange = (fieldName, newValue) => {
-      console.log(fieldName + ' ' + newValue)
-      fields.value[fieldName].defaultValue = newValue;
+      customFields.value[fieldName].defaultValue = newValue;
       updateEditorContent();
     };
 
-
     const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
-    const debouncedFetchArticles = (event) => {
-      fetchArticlesDebounced(event.target.value);
+
+    const debouncedFetchArticles = (val) => {
+      fetchArticlesDebounced(val);
     };
 
     const formatText = (format) => {
@@ -384,11 +389,11 @@ export default {
     };
 
     return {
-      articleStore: composerStore,
+      composerStore,
       articles,
       onDragEnd,
       store,
-      fields,
+      customFields,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,

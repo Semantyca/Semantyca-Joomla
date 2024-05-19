@@ -10,9 +10,9 @@ export const useStatStore = defineStore('stat', {
         }
     }),
     actions: {
-        async fetchStatisticsData(page, size, pagination) {
+        async fetchStatisticsData(page, size, pagination, msgPopup, loadingBar) {
             try {
-                startLoading('loadingSpinner');
+                loadingBar.start()
                 const response = await fetch('index.php?option=com_semantycanm&task=Stat.findAll&page=' + page + '&limit=' + size);
                 const respData = await response.json();
                 if (respData.success && respData.data) {
@@ -23,14 +23,15 @@ export const useStatStore = defineStore('stat', {
                     pagination.page = respData.data.current;
                 }
             } catch (error) {
-                showAlertBar("Error: " + error);
+                loadingBar.error()
+                msgPopup.error(error.message);
             } finally {
-                stopLoading('loadingSpinner');
+                loadingBar.finish()
             }
         },
-        async fetchEvents(eventId) {
+        async fetchEvents(eventId, msgPopup, loadingBar) {
             try {
-                startLoading('loadingSpinner');
+                loadingBar.start()
                 const response = await fetch('index.php?option=com_semantycanm&task=Stat.getEvents&eventid=' + eventId);
                 const respData = await response.json();
                 if (respData.success && respData.data) {
@@ -38,9 +39,10 @@ export const useStatStore = defineStore('stat', {
                     this.eventListPage.docs[eventId] = respData.data.docs;
                 }
             } catch (error) {
-                showAlertBar("Error: " + error);
+                loadingBar.error()
+                msgPopup.error(error.message);
             } finally {
-                stopLoading('loadingSpinner');
+                loadingBar.finish()
             }
         }
     }

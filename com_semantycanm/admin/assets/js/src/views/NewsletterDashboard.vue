@@ -1,65 +1,66 @@
 <template>
   <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" :model="newsLetterFormValue">
-    <div class="container mt-3">
-
-      <div class="row">
-        <div class="col">
-          <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
-          <div class="col-md-12 dragdrop-list">
+    <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-3">
+      <n-gi>
+        <n-grid :cols="2" x-gap="12">
+          <n-gi>
+            <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
             <ul ref="availableListsUlRef" class="list-group">
-              <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item"
-                  :id="ml.id">{{ ml.name }}
+              <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item" :id="ml.id">
+                {{ ml.name }}
               </li>
             </ul>
-          </div>
-        </div>
-        <div class="col">
-          <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
-          <div class="col-md-12 dragdrop-list">
+          </n-gi>
+          <n-gi>
+            <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
             <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
-          </div>
-        </div>
-      </div>
+          </n-gi>
+        </n-grid>
+      </n-gi>
 
-      <div class="row justify-content-center mt-3">
-        <div class="col">
-          <h3>{{ globalStore.translations.SEND_NEWSLETTER }}</h3>
-          <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
-          <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-          <n-form-item :label=globalStore.translations.TEST_ADDRESS path="testEmail">
-            <n-input v-model:value="newsLetterFormValue.testEmail"
-                     placeholder="E-mail address"
-                     size="large"
-                     type="text"
-                     id="testEmails"
-                     name="testEmails"/>
-          </n-form-item>
-        </div>
-      </div>
-
-      <div class="row justify-content-center">
-        <div class="col">
-          <n-form-item :label="globalStore.translations.SUBJECT" path="subject">
-            <n-input-group>
-              <n-input v-model:value="newsLetterFormValue.subject"
+      <n-gi>
+        <n-grid :cols="1">
+          <n-gi>
+            <h3>{{ globalStore.translations.SEND_NEWSLETTER }}</h3>
+            <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
+            <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
+            <n-form-item :label="globalStore.translations.TEST_ADDRESS" path="testEmail">
+              <n-input v-model:value="newsLetterFormValue.testEmail"
+                       placeholder="E-mail address"
                        size="large"
                        type="text"
-                       id="subject"
-                       placeholder="Subject"
-                       style="flex-grow: 1;"/>
-              <n-button size="large"
-                        type="tertiary"
-                        @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
-              </n-button>
-            </n-input-group>
-          </n-form-item>
-        </div>
-      </div>
+                       id="testEmails"
+                       name="testEmails"/>
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+      </n-gi>
 
-      <div class="row">
-        <div class="col">
-          <div class="form-group">
-            <n-form-item :label=globalStore.translations.MESSAGE_CONTENT path="messageContent">
+      <n-gi>
+        <n-grid :cols="1">
+          <n-gi>
+            <n-form-item :label="globalStore.translations.SUBJECT" path="subject">
+              <n-input-group>
+                <n-input v-model:value="newsLetterFormValue.subject"
+                         size="large"
+                         type="text"
+                         id="subject"
+                         placeholder="Subject"
+                         style="flex-grow: 1;"/>
+                <n-button size="large"
+                          type="tertiary"
+                          @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+                </n-button>
+              </n-input-group>
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+      </n-gi>
+
+      <n-gi>
+        <n-grid :cols="1">
+          <n-gi>
+            <n-form-item :label="globalStore.translations.MESSAGE_CONTENT" path="messageContent">
               <n-input
                   v-model:value="newsLetterFormValue.localMessageContent"
                   type="textarea"
@@ -67,77 +68,67 @@
                   placeholder=""
               />
             </n-form-item>
-          </div>
-        </div>
-      </div>
+          </n-gi>
+        </n-grid>
+      </n-gi>
 
-      <div class="row">
-        <div class="col-5 d-flex align-items-center">
-          <n-space>
-            <n-button type="success"
-                      size="large"
-                      @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
-            </n-button>
-            <n-button id="saveNewsletterBtn"
-                      size="large"
-                      type="primary"
-                      @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
-            </n-button>
-            <!--            <n-button size="large"
-                                  type="primary"
-                                  @click="checkStatus(true)">Check status
-                        </n-button>-->
-            <!--            <n-button id="toggleEditBtn"
-                                  size="large"
-                                  type="primary"
-                                  @click="editContent">{{ globalStore.translations.EDIT }}
-                        </n-button>-->
+      <n-gi>
+        <n-grid :cols="2" x-gap="12">
+          <n-gi>
+            <n-space>
+              <n-button type="success"
+                        size="large"
+                        @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
+              </n-button>
+              <n-button id="saveNewsletterBtn"
+                        size="large"
+                        type="primary"
+                        @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
+              </n-button>
+            </n-space>
+          </n-gi>
+          <n-gi>
+            <n-progress
+                type="line"
+                :percentage="newsLetterStore.progress.dispatched"
+                :indicator-placement="'inside'"
+                style="margin-bottom: 10px;"
+            ></n-progress>
+            <n-progress
+                type="line"
+                status="warning"
+                :percentage="newsLetterStore.progress.read"
+                :indicator-placement="'inside'"
+            ></n-progress>
+          </n-gi>
+        </n-grid>
+      </n-gi>
 
-          </n-space>
+      <n-gi>
+        <n-grid :cols="1">
+          <n-gi>
+            <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
+          </n-gi>
+        </n-grid>
+      </n-gi>
 
-        </div>
-        <!--        <div class="col-1 d-flex  flex-column align-items-start">
-                  <n-switch :round="false">
-                  </n-switch>
-                </div>-->
-        <div class="col d-flex flex-column align-items-center me-5">
-          <n-progress
-              type="line"
-              :percentage="newsLetterStore.progress.dispatched"
-              :indicator-placement="'inside'"
-              style="margin-bottom: 10px;"
-          ></n-progress>
-          <n-progress
-              type="line"
-              status="warning"
-              :percentage="newsLetterStore.progress.read"
-              :indicator-placement="'inside'"
-          ></n-progress>
-        </div>
-
-      </div>
-
-      <div class="row mt-4">
-        <div class="col">
-          <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="col">
-          <n-data-table
-              remote
-              size="large"
-              :columns="columns"
-              :data="newsLetterStore.docsListPage.docs"
-              :bordered="false"
-              :pagination="pagination"
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
-          />
-        </div>
-      </div>
-    </div>
+      <n-gi>
+        <n-grid :cols="1">
+          <n-gi>
+            <n-data-table
+                remote
+                size="large"
+                :columns="columns"
+                :data="newsLetterStore.docsListPage.docs"
+                :bordered="false"
+                :pagination="pagination"
+                @update:page="handlePageChange"
+                @update:page-size="handlePageSizeChange"
+            />
+          </n-gi>
+        </n-grid>
+      </n-gi>
+    </n-grid>
   </n-form>
 </template>
 
@@ -146,34 +137,35 @@ import {defineComponent, h, nextTick, onMounted, onUnmounted, reactive, ref, wat
 import {useGlobalStore} from "../stores/globalStore";
 import {
   NButton,
-  NButtonGroup,
   NDataTable,
   NForm,
   NFormItem,
+  NGi,
+  NGrid,
   NInput,
   NInputGroup,
   NProgress,
   NSpace,
-  NSwitch,
+  useLoadingBar,
   useMessage
 } from "naive-ui";
 import {useNewsletterStore} from "../stores/newsletterStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
-import NewsletterHandler from "../utils/NewsletterHandler"
+import NewsletterHandler from "../utils/NewsletterHandler";
 
 export default defineComponent({
   name: 'NewsletterComponent',
   components: {
     NInput,
     NButton,
-    NButtonGroup,
     NSpace,
-    NSwitch,
     NDataTable,
     NFormItem,
     NForm,
     NProgress,
-    NInputGroup
+    NInputGroup,
+    NGrid,
+    NGi
   },
   props: {
     messageContent: String,
@@ -186,7 +178,7 @@ export default defineComponent({
     const mailingListStore = useMailingListStore();
     const newsLetterStore = useNewsletterStore();
     const msgPopup = useMessage();
-
+    const loadingBar = useLoadingBar()
 
     const state = reactive({
       isTest: false,
@@ -209,7 +201,7 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      mailingListStore.fetchMailingList(1, 100, undefined);
+      mailingListStore.fetchMailingList(1, 100, pagination, msgPopup, loadingBar);
       newsLetterStore.fetchNewsLetter(1, 10, pagination);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       newsLetterStore.startPolling();
@@ -321,7 +313,7 @@ export default defineComponent({
 
     const applyAndDropSet = (lists) => {
       lists.forEach(list => {
-        Sortable.create(list, {
+       /* Sortable.create(list, {
           group: {
             name: 'shared',
             pull: true,
@@ -329,7 +321,7 @@ export default defineComponent({
           },
           animation: 150,
           sort: false
-        });
+        });*/
       });
     };
 
@@ -377,7 +369,6 @@ export default defineComponent({
       console.log(rowData);
     };
 
-
     const createColumns = () => {
       return [
         {
@@ -400,15 +391,14 @@ export default defineComponent({
                 secondary: true,
                 type: "primary",
                 size: "small",
-              }, {default: () => 'Edit'}),
+              }, { default: () => 'Edit' }),
               h(NButton, {
-                onClick: () => { /* handle delete */
-                },
+                onClick: () => { /* handle delete */ },
                 strong: true,
                 secondary: true,
                 type: "error",
                 size: "small",
-              }, {default: () => 'Delete'})
+              }, { default: () => 'Delete' })
             ];
           }
         }
@@ -437,4 +427,3 @@ export default defineComponent({
   },
 });
 </script>
-

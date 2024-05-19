@@ -1,14 +1,24 @@
-export function setCurrentTemplate(store, defaultTemplateId) {
-    const templateDoc = store.templateMap[defaultTemplateId]
-    store.doc.id = templateDoc.id;
-    store.doc.name = templateDoc.name;
-    store.doc.type = templateDoc.type;
-    store.doc.description = templateDoc.description;
-    store.doc.content = templateDoc.content;
-    store.doc.wrapper = templateDoc.wrapper;
-    store.doc.isDefault = templateDoc.isDefault;
-    store.doc.customFields = templateDoc.customFields;
-    store.formCustomFields = processFormCustomFields(templateDoc.customFields.filter(field => field.isAvailable === 1), adaptField);
+export function setCurrentTemplate(templateStore, defaultTemplateId) {
+    const templateDoc = templateStore.templateMap[defaultTemplateId]
+    templateStore.currentTemplate.id = templateDoc.id;
+    templateStore.currentTemplate.name = templateDoc.name;
+    templateStore.currentTemplate.type = templateDoc.type;
+    templateStore.currentTemplate.description = templateDoc.description;
+    templateStore.currentTemplate.content = templateDoc.content;
+    templateStore.currentTemplate.wrapper = templateDoc.wrapper;
+    templateStore.currentTemplate.isDefault = templateDoc.isDefault;
+    templateStore.currentTemplate.customFields = templateDoc.customFields;
+    templateStore.availableCustomFields = processFormCustomFields(templateDoc.customFields.filter(field => field.isAvailable === 1), adaptField);
+}
+
+export function processFormCustomFields(rawFields, adaptField) {
+    return rawFields.reduce((acc, field) => {
+        if (field.isAvailable === 1) {
+            const key = field.name;
+            acc[key] = adaptField(field);
+        }
+        return acc;
+    }, {});
 }
 
 export function adaptField(field) {
@@ -39,14 +49,4 @@ export function adaptField(field) {
         default:
             return {...field};
     }
-}
-
-export function processFormCustomFields(rawFields, adaptField) {
-    return rawFields.reduce((acc, field) => {
-        if (field.isAvailable === 1) {
-            const key = field.name;
-            acc[key] = adaptField(field);
-        }
-        return acc;
-    }, {});
 }

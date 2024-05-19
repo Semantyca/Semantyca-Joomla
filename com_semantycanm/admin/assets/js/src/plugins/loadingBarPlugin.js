@@ -1,4 +1,3 @@
-// loadingBarPlugin.js
 import {useLoadingBar} from 'naive-ui';
 
 export default {

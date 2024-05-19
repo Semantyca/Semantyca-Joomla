@@ -1,6 +1,6 @@
 <template>
-  <div class="container">
-    <div class="row mt-3">
+  <n-grid :cols="1" x-gap="12" y-gap="12" class="container mt-1">
+    <n-gi>
       <n-space>
         <n-button type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
@@ -15,105 +15,132 @@
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
-    </div>
-  </div>
-  <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
-  <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-    <div class="container">
-      <div class="row">
-        <div class="col-8">
-          <n-form-item label="Template name" label-placement="left" path="templateName">
-            <n-select v-model:value="selectedTemplateRef"
-                      :options="templateSelectOptions"
-                      size="large"
-                      style="width: 100%; max-width: 600px;"
-                      placeholder="Select a template"
-                      @update:value="handleTemplateChange"
-            />
-          </n-form-item>
-          <n-form-item label="Description" label-placement="left" path="description">
-            <n-input v-model:value="description"
-                     type="textarea"
-                     placeholder="Enter template description"
-                     style="width: 100%; max-width: 600px; height: 50px;"
-                     autosize/>
-          </n-form-item>
-        </div>
-      </div>
+    </n-gi>
+
+    <n-gi>
+      <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
+    </n-gi>
+
+    <n-gi>
+      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
+        <n-grid :cols="8">
+          <n-gi span="8">
+            <n-form-item label="Template name" label-placement="left" path="templateName">
+              <n-select
+                  v-model:value="selectedTemplateRef"
+                  :options="templateSelectOptions"
+                  size="large"
+                  style="width: 100%; max-width: 600px;"
+                  placeholder="Select a template"
+                  @update:value="handleTemplateChange"
+              />
+            </n-form-item>
+            <n-form-item label="Description" label-placement="left" path="description">
+              <n-input
+                  v-model:value="description"
+                  type="textarea"
+                  placeholder="Enter template description"
+                  style="width: 100%; max-width: 600px; height: 50px;"
+                  autosize
+              />
+            </n-form-item>
+          </n-gi>
+        </n-grid>
+      </n-form>
+    </n-gi>
+
+    <n-gi>
       <n-divider title-placement="left">Custom fields</n-divider>
-      <div class="row">
-        <div class="col-8">
-          <n-dynamic-input v-model:value="customFormFields"
-                           :on-create="addCustomField"
-                           :on-remove="removeCustomField"
-                           item-style="margin-bottom: 0;"
-                           #="{ index }"
-          >
-            <n-form-item :show-label="false" path="valueType">
-              <n-select v-model:value="customFormFields[index].type"
-                        :options="typeOptions"
-                        style="margin-right: 12px; width: 160px"
-                        @update:value="() => handleTypeChange(index)"/>
+    </n-gi>
 
-            </n-form-item>
-            <n-form-item :show-label="false" path="variableName">
-              <n-input v-model:value="customFormFields[index].name"
-                       placeholder="Variable name"
-                       style="margin-right: 12px;"/>
-            </n-form-item>
-            <n-form-item :show-label="false" path="caption">
-              <n-input v-model:value="customFormFields[index].caption"
-                       placeholder="Caption"
-                       style="margin-right: 12px; width: 260px"/>
-            </n-form-item>
-            <n-form-item :show-label="false" path="defaultValue">
-              <n-input v-model:value="customFormFields[index].defaultValue"
-                       placeholder="Value"
-                       style="margin-right: 12px; width: 360px"/>
-            </n-form-item>
+    <n-gi>
+      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
+        <n-grid :cols="8">
+          <n-gi span="8">
+            <n-dynamic-input
+                v-model:value="customFormFields"
+                :on-create="addCustomField"
+                :on-remove="removeCustomField"
+                item-style="margin-bottom: 0;"
+                #="{ index }"
+            >
+              <n-form-item :show-label="false" path="valueType">
+                <n-select
+                    v-model:value="customFormFields[index].type"
+                    :options="typeOptions"
+                    style="margin-right: 12px; width: 160px"
+                    @update:value="() => handleTypeChange(index)"
+                />
+              </n-form-item>
+              <n-form-item :show-label="false" path="variableName">
+                <n-input
+                    v-model:value="customFormFields[index].name"
+                    placeholder="Variable name"
+                    style="margin-right: 12px;"
+                />
+              </n-form-item>
+              <n-form-item :show-label="false" path="caption">
+                <n-input
+                    v-model:value="customFormFields[index].caption"
+                    placeholder="Caption"
+                    style="margin-right: 12px; width: 260px"
+                />
+              </n-form-item>
+              <n-form-item :show-label="false" path="defaultValue">
+                <n-input
+                    v-model:value="customFormFields[index].defaultValue"
+                    placeholder="Value"
+                    style="margin-right: 12px; width: 360px"
+                />
+              </n-form-item>
+              <n-form-item :show-label="false" path="valueType">
+                <n-checkbox
+                    :checked="customFormFields[index].isAvailable === 1"
+                    @update:checked="value => updateFieldIsAvailable(index, value)"
+                />
+              </n-form-item>
+            </n-dynamic-input>
+          </n-gi>
+        </n-grid>
+      </n-form>
+    </n-gi>
 
-            <n-form-item :show-label="false" path="valueType">
-              <n-checkbox :checked="customFormFields[ index ].isAvailable === 1"
-                          @update:checked="value => updateFieldIsAvailable(index, value)"/>
-            </n-form-item>
-          </n-dynamic-input>
-        </div>
-      </div>
+    <n-gi>
       <n-divider title-placement="left">Template source</n-divider>
-      <div class="row">
-        <div class="col">
-          <n-tabs v-model:value="activeTabRef">
-            <n-tab-pane name="content" tab="Content">
-              <code-mirror v-model="store.doc.content"
-                           @focus="handleEditorFocus"
-                           @change="debouncedAutosave"
-                           basic
-                           :lang="lang"
-                           :dark="dark"
-                           :style="{ width: '100%'}"
-              />
-            </n-tab-pane>
-            <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
-              <code-mirror v-model="store.doc.wrapper"
-                           @focus="handleEditorFocus"
-                           basic
-                           :lang="lang"
-                           :dark="dark"
-                           :style="{ width: '100%'}"
-              />
-            </n-tab-pane>
-          </n-tabs>
-        </div>
-      </div>
+    </n-gi>
 
-    </div>
-  </n-form>
+    <n-gi>
+      <n-tabs v-model:value="activeTabRef">
+        <n-tab-pane name="content" tab="Content">
+          <code-mirror
+              v-model="templateStore.currentTemplate.content"
+              @focus="handleEditorFocus"
+              @change="debouncedAutosave"
+              basic
+              :lang="lang"
+              :dark="dark"
+              :style="{ width: '100%' }"
+          />
+        </n-tab-pane>
+        <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
+          <code-mirror
+              v-model="store.doc.wrapper"
+              @focus="handleEditorFocus"
+              basic
+              :lang="lang"
+              :dark="dark"
+              :style="{ width: '100%' }"
+          />
+        </n-tab-pane>
+      </n-tabs>
+    </n-gi>
+  </n-grid>
 </template>
 
 <script>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {useGlobalStore} from "../stores/globalStore";
-import {useTemplateStore} from "../stores/templateStore";
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
+import { useGlobalStore } from "../stores/globalStore";
+import { useTemplateStore } from "../stores/templateStore";
 import {
   NButton,
   NCheckbox,
@@ -126,16 +153,18 @@ import {
   NSpace,
   NTabPane,
   NTabs,
-  useMessage
+  useMessage,
+  NGrid,
+  NGi
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
 //import {ejs} from 'codemirror-lang-ejs';
 //import {json} from '@codemirror/lang-json';
-import {html} from '@codemirror/lang-html';
-import {rules, typeOptions} from '../utils/templateEditorUtils';
-import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
+import { html } from '@codemirror/lang-html';
+import { rules, typeOptions } from '../utils/templateEditorUtils';
+import { addCustomField, handleTypeChange, removeCustomField } from '../utils/templateEditorHandlers';
 import TemplateManager from "../utils/TemplateManager";
-import {debounce} from 'lodash-es';
+import { debounce } from 'lodash-es';
 
 export default {
   name: 'TemplateEditor',
@@ -151,7 +180,9 @@ export default {
     NDivider,
     NDynamicInput,
     NTabPane,
-    NTabs
+    NTabs,
+    NGrid,
+    NGi
   },
 
   setup() {
@@ -160,30 +191,30 @@ export default {
     const globalStore = useGlobalStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
-    const customFormFields = computed(() => templateStore.doc.customFields);
+    const customFormFields = computed(() => templateStore.currentTemplate.customFields);
     const templateManager = new TemplateManager(templateStore, msgPopup);
     const editorFocused = ref(false);
     const autosaveTemplate = () => {
       if (editorFocused.value) {
-        templateManager.autoSave('content', templateStore.doc.content);
+        templateManager.autoSave('content', templateStore.currentTemplate.content);
       }
     };
     const debouncedAutosave = debounce(autosaveTemplate, 2000);
 
     const updateFieldIsAvailable = (index, value) => {
-      templateStore.doc.customFields[index].isAvailable = value ? 1 : 0;
+      templateStore.currentTemplate.customFields[index].isAvailable = value ? 1 : 0;
     };
 
     onMounted(async () => {
       await templateManager.getTemplates();
-      selectedTemplateRef.value = templateStore.doc.id;
+      selectedTemplateRef.value = templateStore.currentTemplate.id;
     });
 
     onUnmounted(() => {
       debouncedAutosave.cancel();
     });
 
-    watch(() => templateStore.doc.content, (newVal, oldVal) => {
+    watch(() => templateStore.currentTemplate.content, (newVal, oldVal) => {
       if (newVal !== oldVal && editorFocused.value) {
         debouncedAutosave();
       }
@@ -195,8 +226,8 @@ export default {
 
     return {
       globalStore,
-      store: templateStore,
-      saveTemplate: () => templateManager.saveTemplate(templateStore.doc, false),
+      templateStore,
+      saveTemplate: () => templateManager.saveTemplate(templateStore.currentTemplate, false),
       deleteTemplate: () => templateManager.deleteCurrentTemplate(),
       exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),
@@ -207,13 +238,13 @@ export default {
         return templateStore.templateOptions.map(item => ({
           label: item.name,
           value: item.id
-        }))
+        }));
       }),
       description: computed({
-        get: () => templateStore.doc.description,
-        set: (value) => { templateStore.doc.description = value }
+        get: () => templateStore.currentTemplate.description,
+        set: (value) => { templateStore.currentTemplate.description = value; }
       }),
-      selectedTemplateRef: computed(() => templateStore.doc.name),
+      selectedTemplateRef: computed(() => templateStore.currentTemplate.name),
       handleTemplateChange: (index) => templateManager.handleTemplateChange(index),
       updateFieldIsAvailable,
       rules,
@@ -227,11 +258,10 @@ export default {
       handleEditorFocus
     };
   }
-}
+};
 </script>
 
 <style>
-
 .n-divider:not(.n-divider--dashed) .n-divider__line {
   background-color: #a1bce0;
 }

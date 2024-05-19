@@ -2,7 +2,7 @@ import {defineStore} from 'pinia';
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({
-        doc: {
+        currentTemplate: {
             id: 0,
             name: '',
             type: '',
@@ -10,15 +10,19 @@ export const useTemplateStore = defineStore('template', {
             content: '',
             wrapper: '',
             isDefault: false,
-            customFields: [],
-            availableCustomFields: {}
+            customFields: []        
         },
         templateMap: {},
+        availableCustomFields: {},
         pagination: {
             currentPage: 1,
             itemsPerPage: 10,
             totalItems: 0,
             totalPages: 0
+        },
+        cache: {
+            templateMap: null,
+            expiration: 0
         }
     }),
     getters: {
@@ -36,11 +40,11 @@ export const useTemplateStore = defineStore('template', {
                 defaultValue: '',
                 isAvailable: 0,
             };
-            this.doc.customFields.push({...defaultFieldStructure, ...newField});
+            this.currentTemplate.customFields.push({...defaultFieldStructure, ...newField});
         },
         removeCustomField(index) {
-            if (index >= 0 && index < this.doc.customFields.length) {
-                this.doc.customFields.splice(index, 1);
+            if (index >= 0 && index < this.currentTemplate.customFields.length) {
+                this.currentTemplate.customFields.splice(index, 1);
             }
         }
     }

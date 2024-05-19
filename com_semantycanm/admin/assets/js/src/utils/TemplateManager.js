@@ -1,16 +1,26 @@
-import {setCurrentTemplate} from "../stores/utils/fieldUtilities";
+import { setCurrentTemplate } from "../stores/utils/fieldUtilities";
 
 class TemplateManager {
     messageReactive = null;
 
     constructor(store, msgPopup) {
-        this.store = store;
+        this.templateStore = store;
         this.msgPopup = msgPopup;
         this.errorTimeout = 50000;
     }
 
-    async getTemplates(currentPage = 1, itemsPerPage = 10) {
-        this.startBusyMessage('Fetching templates ...')
+    async getTemplates(forceReload = false) {
+        const cacheDuration = 60 * 1000; // 1 min
+        const now = Date.now();
+
+        if (!forceReload && this.templateStore.cache.templateMap && this.templateStore.cache.expiration > now) {
+            this.templateStore.templateMap = this.templateStore.cache.templateMap;
+            return;
+        }
+
+        const currentPage = 1;
+        const itemsPerPage = 10;
+        this.startBusyMessage('Fetching templates ...');
         const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
         try {
             const response = await fetch(url);
@@ -19,38 +29,41 @@ class TemplateManager {
             }
             const jsonResponse = await response.json();
             if (jsonResponse.success && jsonResponse.data) {
-                this.store.templateMap = jsonResponse.data.templates.reduce((acc, template) => {
+                this.templateStore.templateMap = jsonResponse.data.templates.reduce((acc, template) => {
                     acc[template.id] = template;
                     return acc;
                 }, {});
-                this.store.pagination = {
+
+                this.templateStore.cache.templateMap = this.templateStore.templateMap;
+                this.templateStore.cache.expiration = now + cacheDuration;
+
+                this.templateStore.pagination = {
                     currentPage: jsonResponse.data.current,
                     itemsPerPage: itemsPerPage,
                     totalItems: jsonResponse.data.count,
                     totalPages: jsonResponse.data.maxPage
                 };
-                const defaultTemplateId = Object.keys(this.store.templateMap).find(id => this.store.templateMap[id].isDefault);
+                const defaultTemplateId = Object.keys(this.templateStore.templateMap).find(id => this.templateStore.templateMap[id].isDefault);
                 if (defaultTemplateId) {
-                    setCurrentTemplate(this.store, defaultTemplateId);
+                    setCurrentTemplate(this.templateStore, defaultTemplateId);
                 }
             } else {
                 throw new Error('Failed to fetch templates: No data returned');
             }
         } catch (error) {
-            msgPopup.error('Error fetching templates: ' + error.message, {
+            this.msgPopup.error('Error fetching templates: ' + error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });
         } finally {
-            this.stopBusyMessage()
+            this.stopBusyMessage();
         }
     }
 
     async autoSave(field, dataToUpdate) {
-        // this.startBusyMessage('Saving ...')
         console.log(new Date().toLocaleTimeString(), "Autosaving ...");
 
-        const endpoint = `index.php?option=com_semantycanm&task=Template.autoSave&id=${encodeURIComponent(this.store.doc.id)}`;
+        const endpoint = `index.php?option=com_semantycanm&task=Template.autoSave&id=${encodeURIComponent(this.templateStore.currentTemplate.id)}`;
         const method = 'PUT';
         const payload = {
             [field]: dataToUpdate
@@ -59,7 +72,7 @@ class TemplateManager {
         try {
             const response = await fetch(endpoint, {
                 method: method,
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
 
@@ -76,13 +89,11 @@ class TemplateManager {
                 closable: true,
                 duration: this.errorTimeout
             });
-        } finally {
-            // this.stopBusyMessage()
         }
     }
 
     async saveTemplate(doc, isNew = false) {
-        this.startBusyMessage('Saving template ...')
+        this.startBusyMessage('Saving template ...');
         const endpoint = isNew ? `index.php?option=com_semantycanm&task=Template.update&id=` :
             `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(doc.id)}`;
         const method = 'POST';
@@ -90,7 +101,7 @@ class TemplateManager {
         try {
             const response = await fetch(endpoint, {
                 method,
-                headers: {'Content-Type': 'application/json'},
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(doc)
             });
 
@@ -99,6 +110,8 @@ class TemplateManager {
             }
             const result = await response.json();
             this.msgPopup.success(result.data.message);
+
+            await this.getTemplates(true);
             return result;
         } catch (error) {
             this.msgPopup.error(error.message, {
@@ -106,13 +119,13 @@ class TemplateManager {
                 duration: this.errorTimeout
             });
         } finally {
-            this.stopBusyMessage()
+            this.stopBusyMessage();
         }
     }
 
     async deleteCurrentTemplate() {
-        this.startBusyMessage('Deleting template ...')
-        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&id=${encodeURIComponent(this.store.doc.id)}`;
+        this.startBusyMessage('Deleting template ...');
+        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&id=${encodeURIComponent(this.templateStore.currentTemplate.id)}`;
         try {
             const response = await fetch(endpoint, {
                 method: 'DELETE'
@@ -122,12 +135,15 @@ class TemplateManager {
                 throw new Error(`Failed to delete template, HTTP status = ${response.status}`);
             }
             await response.json();
-            const deletedId = this.store.doc.id;
+            const deletedId = this.templateStore.currentTemplate.id;
             console.log('deletedId', deletedId);
+
+            await this.getTemplates(true);
+
             const newTemplateId = this.selectNewTemplateId(deletedId);
             console.log('new', newTemplateId);
             this.handleTemplateChange(newTemplateId);
-            delete this.store.templateMap[deletedId];
+
             this.msgPopup.success('Template successfully deleted');
         } catch (error) {
             this.msgPopup.error(error.message, {
@@ -135,7 +151,7 @@ class TemplateManager {
                 duration: this.errorTimeout
             });
         } finally {
-            this.stopBusyMessage()
+            this.stopBusyMessage();
         }
     }
 
@@ -149,10 +165,10 @@ class TemplateManager {
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     try {
-                        this.startBusyMessage('Importing template ...')
+                        this.startBusyMessage('Importing template ...');
                         const jsonObj = JSON.parse(e.target.result);
                         await this.saveTemplate(jsonObj, true);
-                        await this.getTemplates();
+                        await this.getTemplates(true);
                         this.msgPopup.success('Template imported and saved successfully.');
                     } catch (err) {
                         this.msgPopup.error('Failed to import template: ' + err, {
@@ -160,7 +176,7 @@ class TemplateManager {
                             duration: this.errorTimeout
                         });
                     } finally {
-                        this.stopBusyMessage()
+                        this.stopBusyMessage();
                     }
                 };
                 reader.readAsText(file);
@@ -170,12 +186,12 @@ class TemplateManager {
     }
 
     exportCurrentTemplate() {
-        const filename = `${this.store.doc.name || 'template'}.json`;
-        const jsonStr = JSON.stringify(this.store.doc, (key, value) => {
+        const filename = `${this.templateStore.currentTemplate.name || 'template'}.json`;
+        const jsonStr = JSON.stringify(this.templateStore.currentTemplate, (key, value) => {
             if (key === "id" || key === "availableCustomFields" || key === "regDate") return undefined;
             return value;
         }, 2);
-        const blob = new Blob([jsonStr], {type: "application/json"});
+        const blob = new Blob([jsonStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -187,11 +203,11 @@ class TemplateManager {
     }
 
     handleTemplateChange(newTemplateId) {
-        setCurrentTemplate(this.store, newTemplateId);
+        setCurrentTemplate(this.templateStore, newTemplateId);
     };
 
     selectNewTemplateId(currentTemplateId) {
-        let keys = Object.keys(this.store.templateMap);
+        let keys = Object.keys(this.templateStore.templateMap);
         if (keys.length === 0) {
             return null;
         }
