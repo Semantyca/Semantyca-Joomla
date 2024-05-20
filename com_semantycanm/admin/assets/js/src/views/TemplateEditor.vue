@@ -127,9 +127,9 @@
               :style="{ width: '100%' }"
           />
         </n-tab-pane>
-        <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e3f1d4;">
+        <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e5f2dc;">
           <code-mirror
-              v-model="store.doc.wrapper"
+              v-model="templateStore.currentTemplate.wrapper"
               @focus="handleEditorFocus"
               basic
               :lang="lang"

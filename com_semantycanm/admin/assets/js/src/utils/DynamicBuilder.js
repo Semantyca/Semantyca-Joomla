@@ -34,10 +34,14 @@ export default class DynamicContentBuilder {
         return ejs.render(this.template.content, this.variables);
     }
 
-
     getWrappedContent = (content) => {
-        let msgBody = {};
-        msgBody['content'] = content;
-        return ejs.render(this.template.wrapper, msgBody);
+        let msgBody = { content: content };
+
+        if (this.template.wrapper && this.template.wrapper.trim() !== '') {
+            return ejs.render(this.template.wrapper, msgBody);
+        } else {
+            return content;
+        }
     };
+
 }
