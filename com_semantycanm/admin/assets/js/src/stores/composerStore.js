@@ -1,5 +1,5 @@
-import {defineStore} from 'pinia';
-import {useTemplateStore} from './templateStore';
+import { defineStore } from 'pinia';
+import { useTemplateStore } from './templateStore';
 import TemplateManager from "../utils/TemplateManager";
 
 export const useComposerStore = defineStore('composer', {
@@ -14,21 +14,20 @@ export const useComposerStore = defineStore('composer', {
     }),
     actions: {
         async updateFormCustomFields(msgPopup) {
-            const templateStore= useTemplateStore();
+            const templateStore = useTemplateStore();
             const templateManager = new TemplateManager(templateStore, msgPopup);
             await templateManager.getTemplates(msgPopup);
         },
+        async fetchArticles(searchTerm, msgPopup, forceRefresh = false) {
+            const cacheBuster = forceRefresh ? `&cb=${new Date().getTime()}` : "";
 
-        async fetchEverything(searchTerm, msgPopup) {
-            if (searchTerm === "" && this.articlesCache.length > 0) {
+            if (searchTerm === "" && this.articlesCache.length > 0 && !forceRefresh) {
                 this.listPage.docs = this.articlesCache;
                 return;
             }
 
-            await this.updateFormCustomFields(msgPopup);
-
             try {
-                const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}`;
+                const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}${cacheBuster}`;
                 const response = await fetch(url);
 
                 if (!response.ok) {
@@ -56,6 +55,10 @@ export const useComposerStore = defineStore('composer', {
             } finally {
 
             }
+        },
+        async fetchEverything(searchTerm, msgPopup, forceRefresh = false) {
+            await this.updateFormCustomFields(msgPopup);
+            await this.fetchArticles(searchTerm, msgPopup, forceRefresh);
         }
     }
 });

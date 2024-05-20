@@ -104,12 +104,17 @@
         </n-grid>
       </n-form>
     </n-gi>
-
     <n-gi>
       <n-divider title-placement="left">Template source</n-divider>
     </n-gi>
-
     <n-gi>
+      <n-select
+          size="tiny"
+          v-model:value="selectedMode"
+          :options="modeOptions"
+          style="width: 100px"
+          @update:value="updateEditorMode"
+      />
       <n-tabs v-model:value="activeTabRef">
         <n-tab-pane name="content" tab="Content">
           <code-mirror
@@ -158,9 +163,8 @@ import {
   NGi
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
-//import {ejs} from 'codemirror-lang-ejs';
-//import {json} from '@codemirror/lang-json';
 import { html } from '@codemirror/lang-html';
+import { ejs } from 'codemirror-lang-ejs';
 import { rules, typeOptions } from '../utils/templateEditorUtils';
 import { addCustomField, handleTypeChange, removeCustomField } from '../utils/templateEditorHandlers';
 import TemplateManager from "../utils/TemplateManager";
@@ -224,6 +228,22 @@ export default {
       editorFocused.value = true;
     };
 
+    const selectedMode = ref('html');
+    const modeOptions = [
+      {label: 'HTML', value: 'html'},
+      {label: 'EJS', value: 'ejs'}
+    ];
+
+    const lang = ref(html());
+
+    const updateEditorMode = (mode) => {
+      if (mode === 'html') {
+        lang.value = html();
+      } else if (mode === 'ejs') {
+         lang.value = ejs();
+      }
+    };
+
     return {
       globalStore,
       templateStore,
@@ -242,20 +262,25 @@ export default {
       }),
       description: computed({
         get: () => templateStore.currentTemplate.description,
-        set: (value) => { templateStore.currentTemplate.description = value; }
+        set: (value) => {
+          templateStore.currentTemplate.description = value;
+        }
       }),
       selectedTemplateRef: computed(() => templateStore.currentTemplate.name),
       handleTemplateChange: (index) => templateManager.handleTemplateChange(index),
       updateFieldIsAvailable,
       rules,
       customFormFields,
-      lang: html(),
+      lang,
       dark: ref(false),
       formRef,
       typeOptions,
       activeTabRef: ref('content'),
       debouncedAutosave,
-      handleEditorFocus
+      handleEditorFocus,
+      selectedMode,
+      modeOptions,
+      updateEditorMode
     };
   }
 };

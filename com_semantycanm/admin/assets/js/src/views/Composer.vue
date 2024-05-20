@@ -299,7 +299,8 @@ export default {
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
       composerStore.editorCont = '';
-      await composerStore.fetchEverything('');
+      await composerStore.fetchArticles('', true);
+      updateEditorContent();
     };
 
     const copyContentToClipboard = () => {
