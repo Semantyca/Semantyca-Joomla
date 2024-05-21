@@ -179,6 +179,14 @@
               </template>
               Insert Image
             </n-button>
+            <n-button @click="formatText('removeFormat')" secondary>
+              <template #icon>
+                <n-icon>
+                  <ClearFormatting />
+                </n-icon>
+              </template>
+              Remove Formatting
+            </n-button>
             <n-button @click="previewHtml" secondary disabled>
               <template #icon>
                 <n-icon>
@@ -229,7 +237,7 @@ import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
-import {Bold, Code, Italic, Strikethrough, Underline, Photo} from '@vicons/tabler';
+import {Bold, Code, Italic, Strikethrough, Underline, Photo, ClearFormatting} from '@vicons/tabler';
 
 export default {
   name: 'Composer',
@@ -247,7 +255,7 @@ export default {
     NGrid,
     NGi,
     draggable,
-    Bold, Italic, Underline, Strikethrough, Code, Photo
+    Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting
   },
 
   setup() {
@@ -390,6 +398,9 @@ export default {
             break;
           case 'strikethrough':
             squireEditor.value.strikethrough();
+            break;
+          case 'removeFormat':
+            squireEditor.value.removeAllFormatting();
             break;
           default:
             break;
