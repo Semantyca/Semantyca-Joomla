@@ -171,6 +171,14 @@
               </template>
               Strikethrough
             </n-button>
+            <n-button @click="insertImage" secondary>
+              <template #icon>
+                <n-icon>
+                  <Photo />
+                </n-icon>
+              </template>
+              Insert Image
+            </n-button>
             <n-button @click="previewHtml" secondary disabled>
               <template #icon>
                 <n-icon>
@@ -184,7 +192,7 @@
         <n-gi>
           <div
               id="squire-editor"
-              style="height: 400px; overflow-y: auto; border: 1px solid #a1bce0; min-height: 200px;"
+              style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
           ></div>
         </n-gi>
       </n-grid>
@@ -221,7 +229,7 @@ import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
-import {Bold, Code, Italic, Strikethrough, Underline} from '@vicons/tabler';
+import {Bold, Code, Italic, Strikethrough, Underline, Photo} from '@vicons/tabler';
 
 export default {
   name: 'Composer',
@@ -239,7 +247,7 @@ export default {
     NGrid,
     NGi,
     draggable,
-    Bold, Italic, Underline, Strikethrough, Code
+    Bold, Italic, Underline, Strikethrough, Code, Photo
   },
 
   setup() {
@@ -389,6 +397,14 @@ export default {
       }
     };
 
+    const insertImage = () => {
+      const imageUrl = prompt("Enter image URL:");
+      if (imageUrl) {
+        squireEditor.value.insertImage(imageUrl);
+      }
+    };
+
+
     return {
       composerStore,
       articles,
@@ -406,6 +422,7 @@ export default {
       handleColorChange,
       handleFieldChange,
       formatText,
+      insertImage,
       previewHtml,
       loading
     };

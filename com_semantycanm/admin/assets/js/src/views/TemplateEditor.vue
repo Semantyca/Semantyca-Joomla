@@ -63,6 +63,8 @@
                 :on-remove="removeCustomField"
                 item-style="margin-bottom: 0;"
                 #="{ index }"
+                :show-sort-button="false"
+                @update:value="updateSequence"
             >
               <n-form-item :show-label="false" path="valueType">
                 <n-select
@@ -244,6 +246,13 @@ export default {
       }
     };
 
+    const updateSequence = (newValue) => {
+    //  console.log('Old Order:', items.value);
+      console.log('New Order:', newValue);
+    //  items.value = newValue;
+    //  console.log('Updated Order:', items.value);
+    };
+
     return {
       globalStore,
       templateStore,
@@ -280,7 +289,8 @@ export default {
       handleEditorFocus,
       selectedMode,
       modeOptions,
-      updateEditorMode
+      updateEditorMode,
+      updateSequence
     };
   }
 };
