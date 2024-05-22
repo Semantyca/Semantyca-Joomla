@@ -225,5 +225,48 @@ class TemplateController extends BaseController
 		}
 	}
 
+	/**
+	 * Sets a template as default.
+	 *
+	 * @since 1.0.0
+	 */
+	public function setDefault()
+	{
+		$app = Factory::getApplication();
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
+			$id = $this->input->getInt('id');
+			if (empty($id))
+			{
+				throw new ValidationErrorException(['id is required to set a template as default']);
+			}
 
+			$model = $this->getModel('Template');
+			$result = $model->setDefaultTemplate($id);
+
+			if ($result)
+			{
+				echo new JsonResponse(['success' => true, 'message' => 'Template set as default successfully.']);
+			}
+			else
+			{
+				throw new Exception('Failed to set the template as default.');
+			}
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getErrors(), 'validationError', true);
+		}
+		catch (Throwable $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			$app->close();
+		}
+	}
 }

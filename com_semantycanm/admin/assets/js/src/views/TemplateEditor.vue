@@ -122,6 +122,7 @@
           <code-mirror
               v-model="templateStore.currentTemplate.content"
               @focus="handleEditorFocus"
+              @blur="handleEditorBlur"
               @change="debouncedAutosave"
               basic
               :lang="lang"
@@ -133,6 +134,7 @@
           <code-mirror
               v-model="templateStore.currentTemplate.wrapper"
               @focus="handleEditorFocus"
+              @blur="handleEditorBlur"
               basic
               :lang="lang"
               :dark="dark"
@@ -145,9 +147,9 @@
 </template>
 
 <script>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import { useGlobalStore } from "../stores/globalStore";
-import { useTemplateStore } from "../stores/templateStore";
+import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {useGlobalStore} from "../stores/globalStore";
+import {useTemplateStore} from "../stores/templateStore";
 import {
   NButton,
   NCheckbox,
@@ -165,12 +167,13 @@ import {
   NGi
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
-import { html } from '@codemirror/lang-html';
-import { ejs } from 'codemirror-lang-ejs';
-import { rules, typeOptions } from '../utils/templateEditorUtils';
-import { addCustomField, handleTypeChange, removeCustomField } from '../utils/templateEditorHandlers';
+import {html} from '@codemirror/lang-html';
+import {ejs} from 'codemirror-lang-ejs';
+import {rules, typeOptions} from '../utils/templateEditorUtils';
+import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
 import TemplateManager from "../utils/TemplateManager";
-import { debounce } from 'lodash-es';
+import {debounce} from 'lodash-es';
+import {setCurrentTemplate} from "../stores/utils/fieldUtilities";
 
 export default {
   name: 'TemplateEditor',
@@ -213,18 +216,27 @@ export default {
 
     onMounted(async () => {
       await templateManager.getTemplates();
-      selectedTemplateRef.value = templateStore.currentTemplate.id;
+      selectedTemplateRef.value = templateStore.currentTemplate.name;
     });
 
     onUnmounted(() => {
       debouncedAutosave.cancel();
     });
 
-    watch(() => templateStore.currentTemplate.content, (newVal, oldVal) => {
-      if (newVal !== oldVal && editorFocused.value) {
-        debouncedAutosave();
-      }
+    watch(() => templateStore.currentTemplate.id, (newVal) => {
+      selectedTemplateRef.value = templateStore.templateMap[newVal].name;
     });
+
+
+    const handleTemplateChange = (newTemplateId) => {
+      setCurrentTemplate(templateStore, newTemplateId);
+      templateManager.setDefaultTemplate(newTemplateId);
+      editorFocused.value = false;
+    };
+
+    const handleEditorBlur = () => {
+      editorFocused.value = false;
+    };
 
     const handleEditorFocus = () => {
       editorFocused.value = true;
@@ -242,15 +254,15 @@ export default {
       if (mode === 'html') {
         lang.value = html();
       } else if (mode === 'ejs') {
-         lang.value = ejs();
+        lang.value = ejs();
       }
     };
 
     const updateSequence = (newValue) => {
-    //  console.log('Old Order:', items.value);
+      //  console.log('Old Order:', items.value);
       console.log('New Order:', newValue);
-    //  items.value = newValue;
-    //  console.log('Updated Order:', items.value);
+      //  items.value = newValue;
+      //  console.log('Updated Order:', items.value);
     };
 
     return {
@@ -275,8 +287,8 @@ export default {
           templateStore.currentTemplate.description = value;
         }
       }),
-      selectedTemplateRef: computed(() => templateStore.currentTemplate.name),
-      handleTemplateChange: (index) => templateManager.handleTemplateChange(index),
+      selectedTemplateRef,
+      handleTemplateChange,
       updateFieldIsAvailable,
       rules,
       customFormFields,
@@ -287,6 +299,7 @@ export default {
       activeTabRef: ref('content'),
       debouncedAutosave,
       handleEditorFocus,
+      handleEditorBlur,
       selectedMode,
       modeOptions,
       updateEditorMode,

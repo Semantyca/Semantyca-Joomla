@@ -1,4 +1,5 @@
 import {defineStore} from 'pinia';
+import {adaptField, processFormCustomFields} from "./utils/fieldUtilities";
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({
@@ -32,6 +33,21 @@ export const useTemplateStore = defineStore('template', {
         }))
     },
     actions: {
+        setCurrentTemplate(templateDoc) {
+            this.currentTemplate.id = templateDoc.id;
+            this.currentTemplate.name = templateDoc.name;
+            this.currentTemplate.type = templateDoc.type;
+            this.currentTemplate.description = templateDoc.description;
+            this.currentTemplate.content = templateDoc.content;
+            this.currentTemplate.wrapper = templateDoc.wrapper;
+            this.currentTemplate.isDefault = templateDoc.isDefault;
+            this.currentTemplate.customFields = templateDoc.customFields;
+
+            this.availableCustomFields = processFormCustomFields(
+                templateDoc.customFields.filter(field => field.isAvailable === 1),
+                adaptField
+            );
+        },
         addCustomField(newField) {
             const defaultFieldStructure = {
                 name: '',

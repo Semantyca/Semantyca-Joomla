@@ -1,4 +1,4 @@
-import { setCurrentTemplate } from "../stores/utils/fieldUtilities";
+import {setCurrentTemplate} from "../stores/utils/fieldUtilities";
 
 class TemplateManager {
     messageReactive = null;
@@ -124,7 +124,7 @@ class TemplateManager {
     }
 
     async deleteCurrentTemplate() {
-        this.startBusyMessage('Deleting template ...');
+        this.startBusyMessage(`Deleting "${this.templateStore.currentTemplate.name}" template ...`);
         const endpoint = `index.php?option=com_semantycanm&task=Template.delete&id=${encodeURIComponent(this.templateStore.currentTemplate.id)}`;
         try {
             const response = await fetch(endpoint, {
@@ -152,6 +152,31 @@ class TemplateManager {
             });
         } finally {
             this.stopBusyMessage();
+        }
+    }
+
+    async setDefaultTemplate(templateId) {
+        const endpoint = `index.php?option=com_semantycanm&task=Template.setDefault&id=${encodeURIComponent(templateId)}`;
+        const method = 'POST';
+
+        try {
+            const response = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to set default template, HTTP status = ${response.status}`);
+            }
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.message || 'Failed to set default template.');
+            }
+        } catch (error) {
+            this.msgPopup.error('Error setting default template: ' + error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
         }
     }
 
@@ -202,18 +227,25 @@ class TemplateManager {
         URL.revokeObjectURL(url);
     }
 
-    handleTemplateChange(newTemplateId) {
-        setCurrentTemplate(this.templateStore, newTemplateId);
-    };
+    async handleTemplateChange(newTemplateId) {
+        this.templateStore.setCurrentTemplate(this.templateStore.templateMap[newTemplateId]);
+        this.setDefaultTemplate(newTemplateId);
+    }
 
-    selectNewTemplateId(currentTemplateId) {
-        let keys = Object.keys(this.templateStore.templateMap);
+    selectNewTemplateId() {
+        const keys = Object.keys(this.templateStore.templateMap);
         if (keys.length === 0) {
             return null;
         }
-        let currentIndex = keys.indexOf(currentTemplateId);
-        let nextIndex = (currentIndex + 1) % keys.length;
-        return keys[nextIndex] || keys[0];
+
+        const numericKeys = keys.map(Number);
+        const minKey = Math.min(...numericKeys);
+
+        if (minKey === Infinity) {
+            const maxKey = Math.max(...numericKeys);
+            return maxKey.toString();
+        }
+        return minKey.toString();
     }
 
     startBusyMessage(msg) {
@@ -229,7 +261,7 @@ class TemplateManager {
             this.messageReactive.destroy();
             this.messageReactive = null;
         }
-    };
+    }
 }
 
 export default TemplateManager;

@@ -233,6 +233,29 @@ class TemplateModel extends BaseDatabaseModel
 		return true;
 	}
 
+	public function setDefaultTemplate($id): bool
+	{
+		$db = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->clear()
+			->update($db->quoteName('#__semantyca_nm_templates'))
+			->set($db->quoteName('is_default') . ' = 1')
+			->where($db->quoteName('id') . ' = ' . (int) $id);
+		$db->setQuery($query);
+		$db->execute();
+
+		$query->clear()
+			->update($db->quoteName('#__semantyca_nm_templates'))
+			->set($db->quoteName('is_default') . ' = 0')
+			->where($db->quoteName('id') . ' != ' . (int) $id);
+		$db->setQuery($query);
+		$db->execute();
+
+		return true;
+	}
+
+
 	public function autoSaveTemplate($id, $data): bool
 	{
 		$db    = $this->getDatabase();
