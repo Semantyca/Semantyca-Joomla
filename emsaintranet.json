@@ -9,7 +9,7 @@
     {
       "name": "maxArticlesFull",
       "type": 501,
-      "caption": "How many articles",
+      "caption": "No. of full width articles",
       "defaultValue": "3",
       "isAvailable": 1
     },
