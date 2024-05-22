@@ -1,0 +1,73 @@
+name: Build and Deploy Joomla Extension
+
+on:
+  push:
+    branches:
+      - HEAD
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install zip
+        run: sudo apt-get install zip -y
+
+      - name: Create zip file
+        run: |
+          mkdir -p dist
+          zip -r dist/semantyca-extension.zip . -x "*.git*" -x "dist/*" -x ".github/*"
+
+      - name: Install extension on Joomla server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/semantyca-extension.zip
+          ssh $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
+
+      - name: Send notification email using Amazon SES
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SES_SMTP_SERVER: ${{ secrets.SES_SMTP_SERVER }}
+          SES_SMTP_PORT: ${{ secrets.SES_SMTP_PORT }}
+          SES_SMTP_USER: ${{ secrets.SES_SMTP_USER }}
+          SES_SMTP_PASSWORD: ${{ secrets.SES_SMTP_PASSWORD }}
+        run: |
+          sudo apt-get install -y python3-pip
+          pip3 install boto3
+          python3 -c "
+            import boto3
+            import os
+
+            ses = boto3.client(
+              'ses', 
+              region_name=os.getenv('AWS_REGION'), 
+              aws_access_key_id=os.getenv('AWS_ACCESS_KEY_ID'), 
+              aws_secret_access_key=os.getenv('AWS_SECRET_ACCESS_KEY')
+            )
+            response = ses.send_email(Source=os.getenv('SES_SMTP_USER'), Destination={
+              'ToAddresses': [os.getenv('EMAIL_TO')]
+            },
+            Message={
+              'Subject': {'Data': 'Joomla Extension Deployed'},
+              'Body': {
+                  'Text': {
+                      'Data': 'The Joomla extension has been successfully deployed.'
+                  }
+              }
+            }
+            )  
+            print(response)
+          "
