@@ -1,0 +1,60 @@
+name: Build and Deploy Joomla Extension
+
+on:
+  push:
+    branches:
+      - HEAD
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install zip
+        run: sudo apt-get install zip -y
+
+      - name: Create zip file
+        run: |
+          mkdir -p dist
+          zip -r dist/semantyca-extension.zip . -x "*.git*" -x "dist/*" -x ".gitea/*"
+
+      - name: Install extension on Joomla server
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          scp dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/semantyca-extension.zip
+          ssh $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
+
+      - name: Send notification email
+        env:
+          EMAIL_SUBJECT: "Joomla Extension Deployed"
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+        run: |
+          sudo apt-get install -y msmtp
+          echo "account default" > ~/.msmtprc
+          echo "host $SMTP_SERVER" >> ~/.msmtprc
+          echo "port $SMTP_PORT" >> ~/.msmtprc
+          echo "auth on" >> ~/.msmtprc
+          echo "user $SMTP_USER" >> ~/.msmtprc
+          echo "password $SMTP_PASSWORD" >> ~/.msmtprc
+          echo "tls on" >> ~/.msmtprc
+          echo "tls_starttls on" >> ~/.msmtprc
+          echo "tls_trust_file /etc/ssl/certs/ca-certificates.crt" >> ~/.msmtprc
+          echo "syslog LOG_MAIL" >> ~/.msmtprc
+          echo "from $SMTP_USER" >> ~/.msmtprc
+          echo "logfile ~/.msmtp.log" >> ~/.msmtprc
+          echo "set sendmail='/usr/bin/msmtp'" >> ~/.msmtprc
+          echo "Subject: $EMAIL_SUBJECT" | msmtp $EMAIL_TO
