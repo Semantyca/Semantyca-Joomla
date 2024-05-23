@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: semantyca
     steps:
       - name: Debug
         uses: hmarr/debug-action@v3.0.0
@@ -26,14 +27,14 @@ jobs:
 
       - name: Install extension on Joomla server
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.semantyca_SSH_PRIVATE_KEY }}
-          SERVER_USER: ${{ secrets.semantyca_SERVER_USER }}
-          SERVER_HOST: ${{ secrets.semantyca_SERVER_HOST }}
-          PORT: ${{ secrets.semantyca_PORT }}
-          JOOMLA_PATH: ${{ secrets.semantyca_JOOMLA_PATH }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          PORT: ${{ secrets.PORT }}
+          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.semantyca_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           scp -P $PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/semantyca-extension.zip
           ssh -p $PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
