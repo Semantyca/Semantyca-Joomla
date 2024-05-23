@@ -10,13 +10,15 @@ class TemplateManager {
     }
 
     async getTemplates(forceReload = false) {
-        const cacheDuration = 60 * 1000; // 1 min
+        const cacheDuration = 2 * 60 * 1000; // 2 min
         const now = Date.now();
 
         if (!forceReload && this.templateStore.cache.templateMap && this.templateStore.cache.expiration > now) {
             this.templateStore.templateMap = this.templateStore.cache.templateMap;
             return;
         }
+
+        console.log('cache expired', this.templateStore.cache.expiration, now);
 
         const currentPage = 1;
         const itemsPerPage = 10;
