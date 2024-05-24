@@ -43,10 +43,10 @@ jobs:
         env:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
           JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
-          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
+          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip" # space after install
 
       # Optionally, remove the temporary zip file
       - name: Clean Up Temporary Files on Server (Optional)
