@@ -25,7 +25,7 @@ jobs:
       - name: Create zip file
         run: |
           mkdir -p dist
-          zip -r dist/semantyca-extension.zip -x "*.git*" -x "dist/*" -x ".github/*"
+          zip -r dist/semantyca-extension.zip com_semantycanm
 
       - name: Install extension on Joomla server
         env:
