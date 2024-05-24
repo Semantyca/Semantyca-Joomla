@@ -32,7 +32,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          PORT: ${{ secrets.PORT }}
+          PORT: ${{ secrets.SERVER_PORT }}
           JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
           mkdir -p ~/.ssh
