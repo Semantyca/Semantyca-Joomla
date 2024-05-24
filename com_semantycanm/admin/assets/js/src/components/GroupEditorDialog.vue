@@ -1,11 +1,11 @@
 <template>
   <n-space vertical size="large" style="width: 100%; padding-top: 20px;">
-    <n-form model-value="formValue" ref="formRef" label-placement="left">
+    <n-form ref="formRef" :model="formValue" label-placement="left">
       <n-grid :cols="2">
         <n-grid-item style="padding-right: 10px;">
           <n-scrollbar style="max-height: 300px;">
             <template v-if="loading">
-              <n-skeleton height="40px" text :repeat="5" style="margin-bottom: 8px;" :sharp="false" />
+              <n-skeleton height="40px" text :repeat="5" style="margin-bottom: 8px;" :sharp="false"/>
             </template>
             <template v-else>
               <draggable v-model="formValue.availableGroups" class="list-group" group="shared" item-key="id">
@@ -30,18 +30,18 @@
           </n-scrollbar>
         </n-grid-item>
       </n-grid>
-      <n-grid :cols="2" style="padding-top: 20px;">
+      <n-grid :cols="2" style="padding-top: 50px;">
         <n-grid-item style="padding-right: 10px;">
           <n-form-item label="Mailing List Name">
-            <n-input v-model="formValue.groupName" placeholder="Enter mailing list name"/>
+            <n-input v-model:value="formValue.groupName" placeholder="Enter mailing list name"/>
           </n-form-item>
         </n-grid-item>
       </n-grid>
-      <n-grid :cols="1" style="padding-top: 20px;">
+      <n-grid :cols="1" style="padding-top: 10px;">
         <n-grid-item>
-          <n-space align="center">
-            <n-button type="primary" @click="saveGroup">Save</n-button>
+          <n-space align="center" justify="end">
             <n-button @click="cancelGroupEdit">Cancel</n-button>
+            <n-button type="primary" @click="saveGroup">Save</n-button>
           </n-space>
         </n-grid-item>
       </n-grid>
@@ -49,8 +49,9 @@
   </n-space>
 </template>
 
+
 <script>
-import {onMounted, reactive, ref, watch} from 'vue';
+import {onMounted, reactive, ref} from 'vue';
 import {
   NButton,
   NForm,
@@ -89,9 +90,9 @@ export default {
       required: false
     }
   },
-  setup(props) {
+  setup(props, {emit}) {
     const formRef = ref(null);
-    const formValue = ref({
+    const formValue = reactive({
       groupName: '',
       availableGroups: [],
       selectedGroups: []
@@ -100,7 +101,7 @@ export default {
     const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
-    const loading = ref(true); // Add loading state
+    const loading = ref(true);
     const state = reactive({
       mailingListMode: ''
     });
@@ -109,70 +110,55 @@ export default {
       await userGroupStore.getList(msgPopup, loadingBar);
       if (props.id) {
         const entryDetails = await mailingListStore.fetchEntryDetails(props.id, msgPopup, loadingBar);
-        formValue.value.groupName = entryDetails.name;
+        formValue.groupName = entryDetails.name;
       }
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
-      loading.value = false; // Set loading to false after data is fetched
+      formValue.availableGroups = userGroupStore.documentsPage.docs;
+      loading.value = false;
     });
 
-    watch(() => formValue.value.groupName, (newVal) => {
-      console.log('groupName changed:', newVal);
-    });
+    const validateForm = () => {
+      const errors = {};
 
-    const saveGroup = () => {
-      const selectedGroupsValidation = rules.selectedGroups.validator(null, formValue.value.selectedGroups);
-      if (!selectedGroupsValidation) {
-        msgPopup.error(rules.selectedGroups.message, {
-          closable: true,
-          duration: 10000
-        });
-        return;
+      if (!formValue.groupName) {
+        errors.groupName = 'Mailing list name cannot be empty';
       }
 
-      formRef.value.validate((errors) => {
-        if (!errors) {
-          userGroupStore.saveList(formRef.value, '', msgPopup, loadingBar).then(() => {
-            state.mailingListMode = '';
-            formValue.value.groupName = '';
-            formValue.value.selectedGroups = [];
-          }).catch((e) => {
-            msgPopup.error(e, {
-              closable: true,
-              duration: 10000
-            });
+      if (!formValue.selectedGroups || formValue.selectedGroups.length === 0) {
+        errors.selectedGroups = 'At least one group should be selected';
+      }
+
+      return Object.keys(errors).length > 0 ? errors : null;
+    };
+
+    const saveGroup = async () => {
+      console.log('Current groupName:', formValue.groupName);  //
+      const errors = validateForm();
+
+      if (errors) {
+        Object.keys(errors).forEach(fieldName => {
+          msgPopup.error(errors[fieldName], {
+            closable: true,
+            duration: 10000
           });
-        } else {
-          Object.keys(errors).forEach(fieldName => {
-            const fieldError = errors[fieldName];
-            if (fieldError && fieldError.length > 0) {
-              msgPopup.warning(fieldError[0].message, {
-                closable: true,
-                duration: 10000
-              });
-            }
+        });
+      } else {
+        try {
+          await userGroupStore.saveList(formValue, '', msgPopup, loadingBar);
+          state.mailingListMode = '';
+          formValue.groupName = '';
+          formValue.selectedGroups = [];
+          emit('close');
+        } catch (e) {
+          msgPopup.error(e.message, {
+            closable: true,
+            duration: 10000
           });
         }
-      });
+      }
     };
 
     const cancelGroupEdit = () => {
-      formValue.value.groupName = '';
-      formValue.value.selectedGroups = [];
-      formValue.value.availableGroups = userGroupStore.documentsPage.docs;
-      state.mailingListMode = '';
-    };
-
-    const rules = {
-      groupName: {
-        required: true,
-        message: 'Mailing list name cannot be empty'
-      },
-      selectedGroups: {
-        validator(rule, value) {
-          return value && value.length > 0;
-        },
-        message: 'At least one group should be selected'
-      }
+      emit('close');
     };
 
     return {
@@ -180,7 +166,7 @@ export default {
       formRef,
       saveGroup,
       cancelGroupEdit,
-      loading // Return loading state
+      loading
     };
   }
 };

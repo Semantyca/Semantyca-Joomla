@@ -104,9 +104,13 @@ export default {
     };
 
     const showGroupEditor = (id = 0) => {
+      const handleClose = () => {
+        dialog.destroyAll();
+      };
+
       dialog.create({
         title: 'Edit Group',
-        content: () => h(GroupEditorDialog, { id }),
+        content: () => h(GroupEditorDialog, { id, onClose: handleClose }),
         style: 'width: 40%'
       });
     };

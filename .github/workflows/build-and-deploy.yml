@@ -19,6 +19,9 @@ jobs:
       - name: Install zip
         run: sudo apt-get install zip -y
 
+      - name: List Files in Current Directory (for debugging)
+        run: ls -la
+
       - name: Create zip file
         run: |
           mkdir -p dist
