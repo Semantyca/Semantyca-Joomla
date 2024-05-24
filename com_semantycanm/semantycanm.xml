@@ -13,7 +13,6 @@
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>
 
     <files folder="./site/">
-        <filename>installer_script.php</filename>
         <folder>language</folder>
         <folder>src</folder>
         <folder>tmpl</folder>
@@ -30,6 +29,7 @@
         <files folder="./admin/">
             <filename>access.xml</filename>
             <filename>config.xml</filename>
+            <filename>installer_script.php</filename>
             <folder>language</folder>
             <folder>assets</folder>
             <folder>services</folder>
@@ -45,9 +45,9 @@
             <language tag="pt-PT">./admin/language/pt-PT/pt-PT.com_semantycanm.sys.ini</language>
         </languages>
 
-    </administration>
+        <scriptfile>installer_script.php</scriptfile>
 
-    <scriptfile>installer_script.php</scriptfile>
+    </administration>
 
     <install>
         <sql>
