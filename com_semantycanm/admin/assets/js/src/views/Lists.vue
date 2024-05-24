@@ -4,7 +4,7 @@
       <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
         Create
       </n-button>
-      <n-button type="error" disabled class="button-margin">
+      <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length" class="button-margin">
         {{ globalStore.translations.DELETE }}
       </n-button>
     </n-gi>
@@ -20,31 +20,28 @@
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
           @update:checked-row-keys="handleCheck"
+          @row-click="handleRowClick"
+          :row-props="getRowProps"
       />
     </n-gi>
   </n-grid>
 </template>
 
-
 <script>
-import {h, onMounted, reactive, ref} from 'vue';
+import { h, onMounted, reactive, ref } from 'vue';
 import {
   NButton,
   NDataTable,
-  NDivider,
   NGi,
   NGrid,
   NGridItem,
-  NInput,
-  NScrollbar,
-  NSpace,
   useDialog,
   useLoadingBar,
   useMessage,
 } from "naive-ui";
-import {useUserGroupStore} from "../stores/userGroupStore";
-import {useMailingListStore} from "../stores/mailinglistStore";
-import {useGlobalStore} from "../stores/globalStore";
+import { useUserGroupStore } from "../stores/userGroupStore";
+import { useMailingListStore } from "../stores/mailinglistStore";
+import { useGlobalStore } from "../stores/globalStore";
 import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 
 export default {
@@ -52,13 +49,9 @@ export default {
   components: {
     NGrid,
     NGi,
-    NScrollbar,
     NGridItem,
     NButton,
-    NSpace,
-    NInput,
     NDataTable,
-    NDivider,
     GroupEditorDialog
   },
   setup() {
@@ -69,7 +62,7 @@ export default {
     const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
     const dialog = useDialog();
-    const loadingBar = useLoadingBar()
+    const loadingBar = useLoadingBar();
     const pagination = reactive({
       page: 1,
       pageSize: 5,
@@ -90,11 +83,12 @@ export default {
       mailingListStore.fetchMailingList(pagination.page, pageSize, pagination, msgPopup, loadingBar);
     }
 
-    const handleDelete = async (id) => {
+    const handleDeleteSelected = async () => {
       try {
-        await mailingListStore.deleteMailingListEntries([id], msgPopup, loadingBar);
-        msgPopup.success('The mailing list deleted successfully');
+        await mailingListStore.deleteMailingListEntries(checkedRowKeysRef.value, msgPopup, loadingBar);
+        msgPopup.success('The selected mailing list entries were deleted successfully');
         await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
+        checkedRowKeysRef.value = [];
       } catch (error) {
         msgPopup.error(error.message, {
           closable: true,
@@ -107,7 +101,6 @@ export default {
       const handleClose = async () => {
         try {
           await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
-          console.log('Mailing list fetched');
         } catch (e) {
           console.error('Error fetching mailing list:', e);
         } finally {
@@ -122,6 +115,20 @@ export default {
       });
     };
 
+    const handleRowClick = (row) => {
+      showGroupEditor(row.id);
+    };
+
+    const getRowProps = (row) => {
+      return {
+        style: 'cursor: pointer;',
+        onClick: (event) => {
+          if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
+            handleRowClick(row);
+          }
+        }
+      };
+    };
 
     const createColumns = () => {
       return [
@@ -138,32 +145,10 @@ export default {
         {
           title: 'Created',
           key: 'reg_date'
-        },
-        {
-          title: "Action",
-          key: "actions",
-          render(row) {
-            return [
-              h(NButton, {
-                onClick: () => showGroupEditor(row.id),
-                style: 'margin-right: 8px;',
-                strong: true,
-                secondary: true,
-                type: "primary",
-                size: "small",
-              }, {default: () => 'Edit'}),
-              h(NButton, {
-                onClick: () => handleDelete(row.id),
-                strong: true,
-                secondary: true,
-                type: "error",
-                size: "small",
-              }, {default: () => 'Delete'})
-            ];
-          }
         }
       ];
     };
+
     return {
       globalStore,
       userGroupStore,
@@ -177,11 +162,16 @@ export default {
       editorDialogRef,
       handlePageSizeChange,
       handlePageChange,
-      showGroupEditor
+      showGroupEditor,
+      handleDeleteSelected,
+      handleRowClick,
+      getRowProps,
+      checkedRowKeysRef
     };
   }
 };
 </script>
+
 
 <style scoped>
 .button-margin {

@@ -55,10 +55,7 @@ export const useUserGroupStore = defineStore('userGroup', {
                 const request = new MailingListRequest(mode);
                 request.process(
                     mailingListName,
-                    listItems,
-                    async (data) => {
-                        await useMailingListStore().fetchMailingList(1, 5);
-                    }
+                    listItems
                 );
             } catch (error) {
                 msgPopup.error(error.message, {

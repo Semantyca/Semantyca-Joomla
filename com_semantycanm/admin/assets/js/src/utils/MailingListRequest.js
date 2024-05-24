@@ -9,7 +9,7 @@ class MailingListRequest {
         this.httpMethod = 'POST';
     }
 
-    process(mailingListName, listItems, onSuccess) {
+    process(mailingListName, listItems) {
         fetch(MailingListRequest.BASE_URL + this.operation, {
             method: this.httpMethod,
             headers: {
@@ -30,9 +30,6 @@ class MailingListRequest {
             .then(data => {
                 if (!data.success) {
                     throw new Error(data.message || 'Unknown error occurred');
-                }
-                if (typeof onSuccess === 'function') {
-                    onSuccess(data);
                 }
             })
             .catch(error => {

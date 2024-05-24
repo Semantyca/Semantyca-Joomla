@@ -47,7 +47,7 @@ export const useMailingListStore = defineStore('mailingList', {
                     loadingBar.finish()
                 });
         },
-        async fetchEntryDetails(id, msgPopup,  loadingBar) {
+        async fetchEntryDetails(id, msgPopup, loadingBar) {
             loadingBar.start()
 
             const url = `index.php?option=com_semantycanm&task=MailingList.find&id=${encodeURIComponent(id)}`;
