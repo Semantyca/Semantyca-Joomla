@@ -3,18 +3,18 @@ name: Build and Deploy Joomla Extension
 on:
   push:
     branches:
-      - main  # Use 'main' instead of 'HEAD' for clarity
-  workflow_dispatch: # Allow manual triggering
+      - main 
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3  # Use the latest version of the checkout action
+        uses: actions/checkout@v4 
 
       - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install zip -y  # Combine apt commands
+        run: sudo apt-get update && sudo apt-get install zip -y
 
       - name: List Files in Current Directory (for debugging)
         run: ls -la
@@ -46,13 +46,6 @@ jobs:
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
-          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install --path=/tmp/semantyca-extension.zip"          
+          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install --path=/tmp/semantyca-extension.zip"   
 
-      # Optionally, remove the temporary zip file
-      - name: Clean Up Temporary Files on Server (Optional)
-        env:
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
-        run: |
-          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "rm /tmp/semantyca-extension.zip"
+     
