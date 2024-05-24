@@ -42,6 +42,3 @@ jobs:
           # Copy and install using SCP and SSH
           scp -o StrictHostKeyChecking=no -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/
           ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
-          
-          # Optionally, remove the temporary zip file
-          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "rm /tmp/semantyca-extension.zip"
