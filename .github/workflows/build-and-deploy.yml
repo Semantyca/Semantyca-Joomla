@@ -38,5 +38,5 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          scp -P $PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/semantyca-extension.zip
-          ssh -p $PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
+          scp -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/semantyca-extension.zip
+          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
