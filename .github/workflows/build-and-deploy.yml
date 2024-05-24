@@ -3,14 +3,21 @@ name: Build and Deploy Joomla Extension
 on:
   push:
     branches:
-      - main 
-  workflow_dispatch: 
+      - main  # Use 'main' instead of 'HEAD' for clarity
+  workflow_dispatch: # Allow manual triggering
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # ... (Checkout and Install Dependencies steps remain the same) ...
+      - name: Checkout Code
+        uses: actions/checkout@v3  # Use the latest version of the checkout action
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install zip -y  # Combine apt commands
+
+      - name: List Files in Current Directory (for debugging)
+        run: ls -la
 
       - name: Create Zip File
         run: |
