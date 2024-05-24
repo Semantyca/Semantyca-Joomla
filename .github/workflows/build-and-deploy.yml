@@ -30,12 +30,7 @@ jobs:
         run: |
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-     
-      - name: Add Host Key (if needed)
-        env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-        run: ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_rsa     
 
       - name: Copy Extension to Server
         env:
