@@ -13,6 +13,7 @@
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>
 
     <files folder="./site/">
+        <filename>installer_script.php</filename>
         <folder>language</folder>
         <folder>src</folder>
         <folder>tmpl</folder>
@@ -45,6 +46,8 @@
         </languages>
 
     </administration>
+
+    <scriptfile>installer_script.php</scriptfile>
 
     <install>
         <sql>
