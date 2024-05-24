@@ -3,42 +3,54 @@ name: Build and Deploy Joomla Extension
 on:
   push:
     branches:
-      - main  # Use 'main' instead of 'HEAD' for clarity
-  workflow_dispatch: # Allow manual triggering
+      - main 
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v3  # Use the latest version of the checkout action
-
-      - name: Install Dependencies
-        run: sudo apt-get update && sudo apt-get install zip -y  # Combine apt commands
-
-      - name: List Files in Current Directory (for debugging)
-        run: ls -la
+      # ... (Checkout and Install Dependencies steps remain the same) ...
 
       - name: Create Zip File
         run: |
           mkdir -p dist
           zip -r dist/semantyca-extension.zip com_semantycanm
 
-      - name: Install Extension on Joomla Server
+      - name: Prepare SSH Key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}  # Use SERVER_PORT if applicable
-          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+     
+      - name: Add Host Key (if needed)
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        run: ssh-keyscan -H $SERVER_HOST >> ~/.ssh/known_hosts
 
-          # Add known hosts (if needed for initial connection)
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+      - name: Copy Extension to Server
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
+        run: scp -o StrictHostKeyChecking=no -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/
 
-          # Copy and install using SCP and SSH
-          scp -o StrictHostKeyChecking=no -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/
+      - name: Install Extension
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
+          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
+        run: |
           ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install /tmp/semantyca-extension.zip"
+
+      # Optionally, remove the temporary zip file
+      - name: Clean Up Temporary Files on Server (Optional)
+        env:
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
+        run: |
+          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "rm /tmp/semantyca-extension.zip"
