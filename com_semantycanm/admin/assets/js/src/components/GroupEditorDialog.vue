@@ -88,9 +88,13 @@ export default {
       type: Number,
       default: 0,
       required: false
+    },
+    onClose: {
+      type: Function,
+      required: true
     }
   },
-  setup(props, {emit}) {
+  setup(props) {
     const formRef = ref(null);
     const formValue = reactive({
       groupName: '',
@@ -131,9 +135,7 @@ export default {
     };
 
     const saveGroup = async () => {
-      console.log('Current groupName:', formValue.groupName);  //
       const errors = validateForm();
-
       if (errors) {
         Object.keys(errors).forEach(fieldName => {
           msgPopup.error(errors[fieldName], {
@@ -147,7 +149,7 @@ export default {
           state.mailingListMode = '';
           formValue.groupName = '';
           formValue.selectedGroups = [];
-          emit('close');
+          props.onClose();
         } catch (e) {
           msgPopup.error(e.message, {
             closable: true,
@@ -158,7 +160,11 @@ export default {
     };
 
     const cancelGroupEdit = () => {
-      emit('close');
+      formValue.groupName = '';
+      formValue.selectedGroups = [];
+      formValue.availableGroups = userGroupStore.documentsPage.docs;
+      state.mailingListMode = '';
+      props.onClose();
     };
 
     return {

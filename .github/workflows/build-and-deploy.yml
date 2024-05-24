@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main 
-  workflow_dispatch:
 
 jobs:
   build:
@@ -40,11 +39,6 @@ jobs:
         run: scp -o StrictHostKeyChecking=no -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/
 
       - name: Install Extension
-        env:
-          SERVER_USER: ${{ secrets.SERVER_USER }}
-          SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}
-          JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
           ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install --path=/tmp/semantyca-extension.zip"   
 

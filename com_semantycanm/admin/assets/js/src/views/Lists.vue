@@ -104,8 +104,15 @@ export default {
     };
 
     const showGroupEditor = (id = 0) => {
-      const handleClose = () => {
-        dialog.destroyAll();
+      const handleClose = async () => {
+        try {
+          await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
+          console.log('Mailing list fetched');
+        } catch (e) {
+          console.error('Error fetching mailing list:', e);
+        } finally {
+          dialog.destroyAll();
+        }
       };
 
       dialog.create({
@@ -114,6 +121,7 @@ export default {
         style: 'width: 40%'
       });
     };
+
 
     const createColumns = () => {
       return [
