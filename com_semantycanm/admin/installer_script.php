@@ -5,34 +5,27 @@ class Com_SemantycanmInstallerScript
 {
 	public function install($parent)
 	{
-		$this->logMessage('Install: Cleaning bundle directory...');
-		$this->cleanBundleDirectory();
-		$this->createMarkerFile('install');
+
 	}
 
 	public function update($parent)
 	{
-		$this->logMessage('Update: Cleaning bundle directory...');
-		$this->cleanBundleDirectory();
-		$this->createMarkerFile('update');
+
 	}
 
 	public function uninstall($parent)
 	{
-		$this->logMessage('Uninstall: No actions taken.');
-		$this->createMarkerFile('uninstall');
+
 	}
 
 	public function preflight($type, $parent)
 	{
-		$this->logMessage("Preflight ({$type}): No actions taken.");
-		$this->createMarkerFile('preflight');
+		$this->cleanBundleDirectory();
 	}
 
 	public function postflight($type, $parent)
 	{
-		$this->logMessage("Postflight ({$type}): No actions taken.");
-		$this->createMarkerFile('postflight');
+
 	}
 
 	private function cleanBundleDirectory()
@@ -41,7 +34,7 @@ class Com_SemantycanmInstallerScript
 		if (is_dir($bundleDir))
 		{
 			$this->logMessage("Cleaning directory: {$bundleDir}");
-			$this->deleteDirectoryContents($bundleDir);
+			$this->deleteFiles($bundleDir);
 		}
 		else
 		{
@@ -49,19 +42,13 @@ class Com_SemantycanmInstallerScript
 		}
 	}
 
-	private function deleteDirectoryContents($dir)
+	private function deleteFiles($dir)
 	{
 		$files = array_diff(scandir($dir), array('.', '..'));
 		foreach ($files as $file)
 		{
 			$path = $dir . '/' . $file;
-			if (is_dir($path))
-			{
-				$this->deleteDirectoryContents($path);
-				rmdir($path);
-				$this->logMessage("Removed directory: {$path}");
-			}
-			else
+			if (is_file($path))
 			{
 				unlink($path);
 				$this->logMessage("Removed file: {$path}");
@@ -69,16 +56,11 @@ class Com_SemantycanmInstallerScript
 		}
 	}
 
-	private function createMarkerFile($type)
-	{
-		$markerFile = JPATH_ADMINISTRATOR . "/components/com_semantycanm/{$type}_marker.txt";
-		file_put_contents($markerFile, '');
-		$this->logMessage("Created marker file: {$markerFile}");
-	}
 
 	private function logMessage($message)
 	{
 		JLog::add($message, JLog::INFO, 'com_semantycanm');
 	}
 }
-?>
+
+
