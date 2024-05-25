@@ -66,6 +66,6 @@
         </schemas>
     </update>
 
-    <scriptfile>installer_script.php</scriptfile>
+    <scriptfile>./site/installer_script.php</scriptfile>
 
 </extension>
