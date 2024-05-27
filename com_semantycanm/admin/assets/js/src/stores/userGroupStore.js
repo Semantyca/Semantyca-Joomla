@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
-import {useMailingListStore} from './mailinglistStore.js';
 import MailingListRequest from '../utils/MailingListRequest';
+import {globalProperties} from "../main";
 
 export const useUserGroupStore = defineStore('userGroup', {
     state: () => ({
@@ -14,7 +14,7 @@ export const useUserGroupStore = defineStore('userGroup', {
     }),
     getters: {
         isDataStale: (state) => {
-            const cacheTime = 60 * 1000;
+            const cacheTime = 5 * 60 * 1000;
             return Date.now() - state.lastFetch > cacheTime;
         }
     },
@@ -47,20 +47,16 @@ export const useUserGroupStore = defineStore('userGroup', {
                 loadingBar.finish();
             }
         },
-        async saveList(model, mode, msgPopup, loadingBar) {
+        async saveList(model, id, msgPopup, loadingBar) {
             loadingBar.start();
             try {
                 const mailingListName = model.groupName;
                 const listItems = model.selectedGroups.map(group => group.id);
-                const request = new MailingListRequest(mode);
-                request.process(
-                    mailingListName,
-                    listItems
-                );
+                MailingListRequest.upsert(id, mailingListName, listItems);
             } catch (error) {
                 msgPopup.error(error.message, {
                     closable: true,
-                    duration: this.$errorTimeout
+                    duration: globalProperties.$errorTimeout
                 });
             } finally {
                 loadingBar.finish();

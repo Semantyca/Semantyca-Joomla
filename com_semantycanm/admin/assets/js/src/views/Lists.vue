@@ -15,7 +15,12 @@
           :columns="columns"
           :data="mailingListStore.docsListPage.docs"
           :bordered="false"
-          :pagination="pagination"
+          :pagination="{
+            page: mailingListStore.docsListPage.page,
+            pageSize: mailingListStore.docsListPage.pageSize,
+            itemCount: mailingListStore.docsListPage.itemCount,
+            pageCount: mailingListStore.docsListPage.pageCount
+          }"
           :row-key="rowKey"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
@@ -28,7 +33,7 @@
 </template>
 
 <script>
-import { h, onMounted, reactive, ref } from 'vue';
+import {h, onMounted, ref} from 'vue';
 import {
   NButton,
   NDataTable,
@@ -39,9 +44,9 @@ import {
   useLoadingBar,
   useMessage,
 } from "naive-ui";
-import { useUserGroupStore } from "../stores/userGroupStore";
-import { useMailingListStore } from "../stores/mailinglistStore";
-import { useGlobalStore } from "../stores/globalStore";
+import {useUserGroupStore} from "../stores/userGroupStore";
+import {useMailingListStore} from "../stores/mailinglistStore";
+import {useGlobalStore} from "../stores/globalStore";
 import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 
 export default {
@@ -63,31 +68,24 @@ export default {
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar();
-    const pagination = reactive({
-      page: 1,
-      pageSize: 5,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large'
-    });
 
     onMounted(async () => {
-      await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
+      await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
     });
 
     function handlePageChange(page) {
-      mailingListStore.fetchMailingList(page, pagination.pageSize, pagination, msgPopup, loadingBar);
+      mailingListStore.fetchMailingList(page, mailingListStore.docsListPage.pageSize, msgPopup, loadingBar);
     }
 
     function handlePageSizeChange(pageSize) {
-      mailingListStore.fetchMailingList(pagination.page, pageSize, pagination, msgPopup, loadingBar);
+      mailingListStore.fetchMailingList(mailingListStore.docsListPage.page, pageSize, msgPopup, loadingBar);
     }
 
     const handleDeleteSelected = async () => {
       try {
         await mailingListStore.deleteMailingListEntries(checkedRowKeysRef.value, msgPopup, loadingBar);
         msgPopup.success('The selected mailing list entries were deleted successfully');
-        await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
+        await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
         checkedRowKeysRef.value = [];
       } catch (error) {
         msgPopup.error(error.message, {
@@ -97,27 +95,32 @@ export default {
       }
     };
 
-    const showGroupEditor = (id = 0) => {
-      const handleClose = async () => {
-        try {
-          await mailingListStore.fetchMailingList(1, 5, pagination, msgPopup, loadingBar);
-        } catch (e) {
-          console.error('Error fetching mailing list:', e);
-        } finally {
-          dialog.destroyAll();
+    const showGroupEditor = (id = -1) => {
+      const handleClose = async (update) => {
+        if (update) {
+          try {
+            await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
+          } catch (e) {
+            msgPopup.error(e.message, {
+              closable: true,
+              duration: 10000
+            });
+          }
         }
+        dialog.destroyAll();
       };
 
       dialog.create({
         title: 'Edit Group',
-        content: () => h(GroupEditorDialog, { id, onClose: handleClose }),
-        style: 'width: 40%'
+        content: () => h(GroupEditorDialog, {id, onClose: handleClose}),
+        style: 'width: 60%'
       });
     };
 
     const handleRowClick = (row) => {
       showGroupEditor(row.id);
     };
+
 
     const getRowProps = (row) => {
       return {
@@ -158,7 +161,6 @@ export default {
       handleCheck(rowKeys) {
         checkedRowKeysRef.value = rowKeys;
       },
-      pagination,
       editorDialogRef,
       handlePageSizeChange,
       handlePageChange,

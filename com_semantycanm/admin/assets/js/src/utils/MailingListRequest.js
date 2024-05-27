@@ -1,22 +1,17 @@
-
-
 class MailingListRequest {
     static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
+    static HTTP_METHOD = 'POST';
 
-    constructor(id) {
-        this.id = id;
-        this.operation = this.id === '' ? 'add' : 'update';
-        this.httpMethod = 'POST';
-    }
+    static upsert(id, mailingListName, listItems) {
+        const operation = id === -1 ? 'add' : 'update';
 
-    process(mailingListName, listItems) {
-        fetch(MailingListRequest.BASE_URL + this.operation, {
-            method: this.httpMethod,
+        fetch(MailingListRequest.BASE_URL + operation, {
+            method: MailingListRequest.HTTP_METHOD,
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                'id': this.id,
+                'id': id,
                 'mailinglistname': mailingListName,
                 'mailinglists': listItems.join(',')
             })
@@ -33,8 +28,8 @@ class MailingListRequest {
                 }
             })
             .catch(error => {
-                console.log('MailingList.' + this.operation + ':', error);
-                showErrorBar('MailingList.' + this.operation, error.message);
+                console.log('MailingList.' + operation + ':', error);
+                showErrorBar('MailingList.' + operation, error.message);
             });
     }
 }

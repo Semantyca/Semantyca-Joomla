@@ -1,4 +1,6 @@
 class MailingListManager {
+    static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
+
     constructor(store, msgPopup) {
         this.store = store;
         this.msgPopup = msgPopup;
@@ -29,6 +31,38 @@ class MailingListManager {
         }
     }
 
+    save(mailingListName, listItems, id) {
+        this.operation = id !== undefined ? 'update' : 'add';
+
+        fetch(MailingListManager.BASE_URL + this.operation, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                'id': id,
+                'mailinglistname': mailingListName,
+                'mailinglists': listItems.join(',')
+            })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('HTTP error, status = ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    throw new Error(data.message || 'Unknown error occurred');
+                }
+            })
+            .catch(error => {
+                console.log('MailingList.' + this.operation + ':', error);
+                this.msgPopup.error('MailingList.' + this.operation, error.message);
+            });
+    }
+
+    // No usage ???
     async saveMailingList(doc, isNew = false) {
         this.startBusyMessage('Saving mailing list...');
         const endpoint = isNew ? `index.php?option=com_semantycanm&task=MailingList.save` :

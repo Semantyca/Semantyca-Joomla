@@ -3,19 +3,15 @@ import {defineStore} from 'pinia';
 export const useMailingListStore = defineStore('mailingList', {
     state: () => ({
         docsListPage: {
+            pageSize: 10,
+            itemCount: 0,
+            pageCount: 1,
+            page: 1,
             docs: []
-        },
-        dialog: {
-            isOpen: false,
-            formData: {
-                groupName: '',
-                availableGroups: [],
-                selectedGroups: []
-            }
         }
     }),
     actions: {
-        async fetchMailingList(currentPage, size, pagination, msgPopup, loadingBar) {
+        async fetchMailingList(currentPage, size, msgPopup, loadingBar) {
             loadingBar.start()
 
             const url = 'index.php?option=com_semantycanm&task=MailingList.findall&page=' + currentPage + '&limit=' + size;
@@ -31,12 +27,10 @@ export const useMailingListStore = defineStore('mailingList', {
                 .then(respData => {
                     if (respData.success && respData.data) {
                         this.docsListPage.docs = respData.data.docs;
-                        if (pagination) {
-                            pagination.pageSize = size;
-                            pagination.itemCount = respData.data.count;
-                            pagination.pageCount = respData.data.maxPage;
-                            pagination.page = respData.data.current;
-                        }
+                        this.docsListPage.pageSize = size;
+                        this.docsListPage.itemCount = respData.data.count;
+                        this.docsListPage.pageCount = respData.data.maxPage;
+                        this.docsListPage.page = respData.data.current;
                     }
                 })
                 .catch(error => {
@@ -47,10 +41,10 @@ export const useMailingListStore = defineStore('mailingList', {
                     loadingBar.finish()
                 });
         },
-        async fetchEntryDetails(id, msgPopup, loadingBar) {
+        async fetchEntryDetails(id, msgPopup, loadingBar, detailed = false) {
             loadingBar.start()
 
-            const url = `index.php?option=com_semantycanm&task=MailingList.find&id=${encodeURIComponent(id)}`;
+            const url = `index.php?option=com_semantycanm&task=MailingList.find&id=${encodeURIComponent(id)}&detailed=${detailed}`;
 
             try {
                 const response = await fetch(url, {

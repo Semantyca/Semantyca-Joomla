@@ -1,5 +1,5 @@
 <template>
-  <n-space vertical size="large" style="width: 100%; padding-top: 20px;">
+  <n-space vertical size="large" style="width: 100%; padding-top: 30px;" @keydown="handleKeydown" tabindex="0">
     <n-form ref="formRef" :model="formValue" label-placement="left">
       <n-grid :cols="2">
         <n-grid-item style="padding-right: 10px;">
@@ -30,14 +30,14 @@
           </n-scrollbar>
         </n-grid-item>
       </n-grid>
-      <n-grid :cols="2" style="padding-top: 50px;">
+      <n-grid :cols="2" style="padding-top: 30px;">
         <n-grid-item style="padding-right: 10px;">
           <n-form-item label="Mailing List Name">
             <n-input v-model:value="formValue.groupName" placeholder="Enter mailing list name"/>
           </n-form-item>
         </n-grid-item>
       </n-grid>
-      <n-grid :cols="1" style="padding-top: 10px;">
+      <n-grid :cols="1">
         <n-grid-item>
           <n-space align="center" justify="end">
             <n-button @click="cancelGroupEdit">Cancel</n-button>
@@ -51,7 +51,7 @@
 
 
 <script>
-import {onMounted, reactive, ref} from 'vue';
+import {onMounted, reactive, ref, toRefs} from 'vue';
 import {
   NButton,
   NForm,
@@ -94,6 +94,7 @@ export default {
       required: true
     }
   },
+
   setup(props) {
     const formRef = ref(null);
     const formValue = reactive({
@@ -106,17 +107,23 @@ export default {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const loading = ref(true);
-    const state = reactive({
-      mailingListMode: ''
-    });
 
     onMounted(async () => {
       await userGroupStore.getList(msgPopup, loadingBar);
-      if (props.id) {
-        const entryDetails = await mailingListStore.fetchEntryDetails(props.id, msgPopup, loadingBar);
+      if (props.id > -1 ) {
+        const entryDetails = await mailingListStore.fetchEntryDetails(props.id, msgPopup, loadingBar, true);
         formValue.groupName = entryDetails.name;
+        formValue.selectedGroups = entryDetails.groups.map(group => ({
+          ...group,
+          title: group.title
+        }));
+
+        formValue.availableGroups = userGroupStore.documentsPage.docs.filter(doc =>
+            !formValue.selectedGroups.some(selectedGroup => selectedGroup.id === doc.id)
+        );
+      } else {
+        formValue.availableGroups = userGroupStore.documentsPage.docs;
       }
-      formValue.availableGroups = userGroupStore.documentsPage.docs;
       loading.value = false;
     });
 
@@ -145,11 +152,10 @@ export default {
         });
       } else {
         try {
-          await userGroupStore.saveList(formValue, '', msgPopup, loadingBar);
-          state.mailingListMode = '';
+          await userGroupStore.saveList(formValue, props.id, msgPopup, loadingBar);
           formValue.groupName = '';
           formValue.selectedGroups = [];
-          props.onClose();
+          props.onClose(true);
         } catch (e) {
           msgPopup.error(e.message, {
             closable: true,
@@ -163,8 +169,15 @@ export default {
       formValue.groupName = '';
       formValue.selectedGroups = [];
       formValue.availableGroups = userGroupStore.documentsPage.docs;
-      state.mailingListMode = '';
-      props.onClose();
+      props.onClose(false);
+    };
+
+    const handleKeydown = (event) => {
+      if (event.key === 'Enter') {
+        saveGroup();
+      } else if (event.key === 'Escape') {
+        cancelGroupEdit();
+      }
     };
 
     return {
@@ -172,7 +185,8 @@ export default {
       formRef,
       saveGroup,
       cancelGroupEdit,
-      loading
+      loading,
+      handleKeydown
     };
   }
 };

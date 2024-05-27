@@ -7,32 +7,26 @@ class Com_SemantycanmInstallerScript
 	{
 		$this->logMessage('Install: Cleaning bundle directory...');
 		$this->cleanBundleDirectory();
-		$this->createMarkerFile('install');
 	}
 
 	public function update($parent)
 	{
 		$this->logMessage('Update: Cleaning bundle directory...');
 		$this->cleanBundleDirectory();
-		$this->createMarkerFile('update');
 	}
 
 	public function uninstall($parent)
 	{
-		$this->logMessage('Uninstall: No actions taken.');
-		$this->createMarkerFile('uninstall');
-	}
+		$this->logMessage('Uninstall: No actions taken.');	}
 
 	public function preflight($type, $parent)
 	{
 		$this->logMessage("Preflight ({$type}): No actions taken.");
-		$this->createMarkerFile('preflight');
 	}
 
 	public function postflight($type, $parent)
 	{
 		$this->logMessage("Postflight ({$type}): No actions taken.");
-		$this->createMarkerFile('postflight');
 	}
 
 	private function cleanBundleDirectory()
@@ -69,16 +63,9 @@ class Com_SemantycanmInstallerScript
 		}
 	}
 
-	private function createMarkerFile($type)
-	{
-		$markerFile = JPATH_ADMINISTRATOR . "/components/com_semantycanm/{$type}_marker.txt";
-		file_put_contents($markerFile, '');
-		$this->logMessage("Created marker file: {$markerFile}");
-	}
-
 	private function logMessage($message)
 	{
 		JLog::add($message, JLog::INFO, 'com_semantycanm');
 	}
 }
-?>
+

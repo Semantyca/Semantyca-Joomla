@@ -50,7 +50,7 @@ app.config.globalProperties.$errorTimeout = 10000;
 app.use(pinia);
 app.mount('#app');
 
-
+export const globalProperties = app.config.globalProperties;
 
 
 
