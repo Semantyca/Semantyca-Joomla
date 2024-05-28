@@ -1,6 +1,6 @@
-import BaseObject from "./BaseObject";
+import BaseObject from "../../utils/BaseObject";
 
-class NewsletterHandler extends BaseObject{
+class NewsletterApiManager extends BaseObject{
 
     constructor(msgPopup) {
         super();
@@ -55,4 +55,4 @@ class NewsletterHandler extends BaseObject{
 
 }
 
-export default NewsletterHandler;
+export default NewsletterApiManager;

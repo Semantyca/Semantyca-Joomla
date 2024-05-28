@@ -1,6 +1,13 @@
 <template>
   <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
     <n-gi>
+      <n-space>
+      <n-button type="primary" class="button-margin">
+        Export to Excel
+      </n-button>
+      </n-space>
+    </n-gi>
+    <n-gi>
       <n-data-table
           remote
           size="large"
@@ -18,7 +25,7 @@
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {NDataTable, NGi, NGrid, NPagination, NTag, useLoadingBar, useMessage} from 'naive-ui';
+import {NDataTable, NGi, NGrid, NPagination, NTag, useLoadingBar, useMessage, NButton, NSpace} from 'naive-ui';
 import {useStatStore} from "../stores/statStore";
 import {useGlobalStore} from "../stores/globalStore";
 import EventTable from "../components/EventTable.vue";
@@ -32,7 +39,9 @@ export default defineComponent({
     NGrid,
     NGi,
     NDataTable,
-    NPagination
+    NPagination,
+    NButton,
+    NSpace
   },
 
   setup() {

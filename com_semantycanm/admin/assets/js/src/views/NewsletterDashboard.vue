@@ -1,135 +1,151 @@
 <template>
-  <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" :model="newsLetterFormValue">
-    <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-3">
-      <n-gi>
-        <n-grid :cols="2" x-gap="12">
-          <n-gi>
-            <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
-            <ul ref="availableListsUlRef" class="list-group">
-              <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item" :id="ml.id">
-                {{ ml.name }}
-              </li>
-            </ul>
-          </n-gi>
-          <n-gi>
-            <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
-            <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
-          </n-gi>
-        </n-grid>
-      </n-gi>
-
-      <n-gi>
-        <n-grid :cols="1">
-          <n-gi>
-            <h3>{{ globalStore.translations.SEND_NEWSLETTER }}</h3>
-            <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
-            <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-            <n-form-item :label="globalStore.translations.TEST_ADDRESS" path="testEmail">
+  <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
+    <n-gi>
+      <n-space>
+        <n-button type="success"
+                  @click="sendNewsletter(false)">
+                  {{ globalStore.translations.SEND }}
+        </n-button>
+        <n-button type="primary"
+                  @click="sendNewsletter(true)">
+                  {{ globalStore.translations.SAVE }}
+        </n-button>
+      </n-space>
+    </n-gi>
+    <n-gi>
+      <n-divider title-placement="left">Newsletter properties</n-divider>
+    </n-gi>
+    <n-gi>
+      <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" label-placement="left" label-width="auto">
+        <n-grid :cols="8">
+          <n-gi span="8">
+            <n-form-item label="Mailing lists" label-placement="left" path="templateName">
+              <n-select v-model:value="value"
+                        size="large"
+                        style="width: 100%; max-width: 600px;"
+                        multiple :options="options"/>
+            </n-form-item>
+            <n-form-item label="Custom address" label-placement="left" path="description">
               <n-input v-model:value="newsLetterFormValue.testEmail"
                        placeholder="E-mail address"
                        size="large"
                        type="text"
                        id="testEmails"
+                       style="width: 100%; max-width: 600px;"
                        name="testEmails"/>
             </n-form-item>
-          </n-gi>
-        </n-grid>
-      </n-gi>
-
-      <n-gi>
-        <n-grid :cols="1">
-          <n-gi>
-            <n-form-item :label="globalStore.translations.SUBJECT" path="subject">
-              <n-input-group>
-                <n-input v-model:value="newsLetterFormValue.subject"
-                         size="large"
-                         type="text"
-                         id="subject"
-                         placeholder="Subject"
-                         style="flex-grow: 1;"/>
-                <n-button size="large"
-                          type="tertiary"
-                          @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
-                </n-button>
-              </n-input-group>
+            <n-form-item label="Subject" label-placement="left" path="description">
+              <n-input v-model:value="newsLetterFormValue.subject"
+                       size="large"
+                       type="text"
+                       id="subject"
+                       style="width: 100%; max-width: 600px;"
+                       placeholder="Subject"/>
+              <n-button size="large"
+                        type="tertiary"
+                        @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+              </n-button>
             </n-form-item>
           </n-gi>
         </n-grid>
-      </n-gi>
+      </n-form>
+      <!--        <n-grid :cols="2" x-gap="12">
+                <n-gi>
+                  <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
+                  <ul ref="availableListsUlRef" class="list-group">
+                    <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item" :id="ml.id">
+                      {{ ml.name }}
+                    </li>
+                  </ul>
+                </n-gi>
+                <n-gi>
+                  <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
+                  <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
+                </n-gi>
+              </n-grid>-->
 
-      <n-gi>
-        <n-grid :cols="1">
-          <n-gi>
-            <n-form-item :label="globalStore.translations.MESSAGE_CONTENT" path="messageContent">
-              <n-input
-                  v-model:value="newsLetterFormValue.localMessageContent"
-                  type="textarea"
-                  rows="10"
-                  placeholder=""
-              />
-            </n-form-item>
-          </n-gi>
-        </n-grid>
-      </n-gi>
+    </n-gi>
+    <!--    <n-gi>
+          <n-grid :cols="1">
+            <n-gi>
+              <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
+              <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
 
-      <n-gi>
-        <n-grid :cols="2" x-gap="12">
-          <n-gi>
-            <n-space>
-              <n-button type="success"
-                        size="large"
-                        @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
-              </n-button>
-              <n-button id="saveNewsletterBtn"
-                        size="large"
-                        type="primary"
-                        @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
-              </n-button>
-            </n-space>
-          </n-gi>
-          <n-gi>
-            <n-progress
-                type="line"
-                :percentage="newsLetterStore.progress.dispatched"
-                :indicator-placement="'inside'"
-                style="margin-bottom: 10px;"
-            ></n-progress>
-            <n-progress
-                type="line"
-                status="warning"
-                :percentage="newsLetterStore.progress.read"
-                :indicator-placement="'inside'"
-            ></n-progress>
-          </n-gi>
-        </n-grid>
-      </n-gi>
 
-      <n-gi>
-        <n-grid :cols="1">
-          <n-gi>
-            <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
-          </n-gi>
-        </n-grid>
-      </n-gi>
+            </n-gi>
+          </n-grid>
+        </n-gi>-->
+    <n-gi>
+      <n-divider title-placement="left">Newsletter source</n-divider>
+    </n-gi>
+    <n-gi>
+      <code-mirror
+          v-model="newsLetterFormValue.localMessageContent"
+          basic
+          :lang="lang"
+          :dark="dark"
+          :style="{ width: '100%' }"
+      />
+    </n-gi>
 
-      <n-gi>
-        <n-grid :cols="1">
-          <n-gi>
-            <n-data-table
-                remote
-                size="large"
-                :columns="columns"
-                :data="newsLetterStore.docsListPage.docs"
-                :bordered="false"
-                :pagination="pagination"
-                @update:page="handlePageChange"
-                @update:page-size="handlePageSizeChange"
-            />
-          </n-gi>
-        </n-grid>
-      </n-gi>
-    </n-grid>
-  </n-form>
+    <n-gi>
+      <n-grid :cols="2" x-gap="12">
+        <n-gi>
+          <n-space>
+            <n-button type="success"
+                      size="large"
+                      @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
+            </n-button>
+            <n-button id="saveNewsletterBtn"
+                      size="large"
+                      type="primary"
+                      @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
+            </n-button>
+          </n-space>
+        </n-gi>
+        <n-gi>
+          <n-progress
+              type="line"
+              :percentage="newsLetterStore.progress.dispatched"
+              :indicator-placement="'inside'"
+              style="margin-bottom: 10px;"
+          ></n-progress>
+          <n-progress
+              type="line"
+              status="warning"
+              :percentage="newsLetterStore.progress.read"
+              :indicator-placement="'inside'"
+          ></n-progress>
+        </n-gi>
+      </n-grid>
+    </n-gi>
+
+    <n-gi>
+      <n-grid :cols="1">
+        <n-gi>
+          <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
+        </n-gi>
+      </n-grid>
+    </n-gi>
+
+    <n-gi>
+      <n-grid :cols="1">
+        <n-gi>
+          <n-data-table
+              remote
+              size="large"
+              :columns="columns"
+              :data="newsLetterStore.docsListPage.docs"
+              :bordered="false"
+              :pagination="pagination"
+              @update:page="handlePageChange"
+              @update:page-size="handlePageSizeChange"
+          />
+        </n-gi>
+      </n-grid>
+    </n-gi>
+  </n-grid>
+
 </template>
 
 <script>
@@ -147,11 +163,15 @@ import {
   NProgress,
   NSpace,
   useLoadingBar,
-  useMessage
+  useMessage,
+  NSelect,
+  NDivider,
 } from "naive-ui";
-import {useNewsletterStore} from "../stores/newsletterStore";
+import {useNewsletterStore} from "../stores/newsletter/newsletterStore";
 import {useMailingListStore} from "../stores/mailinglistStore";
-import NewsletterHandler from "../utils/NewsletterHandler";
+import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
+import CodeMirror from 'vue-codemirror6';
+import {html} from '@codemirror/lang-html';
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -165,7 +185,10 @@ export default defineComponent({
     NProgress,
     NInputGroup,
     NGrid,
-    NGi
+    NGi,
+    NSelect,
+    NDivider,
+    CodeMirror
   },
   props: {
     messageContent: String,
@@ -201,7 +224,7 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      mailingListStore.fetchMailingList(1, 100, pagination, msgPopup, loadingBar);
+      mailingListStore.getDocs(1, 100, true, msgPopup, loadingBar);
       newsLetterStore.fetchNewsLetter(1, 10, pagination);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       newsLetterStore.startPolling();
@@ -252,7 +275,7 @@ export default defineComponent({
         if (!errors) {
           const subj = newsLetterFormValue.value.subject;
           const msgContent = newsLetterFormValue.value.localMessageContent;
-          const newsletterHandler = new NewsletterHandler(msgPopup);
+          const newsletterHandler = new NewsletterApiManager(msgPopup);
           if (onlySave) {
             newsletterHandler.saveNewsletter(subj, msgContent)
                 .then(() => {
@@ -313,15 +336,15 @@ export default defineComponent({
 
     const applyAndDropSet = (lists) => {
       lists.forEach(list => {
-       /* Sortable.create(list, {
-          group: {
-            name: 'shared',
-            pull: true,
-            put: true
-          },
-          animation: 150,
-          sort: false
-        });*/
+        /* Sortable.create(list, {
+           group: {
+             name: 'shared',
+             pull: true,
+             put: true
+           },
+           animation: 150,
+           sort: false
+         });*/
       });
     };
 
@@ -391,14 +414,15 @@ export default defineComponent({
                 secondary: true,
                 type: "primary",
                 size: "small",
-              }, { default: () => 'Edit' }),
+              }, {default: () => 'Edit'}),
               h(NButton, {
-                onClick: () => { /* handle delete */ },
+                onClick: () => { /* handle delete */
+                },
                 strong: true,
                 secondary: true,
                 type: "error",
                 size: "small",
-              }, { default: () => 'Delete' })
+              }, {default: () => 'Delete'})
             ];
           }
         }
@@ -422,7 +446,67 @@ export default defineComponent({
       columns: createColumns(),
       pagination,
       handlePageSizeChange,
-      handlePageChange
+      handlePageChange,
+      value: ref(['song3']),
+      options: [
+        {
+          label: "Everybody's Got Something to Hide Except Me and My Monkey",
+          value: 'song0',
+          disabled: true
+        },
+        {
+          label: 'Drive My Car',
+          value: 'song1'
+        },
+        {
+          label: 'Norwegian Wood',
+          value: 'song2'
+        },
+        {
+          label: "You Won't See",
+          value: 'song3',
+          disabled: true
+        },
+        {
+          label: 'Nowhere Man',
+          value: 'song4'
+        },
+        {
+          label: 'Think For Yourself',
+          value: 'song5'
+        },
+        {
+          label: 'The Word',
+          value: 'song6'
+        },
+        {
+          label: 'Michelle',
+          value: 'song7',
+          disabled: true
+        },
+        {
+          label: 'What goes on',
+          value: 'song8'
+        },
+        {
+          label: 'Girl',
+          value: 'song9'
+        },
+        {
+          label: "I'm looking through you",
+          value: 'song10'
+        },
+        {
+          label: 'In My Life',
+          value: 'song11'
+        },
+        {
+          label: 'Wait',
+          value: 'song12'
+        }
+      ],
+      dark: ref(false),
+      lang: ref(html())
     };
   },
 });

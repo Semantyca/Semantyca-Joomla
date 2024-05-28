@@ -13,14 +13,9 @@
           remote
           size="large"
           :columns="columns"
-          :data="mailingListStore.docsListPage.docs"
+          :data="mailingListStore.getCurrentPage"
           :bordered="false"
-          :pagination="{
-            page: mailingListStore.docsListPage.page,
-            pageSize: mailingListStore.docsListPage.pageSize,
-            itemCount: mailingListStore.docsListPage.itemCount,
-            pageCount: mailingListStore.docsListPage.pageCount
-          }"
+          :pagination="mailingListStore.getPagination"
           :row-key="rowKey"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
@@ -70,22 +65,22 @@ export default {
     const loadingBar = useLoadingBar();
 
     onMounted(async () => {
-      await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
+      await mailingListStore.getDocs(1, 10,true, msgPopup, loadingBar);
     });
 
     function handlePageChange(page) {
-      mailingListStore.fetchMailingList(page, mailingListStore.docsListPage.pageSize, msgPopup, loadingBar);
+      mailingListStore.getDocs(page, mailingListStore.getPagination.pageSize, true, msgPopup, loadingBar);
     }
 
     function handlePageSizeChange(pageSize) {
-      mailingListStore.fetchMailingList(mailingListStore.docsListPage.page, pageSize, msgPopup, loadingBar);
+      mailingListStore.getDocs(mailingListStore.getPagination.page, pageSize, true, msgPopup, loadingBar);
     }
 
     const handleDeleteSelected = async () => {
       try {
-        await mailingListStore.deleteMailingListEntries(checkedRowKeysRef.value, msgPopup, loadingBar);
+        await mailingListStore.deleteDocs(checkedRowKeysRef.value, msgPopup, loadingBar);
         msgPopup.success('The selected mailing list entries were deleted successfully');
-        await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
+        await mailingListStore.getDocs(1, 10, msgPopup, loadingBar);
         checkedRowKeysRef.value = [];
       } catch (error) {
         msgPopup.error(error.message, {
@@ -99,7 +94,7 @@ export default {
       const handleClose = async (update) => {
         if (update) {
           try {
-            await mailingListStore.fetchMailingList(1, 10, msgPopup, loadingBar);
+            await mailingListStore.getDocs(1, 10, msgPopup, loadingBar);
           } catch (e) {
             msgPopup.error(e.message, {
               closable: true,

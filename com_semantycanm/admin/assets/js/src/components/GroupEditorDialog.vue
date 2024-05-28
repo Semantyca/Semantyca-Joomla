@@ -111,7 +111,7 @@ export default {
     onMounted(async () => {
       await userGroupStore.getList(msgPopup, loadingBar);
       if (props.id > -1 ) {
-        const entryDetails = await mailingListStore.fetchEntryDetails(props.id, msgPopup, loadingBar, true);
+        const entryDetails = await mailingListStore.getDetails(props.id, msgPopup, loadingBar, true);
         formValue.groupName = entryDetails.name;
         formValue.selectedGroups = entryDetails.groups.map(group => ({
           ...group,
@@ -152,7 +152,7 @@ export default {
         });
       } else {
         try {
-          await userGroupStore.saveList(formValue, props.id, msgPopup, loadingBar);
+          await mailingListStore.saveList(formValue, props.id, msgPopup, loadingBar);
           formValue.groupName = '';
           formValue.selectedGroups = [];
           props.onClose(true);

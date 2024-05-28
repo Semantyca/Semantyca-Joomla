@@ -5,6 +5,12 @@ export const useNewsletterStore = defineStore('newsletter', {
         docsListPage: {
             docs: []
         },
+        mailingListPage: {
+            pageSize: 10,
+            itemCount: 0,
+            pageCount: 1,
+            pages: new Map(),
+        },
         currentNewsletterId: 0,
         progress: {
             dispatched: 0,

@@ -1,6 +1,6 @@
 import {defineStore} from 'pinia';
-import MailingListRequest from '../utils/MailingListRequest';
 import {globalProperties} from "../main";
+import MailingListApiManager from "../utils/MailingListApiManager";
 
 export const useUserGroupStore = defineStore('userGroup', {
     state: () => ({
@@ -42,21 +42,6 @@ export const useUserGroupStore = defineStore('userGroup', {
                 msgPopup.error(error.message, {
                     closable: true,
                     duration: this.$errorTimeout
-                });
-            } finally {
-                loadingBar.finish();
-            }
-        },
-        async saveList(model, id, msgPopup, loadingBar) {
-            loadingBar.start();
-            try {
-                const mailingListName = model.groupName;
-                const listItems = model.selectedGroups.map(group => group.id);
-                MailingListRequest.upsert(id, mailingListName, listItems);
-            } catch (error) {
-                msgPopup.error(error.message, {
-                    closable: true,
-                    duration: globalProperties.$errorTimeout
                 });
             } finally {
                 loadingBar.finish();
