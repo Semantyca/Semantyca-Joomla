@@ -39,8 +39,8 @@ import {
   useLoadingBar,
   useMessage,
 } from "naive-ui";
-import {useUserGroupStore} from "../stores/userGroupStore";
-import {useMailingListStore} from "../stores/mailinglistStore";
+import {useUserGroupStore} from "../stores/mailinglist/userGroupStore";
+import {useMailingListStore} from "../stores/mailinglist/mailinglistStore";
 import {useGlobalStore} from "../stores/globalStore";
 import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 

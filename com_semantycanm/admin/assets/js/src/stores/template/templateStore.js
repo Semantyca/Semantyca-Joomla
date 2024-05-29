@@ -1,5 +1,5 @@
 import {defineStore} from 'pinia';
-import {adaptField, processFormCustomFields} from "./utils/fieldUtilities";
+import {adaptField, processFormCustomFields} from "../../utils/fieldUtilities";
 
 export const useTemplateStore = defineStore('template', {
     state: () => ({

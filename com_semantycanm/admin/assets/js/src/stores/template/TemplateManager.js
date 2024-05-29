@@ -1,4 +1,4 @@
-import {setCurrentTemplate} from "../stores/utils/fieldUtilities";
+import {setCurrentTemplate} from "../../utils/fieldUtilities";
 
 class TemplateManager {
     messageReactive = null;

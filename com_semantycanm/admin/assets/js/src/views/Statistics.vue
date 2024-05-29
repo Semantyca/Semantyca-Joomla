@@ -26,7 +26,7 @@
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
 import {NDataTable, NGi, NGrid, NPagination, NTag, useLoadingBar, useMessage, NButton, NSpace} from 'naive-ui';
-import {useStatStore} from "../stores/statStore";
+import {useStatStore} from "../stores/statistics/statStore";
 import {useGlobalStore} from "../stores/globalStore";
 import EventTable from "../components/EventTable.vue";
 

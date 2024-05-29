@@ -149,7 +149,7 @@
 <script>
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
-import {useTemplateStore} from "../stores/templateStore";
+import {useTemplateStore} from "../stores/template/templateStore";
 import {
   NButton,
   NCheckbox,
@@ -169,11 +169,11 @@ import {
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 import {ejs} from 'codemirror-lang-ejs';
-import {rules, typeOptions} from '../utils/templateEditorUtils';
-import {addCustomField, handleTypeChange, removeCustomField} from '../utils/templateEditorHandlers';
-import TemplateManager from "../utils/TemplateManager";
+import {rules, typeOptions} from '../stores/template/templateEditorUtils';
+import {addCustomField, handleTypeChange, removeCustomField} from '../stores/template/templateEditorHandlers';
+import TemplateManager from "../stores/template/TemplateManager";
 import {debounce} from 'lodash-es';
-import {setCurrentTemplate} from "../stores/utils/fieldUtilities";
+import {setCurrentTemplate} from "../utils/fieldUtilities";
 
 export default {
   name: 'TemplateEditor',

@@ -66,8 +66,8 @@ import {
   useMessage
 } from 'naive-ui';
 import draggable from 'vuedraggable';
-import {useUserGroupStore} from "../stores/userGroupStore";
-import {useMailingListStore} from "../stores/mailinglistStore";
+import {useUserGroupStore} from "../stores/mailinglist/userGroupStore";
+import {useMailingListStore} from "../stores/mailinglist/mailinglistStore";
 
 export default {
   name: 'GroupEditorDialog',

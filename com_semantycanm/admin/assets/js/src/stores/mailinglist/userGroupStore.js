@@ -1,6 +1,4 @@
 import {defineStore} from 'pinia';
-import {globalProperties} from "../main";
-import MailingListApiManager from "../utils/MailingListApiManager";
 
 export const useUserGroupStore = defineStore('userGroup', {
     state: () => ({
@@ -23,7 +21,6 @@ export const useUserGroupStore = defineStore('userGroup', {
             if (!this.isDataStale && this.documentsPage.docs.length > 0) {
                 return;
             }
-
             loadingBar.start();
             try {
                 const url = `index.php?option=com_semantycanm&task=UserGroup.find`;

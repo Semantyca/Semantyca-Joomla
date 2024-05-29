@@ -2,28 +2,43 @@
   <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
     <n-gi>
       <n-space>
-        <n-button type="success"
-                  @click="sendNewsletter(false)">
-                  {{ globalStore.translations.SEND }}
+        <n-button type="success" @click="sendNewsletter(false)">
+          {{ globalStore.translations.SEND }}
         </n-button>
-        <n-button type="primary"
-                  @click="sendNewsletter(true)">
-                  {{ globalStore.translations.SAVE }}
+        <n-button type="primary" @click="sendNewsletter(true)">
+          {{ globalStore.translations.SAVE }}
         </n-button>
+        <span style="display:inline-block; width:32px;"></span>
+        <n-progress
+            type="circle"
+            :percentage="newsLetterStore.progress.dispatched"
+            style="margin-bottom: 10px; margin-right: 8px; width: 34px; height: 34px; line-height: 24px;"
+        ></n-progress>
+        <span style="display:inline-block; width:16px;"></span>
+        <n-progress
+            type="circle"
+            :percentage="newsLetterStore.progress.read"
+            style="margin-bottom: 10px; margin-right: 8px; width: 34px; height: 34px; line-height: 24px;"
+        ></n-progress>
       </n-space>
     </n-gi>
     <n-gi>
       <n-divider title-placement="left">Newsletter properties</n-divider>
     </n-gi>
     <n-gi>
-      <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" label-placement="left" label-width="auto">
-        <n-grid :cols="8">
+      <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" label-placement="left" label-width="auto" v-on:submit.prevent>
+
+      <n-grid :cols="8">
           <n-gi span="8">
             <n-form-item label="Mailing lists" label-placement="left" path="templateName">
-              <n-select v-model:value="value"
+              <n-select v-model:value="mailingListValue"
                         size="large"
+                        :loading="loadingMailingListRef"
+                        remote
+                        placeholder="Mailing lists"
                         style="width: 100%; max-width: 600px;"
-                        multiple :options="options"/>
+                        multiple :options="newsLetterStore.mailingListOptions"
+              />
             </n-form-item>
             <n-form-item label="Custom address" label-placement="left" path="description">
               <n-input v-model:value="newsLetterFormValue.testEmail"
@@ -43,83 +58,26 @@
                        placeholder="Subject"/>
               <n-button size="large"
                         type="tertiary"
-                        @click="setSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+                        @click="fetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
               </n-button>
             </n-form-item>
           </n-gi>
         </n-grid>
       </n-form>
-      <!--        <n-grid :cols="2" x-gap="12">
-                <n-gi>
-                  <h3>{{ globalStore.translations.AVAILABLE_LISTS }}</h3>
-                  <ul ref="availableListsUlRef" class="list-group">
-                    <li v-for="ml in mailingListStore.docsListPage.docs" :key="ml.id" class="list-group-item" :id="ml.id">
-                      {{ ml.name }}
-                    </li>
-                  </ul>
-                </n-gi>
-                <n-gi>
-                  <h3>{{ globalStore.translations.SELECTED_LISTS }}</h3>
-                  <ul ref="selectedListsUlRef" class="dropzone list-group"></ul>
-                </n-gi>
-              </n-grid>-->
-
     </n-gi>
-    <!--    <n-gi>
-          <n-grid :cols="1">
-            <n-gi>
-              <input type="hidden" id="currentNewsletterId" name="currentNewsletterId" value="">
-              <input type="hidden" id="hiddenSelectedLists" name="selectedLists" value="">
-
-
-            </n-gi>
-          </n-grid>
-        </n-gi>-->
     <n-gi>
       <n-divider title-placement="left">Newsletter source</n-divider>
     </n-gi>
     <n-gi>
       <code-mirror
-          v-model="newsLetterFormValue.localMessageContent"
+          v-model="composerStore.cont"
           basic
           :lang="lang"
           :dark="dark"
           :style="{ width: '100%' }"
+          read-only
       />
     </n-gi>
-
-    <n-gi>
-      <n-grid :cols="2" x-gap="12">
-        <n-gi>
-          <n-space>
-            <n-button type="success"
-                      size="large"
-                      @click="sendNewsletter(false)">{{ globalStore.translations.SEND_NEWSLETTER }}
-            </n-button>
-            <n-button id="saveNewsletterBtn"
-                      size="large"
-                      type="primary"
-                      @click="sendNewsletter(true)">{{ globalStore.translations.SAVE_NEWSLETTER }}
-            </n-button>
-          </n-space>
-        </n-gi>
-        <n-gi>
-          <n-progress
-              type="line"
-              :percentage="newsLetterStore.progress.dispatched"
-              :indicator-placement="'inside'"
-              style="margin-bottom: 10px;"
-          ></n-progress>
-          <n-progress
-              type="line"
-              status="warning"
-              :percentage="newsLetterStore.progress.read"
-              :indicator-placement="'inside'"
-          ></n-progress>
-        </n-gi>
-      </n-grid>
-    </n-gi>
-
     <n-gi>
       <n-grid :cols="1">
         <n-gi>
@@ -127,7 +85,6 @@
         </n-gi>
       </n-grid>
     </n-gi>
-
     <n-gi>
       <n-grid :cols="1">
         <n-gi>
@@ -145,15 +102,16 @@
       </n-grid>
     </n-gi>
   </n-grid>
-
 </template>
 
+
 <script>
-import {defineComponent, h, nextTick, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
-import {useGlobalStore} from "../stores/globalStore";
+import { defineComponent, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { useGlobalStore } from "../stores/globalStore";
 import {
   NButton,
   NDataTable,
+  NDivider,
   NForm,
   NFormItem,
   NGi,
@@ -161,17 +119,17 @@ import {
   NInput,
   NInputGroup,
   NProgress,
+  NSelect,
   NSpace,
   useLoadingBar,
   useMessage,
-  NSelect,
-  NDivider,
 } from "naive-ui";
-import {useNewsletterStore} from "../stores/newsletter/newsletterStore";
-import {useMailingListStore} from "../stores/mailinglistStore";
+import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
+import { useComposerStore } from "../stores/composer/composerStore";
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
+import UserExperienceHelper from "../utils/UserExperienceHelper";
 import CodeMirror from 'vue-codemirror6';
-import {html} from '@codemirror/lang-html';
+import { html } from '@codemirror/lang-html';
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -195,14 +153,12 @@ export default defineComponent({
   },
   setup(props) {
     const newsletterFormRef = ref(null);
-    const availableListsUlRef = ref(null);
-    const selectedListsUlRef = ref(null);
+    const loadingMailingListRef = ref(false)
     const globalStore = useGlobalStore();
-    const mailingListStore = useMailingListStore();
     const newsLetterStore = useNewsletterStore();
+    const composerStore = useComposerStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar()
-
     const state = reactive({
       isTest: false,
       progress: 0
@@ -224,13 +180,10 @@ export default defineComponent({
     });
 
     onMounted(() => {
-      mailingListStore.getDocs(1, 100, true, msgPopup, loadingBar);
+      newsLetterStore.getMailingLists(1, 100, true, msgPopup, loadingBar);
       newsLetterStore.fetchNewsLetter(1, 10, pagination);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       newsLetterStore.startPolling();
-      nextTick(() => {
-        applyAndDropSet([availableListsUlRef.value, selectedListsUlRef.value]);
-      });
     });
 
     onUnmounted(() => {
@@ -257,18 +210,6 @@ export default defineComponent({
         newsLetterStore.startPolling();
       }
     };
-
-    const setSubject = () => {
-      fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random')
-          .then(response => response.json())
-          .then(data => {
-            newsLetterFormValue.value.subject = data.data;
-          })
-          .catch(error => {
-            console.log(error);
-            showAlertBar("Error: " + error);
-          });
-    }
 
     const sendNewsletter = async (onlySave) => {
       newsletterFormRef.value.validate((errors) => {
@@ -334,20 +275,6 @@ export default defineComponent({
       }
     };
 
-    const applyAndDropSet = (lists) => {
-      lists.forEach(list => {
-        /* Sortable.create(list, {
-           group: {
-             name: 'shared',
-             pull: true,
-             put: true
-           },
-           animation: 150,
-           sort: false
-         });*/
-      });
-    };
-
     const newsLetterRules = {
       testEmail: {
         validator(rule, value) {
@@ -365,17 +292,18 @@ export default defineComponent({
       },
       messageContent: {
         validator() {
-          return !!(newsLetterFormValue.value.localMessageContent && newsLetterFormValue.value.localMessageContent.trim() !== '');
+          return!!(newsLetterFormValue.value.localMessageContent && newsLetterFormValue.value.localMessageContent.trim()!== '');
         },
         message: 'Message content is empty. It cannot be saved'
       },
-      selectedLists: {
+      mailingListValue: {
         validator(rule, value) {
-          return value && value.length > 0;
+          return !(!value || value.length === 0);
         },
-        message: 'At least one group should be selected'
+        message: 'At least one mailing list should be selected'
       }
     };
+
 
     const editHandler = (id) => {
       newsLetterStore.currentNewsletterId = id;
@@ -414,7 +342,7 @@ export default defineComponent({
                 secondary: true,
                 type: "primary",
                 size: "small",
-              }, {default: () => 'Edit'}),
+              }, { default: () => 'Edit' }),
               h(NButton, {
                 onClick: () => { /* handle delete */
                 },
@@ -422,91 +350,41 @@ export default defineComponent({
                 secondary: true,
                 type: "error",
                 size: "small",
-              }, {default: () => 'Delete'})
+              }, { default: () => 'Delete' })
             ];
           }
         }
       ]
     }
 
+    const fetchSubject = async () => {
+      try {
+        newsLetterFormValue.value.subject = await UserExperienceHelper.getSubject(loadingBar);
+      } catch (error) {
+        msgPopup.error("Failed to fetch subject");
+      }
+    };
+
     return {
       globalStore,
-      mailingListStore,
       newsLetterStore,
+      composerStore,
       state,
       newsletterFormRef,
+      loadingMailingListRef,
       newsLetterRules,
       newsLetterFormValue,
       sendNewsletter,
       editContent,
-      setSubject,
+      fetchSubject,
       checkStatus,
-      availableListsUlRef,
-      selectedListsUlRef,
       columns: createColumns(),
       pagination,
       handlePageSizeChange,
       handlePageChange,
-      value: ref(['song3']),
-      options: [
-        {
-          label: "Everybody's Got Something to Hide Except Me and My Monkey",
-          value: 'song0',
-          disabled: true
-        },
-        {
-          label: 'Drive My Car',
-          value: 'song1'
-        },
-        {
-          label: 'Norwegian Wood',
-          value: 'song2'
-        },
-        {
-          label: "You Won't See",
-          value: 'song3',
-          disabled: true
-        },
-        {
-          label: 'Nowhere Man',
-          value: 'song4'
-        },
-        {
-          label: 'Think For Yourself',
-          value: 'song5'
-        },
-        {
-          label: 'The Word',
-          value: 'song6'
-        },
-        {
-          label: 'Michelle',
-          value: 'song7',
-          disabled: true
-        },
-        {
-          label: 'What goes on',
-          value: 'song8'
-        },
-        {
-          label: 'Girl',
-          value: 'song9'
-        },
-        {
-          label: "I'm looking through you",
-          value: 'song10'
-        },
-        {
-          label: 'In My Life',
-          value: 'song11'
-        },
-        {
-          label: 'Wait',
-          value: 'song12'
-        }
-      ],
+      mailingListValue: ref([]),
       dark: ref(false),
-      lang: ref(html())
+      lang: ref(html()),
     };
   },
 });

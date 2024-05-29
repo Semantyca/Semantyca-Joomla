@@ -1,4 +1,5 @@
-import {defineStore} from 'pinia';
+import { defineStore } from 'pinia';
+import MailingListApiManager from "../mailinglist/MailingListApiManager";
 
 export const useNewsletterStore = defineStore('newsletter', {
     state: () => ({
@@ -6,6 +7,7 @@ export const useNewsletterStore = defineStore('newsletter', {
             docs: []
         },
         mailingListPage: {
+            page: 1,
             pageSize: 10,
             itemCount: 0,
             pageCount: 1,
@@ -19,7 +21,42 @@ export const useNewsletterStore = defineStore('newsletter', {
         currentInterval: 1000,
         maxInterval: 30000
     }),
+    getters: {
+        getMailingListPage() {
+            const pageData = this.mailingListPage.pages.get(this.mailingListPage.page);
+            return pageData ? pageData.docs : [];
+        },
+        mailingListOptions() {
+            const allDocs = [];
+            for (const page of this.mailingListPage.pages.values()) {
+                allDocs.push(...page.docs);
+            }
+            return allDocs.map(doc => ({
+                label: doc.name,
+                value: doc.id
+            }));
+        }
+    },
     actions: {
+        async getMailingLists(currentPage, size = 10, forceRefresh = false, msgPopup, loadingBar) {
+            if (!this.mailingListPage.pages.get(currentPage) || forceRefresh) {
+                const manager = new MailingListApiManager(msgPopup, loadingBar);
+                const respData = await manager.fetch(currentPage, size);
+
+                if (respData.success && respData.data) {
+                    const { docs, count, maxPage, current } = respData.data;
+                    this.mailingListPage.page = current;
+                    this.mailingListPage.pageSize = size;
+                    this.mailingListPage.itemCount = count;
+                    this.mailingListPage.pageCount = maxPage;
+                    this.mailingListPage.pages.set(currentPage, { docs });
+                }
+            }
+            if (this.mailingListPage.page !== currentPage) {
+                this.mailingListPage.page = currentPage;
+            }
+            return this.mailingListPage.pages.get(currentPage)?.docs || [];
+        },
         async fetchNewsLetter(page, size, pagination) {
             try {
                 const response = await fetch('index.php?option=com_semantycanm&task=NewsLetter.findAll&page=' + page + '&limit=' + size);

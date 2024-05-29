@@ -66,7 +66,6 @@
                 :list="composerStore.listPage.docs"
                 group="articles"
                 itemKey="id"
-                @end="onDragEnd"
             >
               <template #item="{ element }">
                 <div
@@ -91,7 +90,6 @@
               :list="composerStore.selectedArticles"
               group="articles"
               itemKey="id"
-              @end="onDragEnd"
           >
             <template #item="{ element }">
               <div
@@ -187,7 +185,7 @@
               </template>
               Remove Formatting
             </n-button>
-            <n-button @click="previewHtml" secondary disabled>
+            <n-button @click="previewHtml" secondary >
               <template #icon>
                 <n-icon>
                   <Code />
@@ -201,6 +199,7 @@
           <div
               id="squire-editor"
               style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
+              v-html="composerStore.cont"
           ></div>
         </n-gi>
       </n-grid>
@@ -209,9 +208,9 @@
 </template>
 
 <script>
-import {computed, h, onMounted, ref} from 'vue';
-import {useGlobalStore} from "../stores/globalStore";
-import {debounce} from 'lodash';
+import { computed, h, onMounted, ref } from 'vue';
+import { useGlobalStore } from "../stores/globalStore";
+import { debounce } from 'lodash';
 import HtmlWrapper from '../components/HtmlWrapper.vue';
 import {
   NButton,
@@ -229,15 +228,14 @@ import {
   useDialog,
   useMessage
 } from "naive-ui";
-import {useTemplateStore} from "../stores/templateStore";
+import { useTemplateStore } from "../stores/template/templateStore";
 import draggable from 'vuedraggable';
-import {useComposerStore} from "../stores/composerStore";
-import DynamicBuilder from "../utils/DynamicBuilder";
+import { useComposerStore } from "../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
-import {html} from '@codemirror/lang-html';
-import {Bold, Code, Italic, Strikethrough, Underline, Photo, ClearFormatting} from '@vicons/tabler';
+import { html } from '@codemirror/lang-html';
+import { Bold, Code, Italic, Strikethrough, Underline, Photo, ClearFormatting } from '@vicons/tabler';
 
 export default {
   name: 'Composer',
@@ -280,48 +278,19 @@ export default {
         loading.value = false;
         window.DOMPurify = DOMPurify;
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
-        updateEditorContent();
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
     });
 
-    const onDragEnd = () => {
-      if (composerStore.selectedArticles.length === 0) {
-        composerStore.editorCont = '';
-        return;
-      }
-      updateEditorContent();
-    };
-
-    const updateEditorContent = () => {
-      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-      dynamicBuilder.addVariable("articles", composerStore.selectedArticles);
-      Object.keys(customFields.value).forEach((key) => {
-        const fieldValue = customFields.value[key].defaultValue;
-        dynamicBuilder.addVariable(key, fieldValue);
-      });
-      try {
-        const cont = dynamicBuilder.buildContent();
-        squireEditor.value.setHTML(cont);
-      } catch (e) {
-        msgPopup.error(e.message, {
-          closable: true,
-          duration: 100000
-        });
-      }
-    };
-
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
       composerStore.editorCont = '';
       await composerStore.fetchArticles('', true);
-      updateEditorContent();
     };
 
     const copyContentToClipboard = () => {
-      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-      const completeHTML = dynamicBuilder.getWrappedContent(squireEditor.value.getHTML());
+      const completeHTML = composerStore.cont;
       const tempTextArea = document.createElement('textarea');
       tempTextArea.value = completeHTML;
       document.body.appendChild(tempTextArea);
@@ -334,6 +303,7 @@ export default {
       }
       document.body.removeChild(tempTextArea);
     };
+
 
     const preview = () => {
       dialog.create({
@@ -349,15 +319,17 @@ export default {
     const previewHtml = () => {
       dialog.create({
         title: 'HTML Preview',
-        style: 'width: 800px',
+        style: 'width: 1024px',
         bordered: true,
-        content: () => h('div', [
+        content: () => h('div', {
+          style: { overflow: 'auto', maxHeight: '600px', marginBottom: '40px' }
+        }, [
           h(CodeMirror, {
-            modelValue: squireEditor.value.getHTML(),
+            modelValue: composerStore.cont,
             basic: true,
             lang: html(),
             dark: false,
-            style: { width: '100%', height: '400px' },
+            style: { width: '100%' },
             readOnly: true,
             extensions: [
               html()
@@ -367,14 +339,13 @@ export default {
       });
     };
 
+
     const handleColorChange = (fieldName, index, newValue) => {
       customFields.value[fieldName].defaultValue[index] = newValue;
-      updateEditorContent();
     };
 
     const handleFieldChange = (fieldName, newValue) => {
       customFields.value[fieldName].defaultValue = newValue;
-      updateEditorContent();
     };
 
     const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
@@ -419,7 +390,6 @@ export default {
     return {
       composerStore,
       articles,
-      onDragEnd,
       store,
       customFields,
       articlesListRef,

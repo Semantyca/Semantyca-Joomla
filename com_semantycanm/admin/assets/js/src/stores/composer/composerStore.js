@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
-import { useTemplateStore } from './templateStore';
-import TemplateManager from "../utils/TemplateManager";
+import { useTemplateStore } from '../template/templateStore';
+import TemplateManager from "../template/TemplateManager";
+import DynamicBuilder from "../../utils/DynamicBuilder";
 
 export const useComposerStore = defineStore('composer', {
     state: () => ({
@@ -12,6 +13,26 @@ export const useComposerStore = defineStore('composer', {
         editorCont: '',
         isLoading: false,
     }),
+    getters: {
+        cont(state) {
+            const templateStore = useTemplateStore();
+            const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+            dynamicBuilder.addVariable("articles", state.selectedArticles);
+
+            Object.keys(templateStore.availableCustomFields).forEach((key) => {
+                const field = templateStore.availableCustomFields[key];
+                const fieldValue = field.defaultValue;
+                dynamicBuilder.addVariable(key, fieldValue);
+            });
+
+            try {
+                return dynamicBuilder.buildContent();
+            } catch (e) {
+                console.error(e.message);
+                return '';
+            }
+        }
+    },
     actions: {
         async updateFormCustomFields(msgPopup) {
             const templateStore = useTemplateStore();
@@ -52,8 +73,6 @@ export const useComposerStore = defineStore('composer', {
                     closable: true,
                     duration: this.$errorTimeout
                 });
-            } finally {
-
             }
         },
         async fetchEverything(searchTerm, msgPopup, forceRefresh = false) {

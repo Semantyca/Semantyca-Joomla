@@ -1,11 +1,10 @@
-import BaseObject from "./BaseObject";
+import BaseObject from "../../utils/BaseObject";
 
 export default class MailingListApiManager extends BaseObject {
     static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
 
-    constructor(store, msgPopup, loadingBar) {
+    constructor(msgPopup, loadingBar) {
         super();
-        this.store = store;
         this.msgPopup = msgPopup;
         this.loadingBar = loadingBar;
         this.errorTimeout = 50000;
@@ -22,15 +21,7 @@ export default class MailingListApiManager extends BaseObject {
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.statusText);
             }
-            const respData = await response.json();
-            if (respData.success && respData.data) {
-                const { docs, count, maxPage, current } = respData.data;
-                this.store.page = current;
-                this.store.pageSize = size;
-                this.store.itemCount = count;
-                this.store.pageCount = maxPage;
-                this.store.pages.set(currentPage, { docs });
-            }
+            return await response.json();
         } catch (error) {
             this.loadingBar.error();
             this.msgPopup.error(error.message);
