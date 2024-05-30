@@ -78,39 +78,14 @@
           read-only
       />
     </n-gi>
-    <n-gi>
-      <n-grid :cols="1">
-        <n-gi>
-          <h3>{{ globalStore.translations.NEWSLETTERS_LIST }}</h3>
-        </n-gi>
-      </n-grid>
-    </n-gi>
-    <n-gi>
-      <n-grid :cols="1">
-        <n-gi>
-          <n-data-table
-              remote
-              size="large"
-              :columns="columns"
-              :data="newsLetterStore.docsListPage.docs"
-              :bordered="false"
-              :pagination="pagination"
-              @update:page="handlePageChange"
-              @update:page-size="handlePageSizeChange"
-          />
-        </n-gi>
-      </n-grid>
-    </n-gi>
   </n-grid>
 </template>
-
 
 <script>
 import { defineComponent, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
 import { useGlobalStore } from "../stores/globalStore";
 import {
   NButton,
-  NDataTable,
   NDivider,
   NForm,
   NFormItem,
@@ -137,7 +112,6 @@ export default defineComponent({
     NInput,
     NButton,
     NSpace,
-    NDataTable,
     NFormItem,
     NForm,
     NProgress,
@@ -171,17 +145,8 @@ export default defineComponent({
       localMessageContent: props.messageContent
     });
 
-    const pagination = reactive({
-      page: 1,
-      pageSize: 10,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large'
-    });
-
     onMounted(() => {
       newsLetterStore.getMailingLists(1, 100, true, msgPopup, loadingBar);
-      newsLetterStore.fetchNewsLetter(1, 10, pagination);
       document.addEventListener('visibilitychange', handleVisibilityChange);
       newsLetterStore.startPolling();
     });
@@ -194,14 +159,6 @@ export default defineComponent({
     watch(() => props.messageContent, (newVal) => {
       newsLetterFormValue.value.localMessageContent = newVal;
     });
-
-    function handlePageChange(page) {
-      newsLetterStore.fetchNewsLetter(page, pagination.pageSize, pagination);
-    }
-
-    function handlePageSizeChange(pageSize) {
-      newsLetterStore.fetchNewsLetter(pagination.page, pageSize, pagination);
-    }
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
@@ -220,7 +177,8 @@ export default defineComponent({
           if (onlySave) {
             newsletterHandler.saveNewsletter(subj, msgContent)
                 .then(() => {
-                  newsLetterStore.fetchNewsLetter(1, 10, pagination);
+                  // Removed call to fetch newsletters
+                  // newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
           } else {
             let listItems;
@@ -239,7 +197,8 @@ export default defineComponent({
                   console.log(response.data);
                   newsLetterStore.currentNewsletterId = response.data;
                   newsLetterStore.startPolling();
-                  newsLetterStore.fetchNewsLetter(1, 10, pagination);
+                  // Removed call to fetch newsletters
+                  // newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
                 .catch(error => {
                   console.log('err', error);
@@ -304,58 +263,10 @@ export default defineComponent({
       }
     };
 
-
-    const editHandler = (id) => {
-      newsLetterStore.currentNewsletterId = id;
-      const rowData = newsLetterStore.getRowByKey(id);
-      if (rowData) {
-        newsLetterStore.startPolling();
-        newsLetterFormValue.value.subject = rowData.subject;
-        newsLetterFormValue.value.localMessageContent = decodeURIComponent(rowData.message_content);
-      }
-    };
-
     const checkStatus = () => {
       const rowData = newsLetterStore.startPolling();
       console.log(rowData);
     };
-
-    const createColumns = () => {
-      return [
-        {
-          title: 'Subject',
-          key: 'subject'
-        },
-        {
-          title: 'Created',
-          key: 'reg_date'
-        },
-        {
-          title: "Action",
-          key: "actions",
-          render(row) {
-            return [
-              h(NButton, {
-                onClick: () => editHandler(row.key),
-                style: 'margin-right: 8px;',
-                strong: true,
-                secondary: true,
-                type: "primary",
-                size: "small",
-              }, { default: () => 'Edit' }),
-              h(NButton, {
-                onClick: () => { /* handle delete */
-                },
-                strong: true,
-                secondary: true,
-                type: "error",
-                size: "small",
-              }, { default: () => 'Delete' })
-            ];
-          }
-        }
-      ]
-    }
 
     const fetchSubject = async () => {
       try {
@@ -378,10 +289,6 @@ export default defineComponent({
       editContent,
       fetchSubject,
       checkStatus,
-      columns: createColumns(),
-      pagination,
-      handlePageSizeChange,
-      handlePageChange,
       mailingListValue: ref([]),
       dark: ref(false),
       lang: ref(html()),
@@ -389,3 +296,4 @@ export default defineComponent({
   },
 });
 </script>
+

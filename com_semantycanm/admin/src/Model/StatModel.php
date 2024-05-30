@@ -10,10 +10,11 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
 class StatModel extends BaseDatabaseModel
 {
+	//deprecated
 	public function getList($currentPage = 1, $itemsPerPage = 10)
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
@@ -51,16 +52,20 @@ class StatModel extends BaseDatabaseModel
 		$query = $db->getQuery(true);
 
 		$query->select([
-			$db->quoteName('id', 'key'),
-			$db->quoteName('reg_date'),
-			$db->quoteName('subscriber_email'),
-			$db->quoteName('event_type'),
-			$db->quoteName('fulfilled'),
-			$db->quoteName('event_date'),
-			$db->quoteName('errors')
+			$db->quoteName('e.id', 'key'),
+			$db->quoteName('e.reg_date'),
+			$db->quoteName('e.subscriber_email'),
+			$db->quoteName('e.event_type'),
+			$db->quoteName('e.fulfilled'),
+			$db->quoteName('e.event_date'),
+			$db->quoteName('e.errors'),
+			$db->quoteName('e.stats_id'),
+			$db->quoteName('s.newsletter_id'),
+			$db->quoteName('s.status')
 		])
-			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
-			->where($db->quoteName('stats_id') . ' = ' . (int) $id)
+			->from($db->quoteName('#__semantyca_nm_subscriber_events', 'e'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_stats', 's') . ' ON ' . $db->quoteName('e.stats_id') . ' = ' . $db->quoteName('s.id'))
+			->where($db->quoteName('s.newsletter_id') . ' = ' . (int) $id)
 			->setLimit(100);
 
 		$db->setQuery($query);
@@ -69,7 +74,6 @@ class StatModel extends BaseDatabaseModel
 			'docs' => $db->loadObjectList()
 		];
 	}
-
 
 	public function createStatRecord($status, $newsletter_id)
 	{
@@ -92,7 +96,6 @@ class StatModel extends BaseDatabaseModel
 		$db->execute();
 
 		return $db->insertid();
-
 	}
 
 	/**
@@ -101,8 +104,8 @@ class StatModel extends BaseDatabaseModel
 	 */
 	public function updateStatRecord($id, $status): bool
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
 		$fields = array(
 			$db->quoteName('status') . ' = ' . $db->quote($status)
 		);
@@ -123,8 +126,5 @@ class StatModel extends BaseDatabaseModel
 		}
 
 		return true;
-
 	}
-
-
 }

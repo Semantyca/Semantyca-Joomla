@@ -2,9 +2,13 @@
   <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
     <n-gi>
       <n-space>
-      <n-button type="primary" class="button-margin">
-        Export to Excel
-      </n-button>
+        <n-button type="primary" class="button-margin">
+          Export to Excel
+        </n-button>
+        <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length"
+                  class="button-margin">
+          {{ globalStore.translations.DELETE }}
+        </n-button>
       </n-space>
     </n-gi>
     <n-gi>
@@ -12,12 +16,13 @@
           remote
           size="large"
           :columns="columns"
-          :data="statStore.docsListPage.docs"
+          :data="statStore.getCurrentPage"
           allow-checking-not-loaded
           :bordered="false"
-          :pagination="pagination"
+          :pagination="statStore.getPagination"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
+          :row-props="getRowProps"
       />
     </n-gi>
   </n-grid>
@@ -25,10 +30,23 @@
 
 <script>
 import {defineComponent, h, onMounted, reactive, ref} from 'vue';
-import {NDataTable, NGi, NGrid, NPagination, NTag, useLoadingBar, useMessage, NButton, NSpace} from 'naive-ui';
+import {
+  NDataTable,
+  NGi,
+  NGrid,
+  NPagination,
+  NTag,
+  useLoadingBar,
+  useMessage,
+  NButton,
+  NSpace,
+  NEllipsis,
+  useDialog
+} from 'naive-ui';
 import {useStatStore} from "../stores/statistics/statStore";
 import {useGlobalStore} from "../stores/globalStore";
 import EventTable from "../components/EventTable.vue";
+import NewsletterDialog from "../components/NewsletterDialog.vue";
 
 export default defineComponent({
   name: 'Statistics',
@@ -41,45 +59,81 @@ export default defineComponent({
     NDataTable,
     NPagination,
     NButton,
-    NSpace
+    NSpace,
+    NEllipsis
   },
 
   setup() {
     const statsTabRef = ref(null);
+    const checkedRowKeysRef = ref([]);
     const globalStore = useGlobalStore();
     const statStore = useStatStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar()
-    const pagination = reactive({
-      page: 1,
-      pageSize: 10,
-      pageCount: 1,
-      itemCount: 0,
-      size: 'large',
-      showSizePicker: true,
-      pageSizes: [10, 20, 50]
-    });
+    const dialog = useDialog();
 
     onMounted(() => {
-      statStore.fetchStatisticsData(1, 10, pagination, msgPopup, loadingBar);
+      statStore.fetchNewsletterData(1, 10, msgPopup, loadingBar);
     });
 
     function handlePageChange(page) {
-      statStore.fetchStatisticsData(page, pagination.pageSize, pagination, msgPopup, loadingBar);
+      statStore.fetchNewsletterData(page, statStore.getPagination.pageSize, msgPopup, loadingBar);
     }
 
     function handlePageSizeChange(pageSize) {
-      statStore.fetchStatisticsData(pagination.page, pageSize, pagination, msgPopup, loadingBar);
+      statStore.fetchNewsletterData(statStore.getPagination.page, pageSize, msgPopup, loadingBar);
     }
+
+    const handleDeleteSelected = async () => {
+      try {
+        await statStore.deleteDocs(checkedRowKeysRef.value, msgPopup, loadingBar);
+        msgPopup.success('The selected mailing list entries were deleted successfully');
+        await statStore.fetchNewsletterData(1, 10, msgPopup, loadingBar);
+        checkedRowKeysRef.value = [];
+      } catch (error) {
+        msgPopup.error(error.message, {
+          closable: true,
+          duration: 10000
+        });
+      }
+    };
+
+    const getRowProps = (row) => {
+      return {
+        style: 'cursor: pointer;',
+        /*onClick: (event) => {
+          if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
+           showNewsLetter(row);
+          }
+        }*/
+      };
+    };
+
+    const showNewsLetter = (id = -1) => {
+
+      dialog.create({
+        title: 'Newsletter',
+        content: () => h(NewsletterDialog, {id}),
+        style: 'width: 60%'
+      });
+    };
 
     const createColumns = () => {
       return [
         {
+          type: "selection",
+          disabled(row) {
+            return row.name === "Edward King 3";
+          }
+        },
+        {
           title: 'Created',
-          key: 'reg_date'
+          key: 'reg_date',
+          width: 120,
         },
         {
           type: 'expand',
+          width: 50,
           renderExpand: (rowData) => {
             if (!statStore.eventListPage.docs[rowData.key]) {
               console.log('Fetching data for row', rowData.key);
@@ -89,39 +143,18 @@ export default defineComponent({
               data: statStore.eventListPage.docs[rowData.key],
 
             });
-          }
-
+          },
         },
         {
-          title: 'News letter',
-          key: 'newsletter_id'
+          title: 'Subject',
+          key: 'subject',
+          width: 300,
         },
         {
-          title: 'Status',
-          key: 'status',
-          render(row) {
-            let type;
-            let title;
-            switch (row.status) {
-              case -1:
-                type = 'error';
-                title = 'Not fulfilled';
-                break;
-              case 1:
-                type = 'warning';
-                title = 'Processing';
-                break;
-              case 2:
-                type = 'success';
-                title = 'Done';
-                break;
-              default:
-                type = 'tertiary';
-                title = 'Unknown';
-                break;
-            }
-            return h(NTag, {type}, {default: () => title});
-          }
+          title: 'Content',
+          key: 'message_content',
+          width: 500,
+          ellipsis: true
         }
       ]
     }
@@ -129,10 +162,12 @@ export default defineComponent({
       globalStore,
       statsTabRef,
       columns: createColumns(),
-      pagination,
+      getRowProps,
       statStore,
       handlePageSizeChange,
-      handlePageChange
+      handlePageChange,
+      handleDeleteSelected,
+      checkedRowKeysRef
     };
   },
 });

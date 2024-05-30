@@ -1,15 +1,37 @@
 import BaseObject from "../../utils/BaseObject";
 
 class NewsletterApiManager extends BaseObject{
+    static BASE_URL = 'index.php?option=com_semantycanm&task=NewsLetter.';
 
-    constructor(msgPopup) {
+    constructor(msgPopup, loadingBar) {
         super();
         this.msgPopup = msgPopup;
+        this.loadingBar = loadingBar;
         this.errorTimeout = 50000;
-        this.httpMethod = 'POST';
         this.headers = new Headers({
             'Content-Type': 'application/json',
         });
+    }
+
+    async fetch(currentPage, size) {
+        this.loadingBar.start();
+
+        const url = `${NewsletterApiManager.BASE_URL}findAll&page=${currentPage}&limit=${size}`;
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return await response.json();
+        } catch (error) {
+            this.loadingBar.error();
+            this.msgPopup.error(error.message);
+            throw error;
+        } finally {
+            this.loadingBar.finish();
+        }
     }
 
     sendEmail(subj, msgContent, listOfUserGroups) {
@@ -18,7 +40,7 @@ class NewsletterApiManager extends BaseObject{
             'subject': subj,
             'user_group': listOfUserGroups
         };
-        return this.doRequest('Service.sendEmailAsync', data);
+        return this.doPostRequest('Service.sendEmailAsync', data);
     }
 
     saveNewsletter(subj, msgContent) {
@@ -26,15 +48,15 @@ class NewsletterApiManager extends BaseObject{
             'subject': subj,
             'msg': encodeURIComponent(msgContent)
         };
-        return this.doRequest('NewsLetter.add', data);
+        return this.doPostRequest('NewsLetter.add', data);
     }
 
-    async doRequest(endpoint, data) {
+    async doPostRequest(endpoint, data) {
         super.startBusyMessage('Sending to the queue ...')
         const url = `index.php?option=com_semantycanm&task=${endpoint}`;
         try {
             const response = await fetch(url, {
-                method: this.httpMethod,
+                method: 'POST',
                 headers: this.headers,
                 body: JSON.stringify(data),
             });
@@ -52,7 +74,6 @@ class NewsletterApiManager extends BaseObject{
             super.stopBusyMessage()
         }
     }
-
 }
 
 export default NewsletterApiManager;
