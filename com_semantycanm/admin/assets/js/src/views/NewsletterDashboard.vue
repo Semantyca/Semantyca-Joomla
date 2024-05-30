@@ -26,12 +26,13 @@
       <n-divider title-placement="left">Newsletter properties</n-divider>
     </n-gi>
     <n-gi>
-      <n-form inline ref="newsletterFormRef" :rules="newsLetterRules" label-placement="left" label-width="auto" v-on:submit.prevent>
-
-      <n-grid :cols="8">
+      <n-form inline ref="formRef" :rules="rules" :model="modelRef" label-placement="left" label-width="auto"
+              :show-feedback="false">
+        <n-grid :cols="8">
           <n-gi span="8">
-            <n-form-item label="Mailing lists" label-placement="left" path="templateName">
-              <n-select v-model:value="mailingListValue"
+            <n-form-item label="Mailing lists" label-placement="left" path="mailingList" :show-feedback="false"
+                         class="form-item">
+              <n-select v-model:value="modelRef.mailingList"
                         size="large"
                         :loading="loadingMailingListRef"
                         remote
@@ -40,8 +41,9 @@
                         multiple :options="newsLetterStore.mailingListOptions"
               />
             </n-form-item>
-            <n-form-item label="Custom address" label-placement="left" path="description">
-              <n-input v-model:value="newsLetterFormValue.testEmail"
+            <n-form-item label="Custom address" label-placement="left" path="testEmail" :show-feedback="false"
+                         class="form-item">
+              <n-input v-model:value="modelRef.testEmail"
                        placeholder="E-mail address"
                        size="large"
                        type="text"
@@ -49,8 +51,8 @@
                        style="width: 100%; max-width: 600px;"
                        name="testEmails"/>
             </n-form-item>
-            <n-form-item label="Subject" label-placement="left" path="description">
-              <n-input v-model:value="newsLetterFormValue.subject"
+            <n-form-item label="Subject" label-placement="left" path="subject" :show-feedback="false" class="form-item">
+              <n-input v-model:value="modelRef.subject"
                        size="large"
                        type="text"
                        id="subject"
@@ -69,21 +71,22 @@
       <n-divider title-placement="left">Newsletter source</n-divider>
     </n-gi>
     <n-gi>
-      <code-mirror
-          v-model="composerStore.cont"
-          basic
-          :lang="lang"
-          :dark="dark"
-          :style="{ width: '100%' }"
-          read-only
-      />
+      <n-form-item label="Content" label-placement="left" path="content">
+        <code-mirror
+            v-model="modelRef.content"
+            basic
+            :lang="lang"
+            :dark="dark"
+            :style="{ width: '100%' }"
+        />
+      </n-form-item>
     </n-gi>
   </n-grid>
 </template>
 
 <script>
-import { defineComponent, h, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
-import { useGlobalStore } from "../stores/globalStore";
+import {defineComponent, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
+import {useGlobalStore} from "../stores/globalStore";
 import {
   NButton,
   NDivider,
@@ -99,12 +102,12 @@ import {
   useLoadingBar,
   useMessage,
 } from "naive-ui";
-import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
-import { useComposerStore } from "../stores/composer/composerStore";
+import {useNewsletterStore} from "../stores/newsletter/newsletterStore";
+import {useComposerStore} from "../stores/composer/composerStore";
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 import UserExperienceHelper from "../utils/UserExperienceHelper";
 import CodeMirror from 'vue-codemirror6';
-import { html } from '@codemirror/lang-html';
+import {html} from '@codemirror/lang-html';
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -125,24 +128,23 @@ export default defineComponent({
   props: {
     messageContent: String,
   },
-  setup(props) {
-    const newsletterFormRef = ref(null);
+  setup() {
+    const formRef = ref(null);
     const loadingMailingListRef = ref(false)
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
     const composerStore = useComposerStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar()
+    const modelRef = ref({
+      mailingList: [],
+      testEmail: '',
+      subject: '',
+      content: composerStore.cont
+    });
     const state = reactive({
       isTest: false,
       progress: 0
-    });
-
-    const newsLetterFormValue = ref({
-      testEmail: '',
-      subject: '',
-      selectedGroups: [],
-      localMessageContent: props.messageContent
     });
 
     onMounted(() => {
@@ -156,8 +158,8 @@ export default defineComponent({
       newsLetterStore.stopPolling();
     });
 
-    watch(() => props.messageContent, (newVal) => {
-      newsLetterFormValue.value.localMessageContent = newVal;
+    watch(() => composerStore.cont, (newVal) => {
+      modelRef.value.content = newVal;
     });
 
     const handleVisibilityChange = () => {
@@ -169,36 +171,25 @@ export default defineComponent({
     };
 
     const sendNewsletter = async (onlySave) => {
-      newsletterFormRef.value.validate((errors) => {
+      formRef.value.validate((errors) => {
         if (!errors) {
-          const subj = newsLetterFormValue.value.subject;
-          const msgContent = newsLetterFormValue.value.localMessageContent;
+          const subj = modelRef.value.subject;
+          const msgContent = modelRef.value.content;
           const newsletterHandler = new NewsletterApiManager(msgPopup);
           if (onlySave) {
-            newsletterHandler.saveNewsletter(subj, msgContent)
-                .then(() => {
-                  // Removed call to fetch newsletters
-                  // newsLetterStore.fetchNewsLetter(1, 10, pagination);
-                })
+            newsletterHandler.saveNewsletter(subj, msgContent);
           } else {
             let listItems;
-            if (newsLetterFormValue.value.testEmail !== "") {
-              listItems = newsLetterFormValue.value.testEmail;
+            if (modelRef.value.testEmail !== "") {
+              listItems = modelRef.value.testEmail.split(',').map(email => email.trim());
             } else {
-              listItems = Array.from(document.querySelectorAll('#selectedLists li'))
-                  .map(li => li.textContent.trim());
-              if (listItems.length === 0) {
-                msgPopup.warning("The list is empty");
-                return;
-              }
+              listItems = modelRef.value.mailingList.map(item => item.value);
             }
             newsletterHandler.sendEmail(subj, msgContent, listItems)
                 .then((response) => {
                   console.log(response.data);
                   newsLetterStore.currentNewsletterId = response.data;
                   newsLetterStore.startPolling();
-                  // Removed call to fetch newsletters
-                  // newsLetterStore.fetchNewsLetter(1, 10, pagination);
                 })
                 .catch(error => {
                   console.log('err', error);
@@ -220,7 +211,8 @@ export default defineComponent({
           });
         }
       });
-    }
+    };
+
 
     const editContent = () => {
       const messageContent = document.getElementById('messageContent');
@@ -234,32 +226,33 @@ export default defineComponent({
       }
     };
 
-    const newsLetterRules = {
+    function validateMailingListAndEmail() {
+      if (modelRef.value.mailingList.length === 0 && !modelRef.value.testEmail) {
+        return new Error('At least one mailing list or test email should be selected');
+      }
+      return true;
+    }
+
+    const rules = {
+      mailingList: {
+        validator: validateMailingListAndEmail,
+        trigger: 'blur'
+      },
       testEmail: {
-        validator(rule, value) {
-          if (!value) {
-            return true;
-          }
-          const emailPattern = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
-          return emailPattern.test(value);
-        },
-        message: 'Please enter a valid email address',
+        validator: validateMailingListAndEmail,
+        trigger: 'blur'
       },
       subject: {
         required: true,
-        message: 'The subject cannot be empty'
+        message: 'The subject cannot be empty',
+        trigger: 'blur'
       },
-      messageContent: {
+      content: {
         validator() {
-          return!!(newsLetterFormValue.value.localMessageContent && newsLetterFormValue.value.localMessageContent.trim()!== '');
+          return !!(modelRef.value.content && modelRef.value.content.trim() !== '');
         },
-        message: 'Message content is empty. It cannot be saved'
-      },
-      mailingListValue: {
-        validator(rule, value) {
-          return !(!value || value.length === 0);
-        },
-        message: 'At least one mailing list should be selected'
+        message: 'The content cannot be empty',
+        trigger: 'blur'
       }
     };
 
@@ -270,7 +263,7 @@ export default defineComponent({
 
     const fetchSubject = async () => {
       try {
-        newsLetterFormValue.value.subject = await UserExperienceHelper.getSubject(loadingBar);
+        modelRef.value.subject = await UserExperienceHelper.getSubject(loadingBar);
       } catch (error) {
         msgPopup.error("Failed to fetch subject");
       }
@@ -281,15 +274,14 @@ export default defineComponent({
       newsLetterStore,
       composerStore,
       state,
-      newsletterFormRef,
+      formRef,
       loadingMailingListRef,
-      newsLetterRules,
-      newsLetterFormValue,
+      rules,
       sendNewsletter,
       editContent,
       fetchSubject,
       checkStatus,
-      mailingListValue: ref([]),
+      modelRef,
       dark: ref(false),
       lang: ref(html()),
     };
@@ -297,3 +289,8 @@ export default defineComponent({
 });
 </script>
 
+<style>
+.form-item {
+  margin-bottom: 16px;
+}
+</style>

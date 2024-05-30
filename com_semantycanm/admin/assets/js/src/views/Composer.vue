@@ -225,7 +225,7 @@ import {
   NInputNumber,
   NSkeleton,
   NSpace,
-  useDialog,
+  useDialog, useLoadingBar,
   useMessage
 } from "naive-ui";
 import { useTemplateStore } from "../stores/template/templateStore";
@@ -266,6 +266,7 @@ export default {
     const store = useGlobalStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
+    const loadingBar = useLoadingBar()
     const dialog = useDialog();
     const customFields = computed(() => templateStore.availableCustomFields);
     const squireEditor = ref(null);
@@ -274,7 +275,7 @@ export default {
     onMounted(async () => {
       try {
         loading.value = true;
-        await composerStore.fetchEverything('', msgPopup);
+        await composerStore.fetchEverything('', false, msgPopup,loadingBar);
         loading.value = false;
         window.DOMPurify = DOMPurify;
         squireEditor.value = new Squire(document.getElementById('squire-editor'));

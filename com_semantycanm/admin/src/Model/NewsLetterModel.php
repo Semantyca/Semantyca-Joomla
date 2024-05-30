@@ -4,7 +4,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 
 class NewsLetterModel extends BaseDatabaseModel
 {
@@ -16,13 +15,16 @@ class NewsLetterModel extends BaseDatabaseModel
 
 		$query
 			->select([
-				$db->quoteName('id', 'key'),
-				$db->quoteName('reg_date'),
-				$db->quoteName('subject'),
-				$db->quoteName('message_content')
+				$db->quoteName('n.id', 'key'),
+				$db->quoteName('n.reg_date'),
+				$db->quoteName('n.subject'),
+				$db->quoteName('n.message_content'),
+				'IFNULL(' . $db->quoteName('s.status') . ', 0) AS ' . $db->quoteName('status'),
+				$db->quoteName('s.modified_date', 'status_modified_date')
 			])
-			->from($db->quoteName('#__semantyca_nm_newsletters'))
-			->order('reg_date desc')
+			->from($db->quoteName('#__semantyca_nm_newsletters', 'n'))
+			->leftJoin($db->quoteName('#__semantyca_nm_stats', 's') . ' ON ' . $db->quoteName('n.id') . ' = ' . $db->quoteName('s.newsletter_id'))
+			->order($db->quoteName('n.reg_date') . ' DESC')
 			->setLimit($itemsPerPage, $offset);
 
 		$db->setQuery($query);
@@ -135,7 +137,6 @@ class NewsLetterModel extends BaseDatabaseModel
 
 	public function upsert($subjectValue, $messageContent): int
 	{
-
 		$newsLetter = $this->findByContent($subjectValue, $messageContent);
 		if ($newsLetter == null)
 		{
@@ -151,10 +152,6 @@ class NewsLetterModel extends BaseDatabaseModel
 
 	public function add($subject_value, $message_content): int
 	{
-		if ($subject_value == "")
-		{
-			$subject_value = Util::generateSubject();
-		}
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query

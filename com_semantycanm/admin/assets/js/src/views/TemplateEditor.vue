@@ -163,6 +163,7 @@ import {
   NTabPane,
   NTabs,
   useMessage,
+  useLoadingBar,
   NGrid,
   NGi
 } from "naive-ui";
@@ -200,8 +201,9 @@ export default {
     const globalStore = useGlobalStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
+    const loadingBar = useLoadingBar()
     const customFormFields = computed(() => templateStore.currentTemplate.customFields);
-    const templateManager = new TemplateManager(templateStore, msgPopup);
+    const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
     const editorFocused = ref(false);
     const autosaveTemplate = () => {
       if (editorFocused.value) {

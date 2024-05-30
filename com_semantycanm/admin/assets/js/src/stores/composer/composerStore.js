@@ -34,9 +34,9 @@ export const useComposerStore = defineStore('composer', {
         }
     },
     actions: {
-        async updateFormCustomFields(msgPopup) {
+        async updateFormCustomFields(msgPopup, loadingBar) {
             const templateStore = useTemplateStore();
-            const templateManager = new TemplateManager(templateStore, msgPopup);
+            const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
             await templateManager.getTemplates(msgPopup);
         },
         async fetchArticles(searchTerm, msgPopup, forceRefresh = false) {
@@ -75,8 +75,8 @@ export const useComposerStore = defineStore('composer', {
                 });
             }
         },
-        async fetchEverything(searchTerm, msgPopup, forceRefresh = false) {
-            await this.updateFormCustomFields(msgPopup);
+        async fetchEverything(searchTerm, forceRefresh = false, msgPopup, loadingBar) {
+            await this.updateFormCustomFields(msgPopup, loadingBar);
             await this.fetchArticles(searchTerm, msgPopup, forceRefresh);
         }
     }

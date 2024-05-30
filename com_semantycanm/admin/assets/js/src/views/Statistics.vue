@@ -146,9 +146,38 @@ export default defineComponent({
           },
         },
         {
+          title: 'Status',
+          key: 'status',
+          width: 100,
+          render(row) {
+            let type;
+            let title;
+            switch (row.status) {
+              case -1:
+                type = 'error';
+                title = 'Not fulfilled';
+                break;
+              case 1:
+                type = 'warning';
+                title = 'Processing';
+                break;
+              case 2:
+                type = 'success';
+                title = 'Done';
+                break;
+              default:
+                type = 'tertiary';
+                title = 'Not sent';
+                break;
+            }
+            return h(NTag, {type}, {default: () => title});
+          }
+        },
+        {
           title: 'Subject',
           key: 'subject',
-          width: 300,
+          width: 200,
+          ellipsis: true
         },
         {
           title: 'Content',

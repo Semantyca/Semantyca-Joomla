@@ -1,11 +1,13 @@
 import {setCurrentTemplate} from "../../utils/fieldUtilities";
+import BaseObject from "../../utils/BaseObject";
 
-class TemplateManager {
-    messageReactive = null;
+class TemplateManager  extends BaseObject {
 
-    constructor(store, msgPopup) {
+    constructor(store, msgPopup, loadingBar) {
+        super();
         this.templateStore = store;
         this.msgPopup = msgPopup;
+        this.loadingBar = loadingBar;
         this.errorTimeout = 50000;
     }
 
@@ -22,7 +24,7 @@ class TemplateManager {
 
         const currentPage = 1;
         const itemsPerPage = 10;
-        this.startBusyMessage('Fetching templates ...');
+        this.loadingBar.start();
         const url = `index.php?option=com_semantycanm&task=Template.findAll&page=${currentPage}&limit=${itemsPerPage}`;
         try {
             const response = await fetch(url);
@@ -53,12 +55,13 @@ class TemplateManager {
                 throw new Error('Failed to fetch templates: No data returned');
             }
         } catch (error) {
+            this.loadingBar.error();
             this.msgPopup.error('Error fetching templates: ' + error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });
         } finally {
-            this.stopBusyMessage();
+            this.loadingBar.finish();
         }
     }
 
@@ -248,21 +251,6 @@ class TemplateManager {
             return maxKey.toString();
         }
         return minKey.toString();
-    }
-
-    startBusyMessage(msg) {
-        if (!this.messageReactive) {
-            this.messageReactive = this.msgPopup.loading(msg, {
-                duration: 0
-            });
-        }
-    }
-
-    stopBusyMessage() {
-        if (this.messageReactive) {
-            this.messageReactive.destroy();
-            this.messageReactive = null;
-        }
     }
 }
 
