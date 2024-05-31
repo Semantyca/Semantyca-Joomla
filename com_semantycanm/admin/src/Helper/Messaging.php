@@ -33,16 +33,18 @@ class Messaging
 	 * @throws NewsletterSenderException
 	 * @since 1.0
 	 */
-	public function sendEmail($user_or_user_group, $newsletter_id, $send_async = false): bool
+	public function sendEmail($subject, $encodedBody, $user_or_user_group, $send_async = false): bool
 	{
-		if (filter_var($user_or_user_group, FILTER_VALIDATE_EMAIL))
+		if (filter_var($user_or_user_group[0], FILTER_VALIDATE_EMAIL))
 		{
-			$recipients = [$user_or_user_group];
+			$recipients = $user_or_user_group;
 		}
 		else
 		{
 			$recipients = $this->mailingListModel->getEmailAddresses($user_or_user_group);
 		}
+
+		$newsletter_id = $this->newsletterModel->upsert($subject, $encodedBody);
 
 		foreach ($recipients as $e_mail)
 		{
@@ -70,7 +72,7 @@ class Messaging
 		}
 		else
 		{
-			$sender = new NewsletterSender($this->newsletterModel, $this->statModel, $this->eventModel);
+			$sender = new SMTPSender($this->newsletterModel);
 			$sender->sendNewsletter($newsletter_id, $this->baseURL);
 		}
 

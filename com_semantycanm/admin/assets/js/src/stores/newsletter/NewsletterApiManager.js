@@ -1,6 +1,6 @@
 import BaseObject from "../../utils/BaseObject";
 
-class NewsletterApiManager extends BaseObject{
+class NewsletterApiManager extends BaseObject {
     static BASE_URL = 'index.php?option=com_semantycanm&task=NewsLetter.';
 
     constructor(msgPopup, loadingBar) {
@@ -36,8 +36,8 @@ class NewsletterApiManager extends BaseObject{
 
     sendEmail(subj, msgContent, listOfUserGroups) {
         const data = {
-            'encoded_body': encodeURIComponent(msgContent),
             'subject': subj,
+            'msg': msgContent,
             'user_group': listOfUserGroups
         };
         return this.doPostRequest('Service.sendEmailAsync', data);
@@ -46,7 +46,7 @@ class NewsletterApiManager extends BaseObject{
     saveNewsletter(subj, msgContent) {
         const data = {
             'subject': subj,
-            'msg': encodeURIComponent(msgContent)
+            'msg': msgContent
         };
         return this.doPostRequest('NewsLetter.add', data);
     }
@@ -57,19 +57,28 @@ class NewsletterApiManager extends BaseObject{
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: this.headers,
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.headers
+                },
                 body: JSON.stringify(data),
             });
             if (!response.ok) {
                 const errorText = await response.text();
                 throw new Error(`Server error: ${response.status} - ${errorText}`);
             }
-            return await response.json();
+            const result = await response.json();
+            this.msgPopup.success('Operation completed successfully!', {
+                closable: true,
+                duration: 5000
+            });
+            return result;
         } catch (error) {
             this.msgPopup.error(error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });
+            throw error;
         } finally {
             super.stopBusyMessage()
         }

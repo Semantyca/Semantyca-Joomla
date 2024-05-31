@@ -9,7 +9,6 @@ import {NDataTable, NPagination, NTag} from "naive-ui";
 import {h} from "vue";
 
 export default {
-
   props: {
     data: Array
   },
@@ -20,6 +19,16 @@ export default {
   data() {
     return {
       columns: [
+        {
+          title: 'Attempt time',
+          key: 'reg_date',
+          render(row) {
+            if (row.event_type === 100) {
+              return row.reg_date? new Date(row.reg_date).toLocaleString() : 'No Attempt Time Available';
+            }
+            return '';
+          }
+        },
         {
           title: 'Event Name',
           key: 'event_type',
@@ -55,19 +64,15 @@ export default {
           title: 'Fulfilled',
           key: 'fulfilled',
           render(row) {
-            if (row.fulfilled === 1) {
+            if (row.fulfilled === 2) {
               return "YES";
             }
-            return "";
+            return "NO";
           }
         },
         {
           title: 'Subscriber',
           key: 'subscriber_email',
-        },
-        {
-          title: 'Date',
-          key: 'event_date',
         },
         {
           title: 'Errors',
@@ -81,12 +86,11 @@ export default {
               return '';
             }
 
-            if (!errors.length || !errors[0].error) {
+            if (!errors.length ||!errors[0].error) {
               return '';
             }
 
             return h('div', {}, errors.map(errorObj => h('div', {style: 'color: red;'}, errorObj.error)));
-
           }
         },
       ]
@@ -94,7 +98,6 @@ export default {
   },
 };
 </script>
-
 
 <style>
 .table-container {

@@ -24,7 +24,7 @@ class StatModel extends BaseDatabaseModel
 				$db->quoteName('newsletter_id'),
 				$db->quoteName('status')
 			])
-			->from($db->quoteName('#__semantyca_nm_stats'))
+			->from($db->quoteName('#__semantyca_nm_sending_events'))
 			->order('reg_date desc')
 			->setLimit($itemsPerPage, $offset);
 
@@ -33,7 +33,7 @@ class StatModel extends BaseDatabaseModel
 
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
-			->from($db->quoteName('#__semantyca_nm_stats'));
+			->from($db->quoteName('#__semantyca_nm_sending_events'));
 		$db->setQuery($queryCount);
 		$count   = $db->loadResult();
 		$maxPage = (int) ceil($count / $itemsPerPage);
@@ -59,12 +59,12 @@ class StatModel extends BaseDatabaseModel
 			$db->quoteName('e.fulfilled'),
 			$db->quoteName('e.event_date'),
 			$db->quoteName('e.errors'),
-			$db->quoteName('e.stats_id'),
+			$db->quoteName('e.sending_id'),
 			$db->quoteName('s.newsletter_id'),
 			$db->quoteName('s.status')
 		])
 			->from($db->quoteName('#__semantyca_nm_subscriber_events', 'e'))
-			->join('INNER', $db->quoteName('#__semantyca_nm_stats', 's') . ' ON ' . $db->quoteName('e.stats_id') . ' = ' . $db->quoteName('s.id'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('e.sending_id') . ' = ' . $db->quoteName('s.id'))
 			->where($db->quoteName('s.newsletter_id') . ' = ' . (int) $id)
 			->setLimit(100);
 
@@ -89,7 +89,7 @@ class StatModel extends BaseDatabaseModel
 			$newsletter_id
 		);
 
-		$query->insert($db->quoteName('#__semantyca_nm_stats'))
+		$query->insert($db->quoteName('#__semantyca_nm_sending_events'))
 			->columns($db->quoteName($columns))
 			->values(implode(',', $values));
 		$db->setQuery($query);
@@ -114,7 +114,7 @@ class StatModel extends BaseDatabaseModel
 			$fields[] = $db->quoteName('sent_time') . ' = COALESCE(' . $db->quoteName('sent_time') . ', ' . $db->quote((new DateTime())->format('Y-m-d H:i:s')) . ')';
 		}
 
-		$query->update($db->quoteName('#__semantyca_nm_stats'))
+		$query->update($db->quoteName('#__semantyca_nm_sending_events'))
 			->set($fields)
 			->where($db->quoteName('id') . ' = ' . $db->quote($id));
 

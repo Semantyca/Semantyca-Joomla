@@ -81,12 +81,12 @@ class NewsLetterController extends BaseController
 		$app = Factory::getApplication();
 		try
 		{
-			$input = $app->input;
+			$input = json_decode(file_get_contents('php://input'), true);
 
-			if ($input->getMethod() === 'POST')
+			if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			{
-				$subj = $this->input->getString('subject');
-				$msg  = $this->input->getString('msg');
+				$subj = $input['subject'] ?? null;
+				$msg  = $input['msg'] ?? null;
 
 				if (empty($msg))
 				{
@@ -115,6 +115,7 @@ class NewsLetterController extends BaseController
 		}
 		$app->close();
 	}
+
 
 	public function delete()
 	{

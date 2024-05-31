@@ -15,9 +15,10 @@ class SubscriberEventModel extends BaseDatabaseModel
 
 		$data = [
 			'subscriber_email' => $subscriber,
-			'stats_id' => $stat_id,
+			'sending_id'       => $stat_id,
 			'event_type'       => $eventType,
-			'trigger_token'    => $triggerToken
+			'trigger_token'    => $triggerToken,
+			'fulfilled'        => -1
 		];
 
 		$query->insert($db->quoteName('#__semantyca_nm_subscriber_events'))

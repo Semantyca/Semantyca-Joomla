@@ -14,8 +14,7 @@ class LogHelper
 
 	public static function logInfo(string $msg, $componentName)
 	{
-		$reflection  = new ReflectionClass($componentName);
-		$className   = $reflection->getShortName();
+		$className   = $componentName;
 		$logEntry = sprintf(
 			self::log_pattern,
 			INF,
@@ -29,8 +28,7 @@ class LogHelper
 
 	public static function logWarn(string $msg, $componentName)
 	{
-		$reflection  = new ReflectionClass($componentName);
-		$className   = $reflection->getShortName();
+		$className   = $componentName;
 		$logEntry = sprintf(
 			self::log_pattern,
 			self::WARN,
@@ -46,8 +44,7 @@ class LogHelper
 
 	public static function logException(Exception $e, $componentName)
 	{
-		$reflection = new ReflectionClass($componentName);
-		$className  = $reflection->getShortName();
+		$className   = $componentName;
 		$logEntry   = sprintf(
 			"%s: %s, Component: %s, Line: %d, Message: %s\nStack Trace:\n%s",
 			self::ERR,

@@ -35,12 +35,6 @@ const joomlaBootstrapTheme = {
     }
 };
 
-const loadingBarProps = {
-    color: '#ff8000',
-    colorError: '#ff8000',
-    colorFinish: '#ff8000'
-};
-
 const pinia = createPinia();
 
 const app = createApp({
@@ -54,7 +48,7 @@ const app = createApp({
     },
     template: `
       <div>
-        <n-loading-bar-provider :loading-bar-style="loadingBarProps">
+        <n-loading-bar-provider>
           <n-message-provider>
             <n-dialog-provider>
               <n-config-provider :theme-overrides="smtcaTheme">
@@ -68,10 +62,10 @@ const app = createApp({
     setup() {
         return {
             smtcaTheme: joomlaBootstrapTheme,
-            loadingBarProps
         };
     },
 });
+
 app.config.globalProperties.$errorTimeout = 10000;
 app.use(pinia);
 app.mount('#app');

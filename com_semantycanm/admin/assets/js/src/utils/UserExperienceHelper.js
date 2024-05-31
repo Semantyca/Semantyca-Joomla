@@ -2,7 +2,16 @@ export default class UserExperienceHelper {
     static async getSubject(loadingBar) {
         try {
             loadingBar.start();
-            const response = await fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random');
+            const params = {
+                type: 'random'
+            };
+            const response = await fetch('index.php?option=com_semantycanm&task=service.getSubject&type=random', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(params)
+            });
             if (!response.ok) {
                 throw new Error(`HTTP error, status = ${response.status}`);
             }

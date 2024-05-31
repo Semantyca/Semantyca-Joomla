@@ -15,23 +15,24 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
-
 
 class ServiceController extends BaseController
 {
 	public function sendEmailAsync()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
+
 		try
 		{
-			$jsonInput = file_get_contents('php://input');
-			$data      = json_decode($jsonInput, true);
+			$jsonInput = json_decode(file_get_contents('php://input'), true);
 
-			$subject     = $data['subject'] ?? '';
-			$user_group  = $data['user_group'] ?? '';
-			$encodedBody = $data['encoded_body'] ?? '';
+			$subject     = $jsonInput['subject'] ?? '';
+			$user_group  = $jsonInput['user_group'] ?? '';
+			$encodedBody = $jsonInput['msg'] ?? '';
 
 			$errors = [];
 
@@ -55,16 +56,15 @@ class ServiceController extends BaseController
 			$eventModel       = $this->getModel('SubscriberEvent');
 			$mailingListModel = $this->getModel('MailingList');
 
-			$newsletterId = $newLetterModel->upsert($subject, $encodedBody);
-
+			/** @var NewsLetterModel $newLetterModel */
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
 			$messagingHelper = new Messaging($newLetterModel, $statModel, $eventModel, $mailingListModel);
-			$result          = $messagingHelper->sendEmail($user_group, $newsletterId);
+			$result          = $messagingHelper->sendEmail($subject, $encodedBody, $user_group);
 			if ($result)
 			{
-				echo new JsonResponse($newsletterId);
+				echo new JsonResponse($result);
 			}
 			else
 			{
@@ -84,7 +84,8 @@ class ServiceController extends BaseController
 		{
 			http_response_code(500);
 			$errorMessage = $e->getMessage();
-			$errorData    = $e->getErrors();
+			//TODO temporary
+			$errorData    = $e->getTraceAsString();
 
 			if ($errorData)
 			{
@@ -95,23 +96,23 @@ class ServiceController extends BaseController
 				Log::add($errorMessage, Log::ERROR, Constants::COMPONENT_NAME);
 			}
 
-			echo new JsonResponse([
-				'message' => $errorMessage,
-				'errors'  => $errorData
-			], 'error', true);
+			echo new JsonResponse(['message' => $errorMessage], 'error', true);
 		} finally
 		{
-			Factory::getApplication()->close();
+			$app->close();
 		}
-
 	}
 
 	public function getSubject()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
+
 		try
 		{
-			$type = $this->input->get->get('type', '', 'RAW');
+			$jsonInput = json_decode(file_get_contents('php://input'), true);
+			$type      = $jsonInput['type'] ?? '';
+
 			if ($type == 'random')
 			{
 				$util   = new Util();
@@ -123,14 +124,13 @@ class ServiceController extends BaseController
 			}
 			echo new JsonResponse($result);
 		}
-		catch
-		(\Throwable $e)
+		catch (\Throwable $e)
 		{
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{
-			Factory::getApplication()->close();
+			$app->close();
 		}
 	}
 }

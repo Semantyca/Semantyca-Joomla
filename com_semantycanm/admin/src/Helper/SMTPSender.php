@@ -5,20 +5,24 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 use Joomla\CMS\Factory;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
+use Psr\Log\LogLevel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 
-class NewsletterSender
+class SMTPSender
 {
 	private $mailer;
 	private $config;
 	private NewsLetterModel $newsletterModel;
 	private const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
 
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function __construct($newsletterModel)
 	{
 		$this->newsletterModel  = $newsletterModel;
-		//define('JPATH_BASE', realpath(dirname(__FILE__) . '/../../../../'));
 		require_once JPATH_BASE . '/includes/defines.php';
 		require_once JPATH_BASE . '/includes/framework.php';
 
@@ -27,8 +31,16 @@ class NewsletterSender
 		$this->setupMailer();
 	}
 
-	private function setupMailer()
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
+	private function setupMailer(): void
 	{
+		$this->mailer->SMTPDebug = 2;
+
+		ob_start();
+
 		$this->mailer->isSMTP();
 		$this->mailer->Host       = $this->config->get('smtphost');
 		$this->mailer->SMTPAuth   = $this->config->get('smtpauth');
@@ -37,7 +49,15 @@ class NewsletterSender
 		$this->mailer->SMTPSecure = $this->config->get('smtpsecure');
 		$this->mailer->Port       = $this->config->get('smtpport');
 		$this->mailer->setFrom($this->config->get('mailfrom'), $this->config->get('fromname'));
+
+		$debugOutput = ob_get_clean();
+
+		$logger = Factory::getApplication()->getLogger();
+		$context = ['context' => 'com_semantycanm.mail.debug'];
+		$priority = LogLevel::DEBUG;
+		$logger->log($priority, $debugOutput, $context);
 	}
+
 
 	/**
 	 * @throws NewsletterSenderException|Exception
@@ -56,6 +76,8 @@ class NewsletterSender
 			if (!$this->sendEmail($row, $baseURL))
 			{
 				throw new NewsletterSenderException(["Failed to send to: " . $row->subscriber_email]);
+			} else {
+				$this->newsletterModel->updateFulfilledForEvents(Constants::EVENT_TYPE_DISPATCHED, $newsletterId);
 			}
 		}
 
@@ -76,15 +98,11 @@ class NewsletterSender
 		$this->mailer->Subject = $rowData->subject;
 		$this->mailer->Body    = $customizedBody;
 
-		if (!$this->mailer->send())
-		{
-			$this->mailer->clearAllRecipients();
+		$result = $this->mailer->send();
 
-			return false;
-		}
 		$this->mailer->clearAllRecipients();
 
-		return true;
+		return $result;
 	}
 }
 

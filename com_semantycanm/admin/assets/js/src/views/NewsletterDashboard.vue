@@ -175,7 +175,7 @@ export default defineComponent({
         if (!errors) {
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
-          const newsletterHandler = new NewsletterApiManager(msgPopup);
+          const newsletterHandler = new NewsletterApiManager(msgPopup, loadingBar);
           if (onlySave) {
             newsletterHandler.saveNewsletter(subj, msgContent);
           } else {
@@ -187,13 +187,13 @@ export default defineComponent({
             }
             newsletterHandler.sendEmail(subj, msgContent, listItems)
                 .then((response) => {
-                  console.log(response.data);
+                  console.log('response data:', response.data);
                   newsLetterStore.currentNewsletterId = response.data;
                   newsLetterStore.startPolling();
                 })
                 .catch(error => {
-                  console.log('err', error);
-                  msgPopup.error(error.toString(), {
+                  console.log('error: ', error.message);
+                  msgPopup.error(error.message, {
                     closable: true,
                     duration: 10000
                   });
