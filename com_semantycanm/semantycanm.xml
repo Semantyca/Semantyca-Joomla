@@ -45,7 +45,7 @@
             <language tag="pt-PT">./admin/language/pt-PT/pt-PT.com_semantycanm.sys.ini</language>
         </languages>
 
-        <scriptfile>installer_script.php</scriptfile>
+        <scriptfile>./admin/installer_script.php</scriptfile>
 
     </administration>
 
