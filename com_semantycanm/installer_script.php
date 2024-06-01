@@ -3,63 +3,92 @@ defined('_JEXEC') or die('Restricted access');
 
 class Com_SemantycanmInstallerScript
 {
+	public function preflight($type, $parent)
+	{
+		$this->logMessage("preflight method called for {$type}.");
+
+		if ($type === 'install' || $type === 'update') {
+			$this->logMessage("Starting cleanBundleDirectory process for {$type}.");
+			$this->cleanBundleDirectory();
+			$this->logMessage("Finished cleanBundleDirectory process for {$type}.");
+		}
+	}
+
 	public function install($parent)
 	{
-		$this->logMessage('Install: Cleaning bundle directory...');
-		$this->cleanBundleDirectory();
 	}
 
 	public function update($parent)
 	{
-		$this->logMessage('Update: Cleaning bundle directory...');
-		$this->cleanBundleDirectory();
 	}
 
 	public function uninstall($parent)
 	{
-		$this->logMessage('Uninstall: No actions taken.');	}
-
-	public function preflight($type, $parent)
-	{
-		$this->logMessage("Preflight ({$type}): No actions taken.");
 	}
 
 	public function postflight($type, $parent)
 	{
-		$this->logMessage("Postflight ({$type}): No actions taken.");
+		$this->logMessage("postflight method called for {$type}.");
+		$this->logFilesInDirectory();
 	}
 
 	private function cleanBundleDirectory()
 	{
 		$bundleDir = JPATH_ADMINISTRATOR . '/components/com_semantycanm/assets/bundle';
-		if (is_dir($bundleDir))
-		{
+		$logEntries = [];
+
+		if (is_dir($bundleDir)) {
+			$logEntries[] = "Cleaning directory: {$bundleDir}";
 			$this->logMessage("Cleaning directory: {$bundleDir}");
-			$this->deleteDirectoryContents($bundleDir);
-		}
-		else
-		{
+			$logEntries = array_merge($logEntries, $this->deleteFiles($bundleDir));
+		} else {
+			$logEntries[] = "Directory does not exist: {$bundleDir}";
 			$this->logMessage("Directory does not exist: {$bundleDir}");
+		}
+
+		$this->createMarkerFile($bundleDir, $logEntries);
+	}
+
+	private function deleteFiles($dir)
+	{
+		$files = array_diff(scandir($dir), array('.', '..'));
+		$logEntries = [];
+
+		foreach ($files as $file) {
+			$path = $dir . '/' . $file;
+			if (is_file($path)) {
+				unlink($path);
+				$logEntries[] = "Removed file: {$path}";
+				$this->logMessage("Removed file: {$path}");
+			}
+		}
+
+		return $logEntries;
+	}
+
+	private function createMarkerFile($dir, $logEntries)
+	{
+		$markerFilePath = $dir . '/deletion_log.txt';
+		if (!empty($logEntries)) {
+			file_put_contents($markerFilePath, implode("\n", $logEntries));
+			$this->logMessage("Created marker file: {$markerFilePath}");
 		}
 	}
 
-	private function deleteDirectoryContents($dir)
+	private function logFilesInDirectory()
 	{
-		$files = array_diff(scandir($dir), array('.', '..'));
-		foreach ($files as $file)
-		{
-			$path = $dir . '/' . $file;
-			if (is_dir($path))
-			{
-				$this->deleteDirectoryContents($path);
-				rmdir($path);
-				$this->logMessage("Removed directory: {$path}");
+		$dir = JPATH_ADMINISTRATOR . '/components/com_semantycanm/assets/bundle';
+		if (is_dir($dir)) {
+			$files = array_diff(scandir($dir), array('.', '..'));
+			if (empty($files)) {
+				$this->logMessage("Directory {$dir} is empty.");
+			} else {
+				foreach ($files as $file) {
+					$this->logMessage("File in directory: {$file}");
+				}
 			}
-			else
-			{
-				unlink($path);
-				$this->logMessage("Removed file: {$path}");
-			}
+		} else {
+			$this->logMessage("Directory does not exist: {$dir}");
 		}
 	}
 
@@ -68,4 +97,3 @@ class Com_SemantycanmInstallerScript
 		JLog::add($message, JLog::INFO, 'com_semantycanm');
 	}
 }
-
