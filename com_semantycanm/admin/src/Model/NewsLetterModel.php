@@ -20,11 +20,12 @@ class NewsLetterModel extends BaseDatabaseModel
 				$db->quoteName('n.reg_date'),
 				$db->quoteName('n.subject'),
 				$db->quoteName('n.message_content'),
-				'IFNULL(' . $db->quoteName('s.status') . ', 0) AS ' . $db->quoteName('status'),
+				$db->quoteName('s.status'),
 				$db->quoteName('s.modified_date', 'status_modified_date')
 			])
 			->from($db->quoteName('#__semantyca_nm_newsletters', 'n'))
 			->leftJoin($db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('n.id') . ' = ' . $db->quoteName('s.newsletter_id'))
+			->group($db->quoteName('n.id'))
 			->order($db->quoteName('n.reg_date') . ' DESC')
 			->setLimit($itemsPerPage, $offset);
 
@@ -46,6 +47,7 @@ class NewsLetterModel extends BaseDatabaseModel
 			'maxPage' => $maxPage
 		];
 	}
+
 
 	public function find($id)
 	{

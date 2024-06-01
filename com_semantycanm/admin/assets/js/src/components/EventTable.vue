@@ -1,3 +1,5 @@
+```javascript
+// Updated script to remove 'Fulfilled' column and make NTag green if row.fulfilled is true
 <template>
   <div class="table-container">
     <n-data-table :columns="columns" :data="data"/>
@@ -5,8 +7,9 @@
 </template>
 
 <script>
-import {NDataTable, NPagination, NTag} from "naive-ui";
-import {h} from "vue";
+import { NDataTable, NPagination, NTag, NIcon } from "naive-ui";
+import { h } from "vue";
+import { Check } from '@vicons/tabler';
 
 export default {
   props: {
@@ -14,7 +17,8 @@ export default {
   },
   components: {
     NDataTable,
-    NPagination
+    NPagination,
+    NIcon
   },
   data() {
     return {
@@ -22,9 +26,10 @@ export default {
         {
           title: 'Attempt time',
           key: 'reg_date',
+          width: 200,
           render(row) {
             if (row.event_type === 100) {
-              return row.reg_date? new Date(row.reg_date).toLocaleString() : 'No Attempt Time Available';
+              return row.reg_date ? new Date(row.reg_date).toLocaleString() : 'No Attempt Time Available';
             }
             return '';
           }
@@ -32,47 +37,39 @@ export default {
         {
           title: 'Event Name',
           key: 'event_type',
+          width: 200,
           render(row) {
             let type;
             let title;
             switch (row.event_type) {
               case 100:
-                type = 'info';
                 title = 'Dispatched';
                 break;
               case 101:
-                type = 'info';
                 title = 'Read';
                 break;
               case 102:
-                type = 'info';
                 title = 'Unsubscribed';
                 break;
               case 103:
-                type = 'info';
                 title = 'Click';
                 break;
               default:
-                type = 'tertiary';
                 title = 'Unknown';
                 break;
             }
-            return h(NTag, {type}, {default: () => title});
-          }
-        },
-        {
-          title: 'Fulfilled',
-          key: 'fulfilled',
-          render(row) {
-            if (row.fulfilled === 2) {
-              return "YES";
-            }
-            return "NO";
+            return h('div', {}, [
+              h(NTag, { type: row.fulfilled === 2 ? 'success' : type }, { default: () => [
+                  title,
+                  row.fulfilled === 2 ? h(NIcon, { component: Check, style: 'margin-left: 8px;' }) : null
+                ]})
+            ]);
           }
         },
         {
           title: 'Subscriber',
           key: 'subscriber_email',
+          width: 200,
         },
         {
           title: 'Errors',
@@ -86,11 +83,11 @@ export default {
               return '';
             }
 
-            if (!errors.length ||!errors[0].error) {
+            if (!errors.length || !errors[0].error) {
               return '';
             }
 
-            return h('div', {}, errors.map(errorObj => h('div', {style: 'color: red;'}, errorObj.error)));
+            return h('div', {}, errors.map(errorObj => h('div', { style: 'color: red;' }, errorObj.error)));
           }
         },
       ]

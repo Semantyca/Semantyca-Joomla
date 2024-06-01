@@ -9,6 +9,7 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
 class StatController extends BaseController
 {
@@ -21,6 +22,7 @@ class StatController extends BaseController
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
 
+			/** @var StatModel $model */
 			$model = $this->getModel('Stat');
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
@@ -43,7 +45,7 @@ class StatController extends BaseController
 		{
 			$eventId = $app->input->getInt('eventid', 0);
 
-
+			/** @var StatModel $model */
 			$model = $this->getModel('Stat');
 			echo new JsonResponse($model->getEvents($eventId));
 		}

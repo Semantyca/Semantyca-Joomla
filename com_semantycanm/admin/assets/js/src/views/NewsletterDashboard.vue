@@ -175,9 +175,9 @@ export default defineComponent({
         if (!errors) {
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
-          const newsletterHandler = new NewsletterApiManager(msgPopup, loadingBar);
+          const newsletterApiManager = new NewsletterApiManager(msgPopup, loadingBar);
           if (onlySave) {
-            newsletterHandler.saveNewsletter(subj, msgContent);
+            newsletterApiManager.saveNewsletter(subj, msgContent);
           } else {
             let listItems;
             if (modelRef.value.testEmail !== "") {
@@ -185,7 +185,7 @@ export default defineComponent({
             } else {
               listItems = modelRef.value.mailingList.map(item => item.value);
             }
-            newsletterHandler.sendEmail(subj, msgContent, listItems)
+            newsletterApiManager.sendEmail(subj, msgContent, listItems)
                 .then((response) => {
                   console.log('response data:', response.data);
                   newsLetterStore.currentNewsletterId = response.data;
@@ -211,19 +211,6 @@ export default defineComponent({
           });
         }
       });
-    };
-
-
-    const editContent = () => {
-      const messageContent = document.getElementById('messageContent');
-      const toggleBtn = document.getElementById('toggleEditBtn');
-      if (messageContent.hasAttribute('readonly')) {
-        messageContent.removeAttribute('readonly');
-        toggleBtn.textContent = 'Read-Only';
-      } else {
-        messageContent.setAttribute('readonly', 'readonly');
-        toggleBtn.textContent = 'Edit';
-      }
     };
 
     function validateMailingListAndEmail() {
@@ -278,7 +265,6 @@ export default defineComponent({
       loadingMailingListRef,
       rules,
       sendNewsletter,
-      editContent,
       fetchSubject,
       checkStatus,
       modelRef,

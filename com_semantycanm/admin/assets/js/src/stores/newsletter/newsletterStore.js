@@ -89,10 +89,10 @@ export const useNewsletterStore = defineStore('newsletter', {
                 const respData = await response.json();
                 if (respData.success && respData.data) {
                     const dispatchedEvents = respData.data.filter(event => event.event_type === 100);
-                    const dispatchedFulfilled = dispatchedEvents.filter(event => event.fulfilled === 1).length;
+                    const dispatchedFulfilled = dispatchedEvents.filter(event => event.fulfilled === 2).length;
                     this.progress.dispatched = Math.round((dispatchedFulfilled / dispatchedEvents.length) * 100) || 0;
                     const readEvents = respData.data.filter(event => event.event_type === 101);
-                    const readFulfilled = readEvents.filter(event => event.fulfilled === 1).length;
+                    const readFulfilled = readEvents.filter(event => event.fulfilled === 2).length;
                     this.progress.read = Math.round((readFulfilled / readEvents.length) * 100) || 0;
                 }
             } catch (error) {

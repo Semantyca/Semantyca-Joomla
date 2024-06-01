@@ -52,7 +52,7 @@ class NewsletterApiManager extends BaseObject {
     }
 
     async doPostRequest(endpoint, data) {
-        super.startBusyMessage('Sending to the queue ...')
+        super.startBusyMessage('Sending ...')
         const url = `index.php?option=com_semantycanm&task=${endpoint}`;
         try {
             const response = await fetch(url, {
@@ -68,6 +68,7 @@ class NewsletterApiManager extends BaseObject {
                 throw new Error(`Server error: ${response.status} - ${errorText}`);
             }
             const result = await response.json();
+            console.log(result);
             this.msgPopup.success('Operation completed successfully!', {
                 closable: true,
                 duration: 5000

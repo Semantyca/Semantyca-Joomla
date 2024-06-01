@@ -75,6 +75,56 @@ class StatModel extends BaseDatabaseModel
 		];
 	}
 
+	public function getMergedEvents($id)
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->select([
+			$db->quoteName('e.id', 'key'),
+			$db->quoteName('e.reg_date'),
+			$db->quoteName('e.subscriber_email'),
+			$db->quoteName('e.event_type'),
+			$db->quoteName('e.fulfilled'),
+			$db->quoteName('e.event_date'),
+			$db->quoteName('e.errors'),
+			$db->quoteName('e.sending_id'),
+			$db->quoteName('s.newsletter_id'),
+			$db->quoteName('s.status')
+		])
+			->from($db->quoteName('#__semantyca_nm_subscriber_events', 'e'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('e.sending_id') . ' = ' . $db->quoteName('s.id'))
+			->where($db->quoteName('s.newsletter_id') . ' = ' . (int) $id)
+			->order($db->quoteName('e.event_date') . ' ASC'); // Optional: order by event_date
+
+		$db->setQuery($query);
+		$events = $db->loadObjectList();
+
+		$mergedEvents = [];
+		$commonInfo = [];
+
+		foreach ($events as $event) {
+			$commonInfo = [
+				'subscriber_email' => $event->subscriber_email,
+				'sending_id'       => $event->sending_id
+			];
+
+			$mergedEvents[] = [
+				'id'          => $event->key,
+				'fulfilled'   => $event->fulfilled,
+				'event_date'  => $event->event_date,
+				'errors'      => $event->errors
+			];
+		}
+
+		return [
+			'docs' => [
+				'common' => $commonInfo,
+				'events' => $mergedEvents
+			]
+		];
+	}
+
 	public function createStatRecord($status, $newsletter_id)
 	{
 		$db       = $this->getDatabase();

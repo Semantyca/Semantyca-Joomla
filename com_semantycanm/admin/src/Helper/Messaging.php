@@ -52,7 +52,7 @@ class Messaging
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_DISPATCHED);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_READ);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);
-			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_CLICK);
+			//$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_CLICK);
 		}
 
 		if ($send_async)
@@ -76,7 +76,7 @@ class Messaging
 			$sender->sendNewsletter($newsletter_id, $this->baseURL);
 		}
 
-		return true;
+		return $newsletter_id;
 	}
 
 

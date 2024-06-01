@@ -5,7 +5,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 use Joomla\CMS\Factory;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
-use Psr\Log\LogLevel;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 
@@ -16,13 +15,14 @@ class SMTPSender
 	private NewsLetterModel $newsletterModel;
 	private const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
 
+
 	/**
 	 * @throws Exception
 	 * @since 1.0
 	 */
 	public function __construct($newsletterModel)
 	{
-		$this->newsletterModel  = $newsletterModel;
+		$this->newsletterModel = $newsletterModel;
 		require_once JPATH_BASE . '/includes/defines.php';
 		require_once JPATH_BASE . '/includes/framework.php';
 
@@ -37,9 +37,11 @@ class SMTPSender
 	 */
 	private function setupMailer(): void
 	{
-		$this->mailer->SMTPDebug = 2;
+		$this->mailer->SMTPDebug = 0;
 
-		ob_start();
+		$this->mailer->Debugoutput = function($str, $level) {
+			error_log("SMTP debug level $level: $str");
+		};
 
 		$this->mailer->isSMTP();
 		$this->mailer->Host       = $this->config->get('smtphost');
@@ -49,15 +51,7 @@ class SMTPSender
 		$this->mailer->SMTPSecure = $this->config->get('smtpsecure');
 		$this->mailer->Port       = $this->config->get('smtpport');
 		$this->mailer->setFrom($this->config->get('mailfrom'), $this->config->get('fromname'));
-
-		$debugOutput = ob_get_clean();
-
-		$logger = Factory::getApplication()->getLogger();
-		$context = ['context' => 'com_semantycanm.mail.debug'];
-		$priority = LogLevel::DEBUG;
-		$logger->log($priority, $debugOutput, $context);
 	}
-
 
 	/**
 	 * @throws NewsletterSenderException|Exception
@@ -105,4 +99,3 @@ class SMTPSender
 		return $result;
 	}
 }
-
