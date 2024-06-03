@@ -7,7 +7,7 @@
       <Composer></Composer>
     </n-tab-pane>
     <n-tab-pane name="Newsletter" tab="Newsletter">
-      <NewsletterDashboard :messageContent="messageContent"></NewsletterDashboard>
+      <NewsletterDashboard :messageContent="messageContent" :isActive="activeTab === 'Newsletter'"></NewsletterDashboard>
     </n-tab-pane>
     <n-tab-pane name="Statistics" tab="Statistics">
       <Statistics></Statistics>
@@ -19,13 +19,13 @@
 </template>
 
 <script>
-import {ref} from "vue";
+import { ref } from "vue";
 import Lists from "./Lists.vue";
 import Composer from "./Composer.vue";
 import NewsletterDashboard from "./NewsletterDashboard.vue";
 import Statistics from "./Statistics.vue";
 import TemplateEditor from "./TemplateEditor.vue";
-import {NTabPane, NTabs} from 'naive-ui';
+import { NTabPane, NTabs } from 'naive-ui';
 
 export default {
   components: {

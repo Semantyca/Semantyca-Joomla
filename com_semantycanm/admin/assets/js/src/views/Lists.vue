@@ -80,7 +80,7 @@ export default {
       try {
         await mailingListStore.deleteDocs(checkedRowKeysRef.value, msgPopup, loadingBar);
         msgPopup.success('The selected mailing list entries were deleted successfully');
-        await mailingListStore.getDocs(1, 10, msgPopup, loadingBar);
+        await mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar);
         checkedRowKeysRef.value = [];
       } catch (error) {
         msgPopup.error(error.message, {
@@ -94,7 +94,7 @@ export default {
       const handleClose = async (update) => {
         if (update) {
           try {
-            await mailingListStore.getDocs(1, 10, msgPopup, loadingBar);
+            await mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar);
           } catch (e) {
             msgPopup.error(e.message, {
               closable: true,

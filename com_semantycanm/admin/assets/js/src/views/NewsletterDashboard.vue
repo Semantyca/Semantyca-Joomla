@@ -85,8 +85,8 @@
 </template>
 
 <script>
-import {defineComponent, onMounted, onUnmounted, reactive, ref, watch} from 'vue';
-import {useGlobalStore} from "../stores/globalStore";
+import { defineComponent, onMounted, onUnmounted, reactive, ref, watch } from 'vue';
+import { useGlobalStore } from "../stores/globalStore";
 import {
   NButton,
   NDivider,
@@ -102,12 +102,12 @@ import {
   useLoadingBar,
   useMessage,
 } from "naive-ui";
-import {useNewsletterStore} from "../stores/newsletter/newsletterStore";
-import {useComposerStore} from "../stores/composer/composerStore";
+import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
+import { useComposerStore } from "../stores/composer/composerStore";
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 import UserExperienceHelper from "../utils/UserExperienceHelper";
 import CodeMirror from 'vue-codemirror6';
-import {html} from '@codemirror/lang-html';
+import { html } from '@codemirror/lang-html';
 
 export default defineComponent({
   name: 'NewsletterComponent',
@@ -127,15 +127,19 @@ export default defineComponent({
   },
   props: {
     messageContent: String,
+    isActive: {
+      type: Boolean,
+      required: true,
+    },
   },
-  setup() {
+  setup(props) {
     const formRef = ref(null);
-    const loadingMailingListRef = ref(false)
+    const loadingMailingListRef = ref(false);
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
     const composerStore = useComposerStore();
     const msgPopup = useMessage();
-    const loadingBar = useLoadingBar()
+    const loadingBar = useLoadingBar();
     const modelRef = ref({
       mailingList: [],
       testEmail: '',
@@ -150,12 +154,19 @@ export default defineComponent({
     onMounted(() => {
       newsLetterStore.getMailingLists(1, 100, true, msgPopup, loadingBar);
       document.addEventListener('visibilitychange', handleVisibilityChange);
-      newsLetterStore.startPolling();
     });
 
     onUnmounted(() => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       newsLetterStore.stopPolling();
+    });
+
+    watch(() => props.isActive, (newVal) => {
+      if (newVal) {
+        newsLetterStore.startPolling();
+      } else {
+        newsLetterStore.stopPolling();
+      }
     });
 
     watch(() => composerStore.cont, (newVal) => {
@@ -165,7 +176,7 @@ export default defineComponent({
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'hidden') {
         newsLetterStore.stopPolling();
-      } else {
+      } else if (props.isActive) {
         newsLetterStore.startPolling();
       }
     };
@@ -259,7 +270,6 @@ export default defineComponent({
         msgPopup.error("Failed to fetch subject");
       }
     };
-
 
     return {
       globalStore,

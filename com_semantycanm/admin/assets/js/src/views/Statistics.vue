@@ -2,7 +2,7 @@
   <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
     <n-gi>
       <n-space>
-        <n-button type="primary" class="button-margin">
+        <n-button type="primary" class="button-margin" @click="exportLog">
           Export to Excel
         </n-button>
         <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length"
@@ -35,7 +35,6 @@ import {
   NGi,
   NGrid,
   NPagination,
-  NTag,
   useLoadingBar,
   useMessage,
   NButton,
@@ -158,6 +157,9 @@ export default defineComponent({
         }
       ]
     }
+
+    const downloadCsv = () => statsTabRef.value?.downloadCsv({ fileName: "data-table" });
+
     return {
       globalStore,
       statsTabRef,
@@ -167,7 +169,8 @@ export default defineComponent({
       handlePageSizeChange,
       handlePageChange,
       handleDeleteSelected,
-      checkedRowKeysRef
+      checkedRowKeysRef,
+      exportLog: downloadCsv
     };
   },
 });

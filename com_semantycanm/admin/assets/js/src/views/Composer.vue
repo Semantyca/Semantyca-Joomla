@@ -208,7 +208,7 @@
 </template>
 
 <script>
-import { computed, h, onMounted, ref } from 'vue';
+import { computed, h, onMounted, nextTick, ref } from 'vue';
 import { useGlobalStore } from "../stores/globalStore";
 import { debounce } from 'lodash';
 import HtmlWrapper from '../components/HtmlWrapper.vue';
@@ -278,7 +278,9 @@ export default {
         await composerStore.fetchEverything('', false, msgPopup,loadingBar);
         loading.value = false;
         window.DOMPurify = DOMPurify;
-        squireEditor.value = new Squire(document.getElementById('squire-editor'));
+        nextTick(() => {
+          squireEditor.value = new Squire(document.getElementById('squire-editor'));
+        });
       } catch (error) {
         console.error("Error in mounted hook:", error);
       }
@@ -323,14 +325,14 @@ export default {
         style: 'width: 1024px',
         bordered: true,
         content: () => h('div', {
-          style: { overflow: 'auto', maxHeight: '600px', marginBottom: '40px' }
+          style: {overflow: 'auto', maxHeight: '600px', marginBottom: '40px'}
         }, [
           h(CodeMirror, {
             modelValue: composerStore.cont,
             basic: true,
             lang: html(),
             dark: false,
-            style: { width: '100%' },
+            style: {width: '100%'},
             readOnly: true,
             extensions: [
               html()
