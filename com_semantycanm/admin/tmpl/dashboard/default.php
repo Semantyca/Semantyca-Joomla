@@ -61,7 +61,6 @@ $jsonTranslations = json_encode($translations);
     window.globalTranslations = <?php echo $jsonTranslations; ?>;
 </script>
 
-<div id="loadingSpinner" class="loading-spinner"></div>
 <div id="app">Loading...</div>
 
 

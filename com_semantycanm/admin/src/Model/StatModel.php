@@ -125,7 +125,7 @@ class StatModel extends BaseDatabaseModel
 		];
 	}
 
-	public function createStatRecord($status, $newsletter_id)
+	public function createSendingRecord($status, $newsletter_id)
 	{
 		$db       = $this->getDatabase();
 		$query    = $db->getQuery(true);

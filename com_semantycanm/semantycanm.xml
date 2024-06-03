@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <extension type="component" version="4.0" method="upgrade">
 
-    <name>Semantycanm</name>
+    <name>Semantyca NM</name>
     <creationDate>November 2023</creationDate>
     <author>aidazi</author>
     <authorUrl>https://absolute.lv</authorUrl>
     <copyright>Nzimas</copyright>
     <license>GPL v3</license>
-    <version>0.0.17</version>
+    <version>0.0.18</version>
     <description>A newsletter manager</description>
 
     <namespace path="src/">Semantyca\Component\SemantycaNM</namespace>

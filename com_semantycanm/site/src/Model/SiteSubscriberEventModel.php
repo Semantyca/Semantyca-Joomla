@@ -16,13 +16,13 @@ class SiteSubscriberEventModel extends BaseDatabaseModel
 
 		$fields = [
 			$db->quoteName('event_type') . ' = ' . $db->quote($eventType),
-			$db->quoteName('expected') . ' = 0',
+			$db->quoteName('fulfilled') . ' = 2',
 			$db->quoteName('event_date') . ' = ' . $db->quote($currentDateTime)
 		];
 
 		$conditions = [
 			$db->quoteName('trigger_token') . ' = ' . $db->quote($triggerToken),
-			$db->quoteName('expected') . ' = 1'
+			$db->quoteName('fulfilled') . ' = -1'
 		];
 
 		$query->update($db->quoteName('#__semantyca_nm_subscriber_events'))
@@ -41,7 +41,7 @@ class SiteSubscriberEventModel extends BaseDatabaseModel
 		$query->select(array($db->quoteName('event_type'), 'COUNT(' . $db->quoteName('event_type') . ')'))
 			->from($db->quoteName('#__semantyca_nm_subscriber_events'))
 			->where($db->quoteName('newsletter_id') . ' = ' . $db->quote($newsletter_id))
-			->where($db->quoteName('expected') . ' = 0')
+			->where($db->quoteName('fulfilled') . ' != 2')
 			->group($db->quoteName('event_type'));
 		$db->setQuery($query);
 

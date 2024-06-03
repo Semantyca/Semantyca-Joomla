@@ -1,4 +1,5 @@
 <?php
+
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
@@ -63,28 +64,40 @@ class NewsLetterModel extends BaseDatabaseModel
 		return $db->loadObjectList();
 	}
 
-	public function findUnprocessedEvent($id)
+	public function findUnprocessedEvent($id, $event_type, $subscriber = null): array
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query->select($db->quoteName([
 			'nl.subject',
 			'nl.message_content',
-			's.id',
 			's.reg_date',
 			'e.subscriber_email',
-			'e.trigger_token',
-			'e.id']))
+			'e.trigger_token'
+		]))
 			->from($db->quoteName('#__semantyca_nm_newsletters', 'nl'))
 			->join('INNER', $db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('nl.id') . ' = ' . $db->quoteName('s.newsletter_id'))
 			->join('INNER', $db->quoteName('#__semantyca_nm_subscriber_events', 'e') . ' ON ' . $db->quoteName('e.sending_id') . ' = ' . $db->quoteName('s.id'))
-			->where($db->quoteName('e.event_type') . ' = 100')
+			->where($db->quoteName('e.event_type') . ' = ' . $event_type)
 			->where($db->quoteName('e.fulfilled') . ' = -1')
 			->where($db->quoteName('nl.id') . ' = ' . $db->quote($id));
 
-		$db->setQuery($query);
+		if ($subscriber)
+		{
+			$query->where($db->quoteName('e.subscriber_email') . ' = ' . $db->quote($subscriber));
+		}
 
-		return $db->loadObjectList();
+		$db->setQuery($query);
+		$results = $db->loadObjectList();
+
+		$map = [];
+		foreach ($results as $result)
+		{
+			$subscriberEmail       = $result->subscriber_email;
+			$map[$subscriberEmail] = (array) $result;
+		}
+
+		return $map;
 	}
 
 	public function findRelevantEvent($id, $eventTypes)
@@ -109,7 +122,8 @@ class NewsLetterModel extends BaseDatabaseModel
 		$query->select([
 			$eventsTable . '.' . $db->quoteName('subscriber_email'),
 			$eventsTable . '.' . $db->quoteName('event_type'),
-			$eventsTable . '.' . $db->quoteName('fulfilled')
+			$eventsTable . '.' . $db->quoteName('fulfilled'),
+			$newslettersTable . '.' . $db->quoteName('id')
 		])
 			->from($newslettersTable)
 			->innerJoin($statsTable . ' ON ' . $statsTable . '.newsletter_id = ' . $newslettersTable . '.id')
@@ -168,9 +182,9 @@ class NewsLetterModel extends BaseDatabaseModel
 
 	public function update($id, $subject_value, $message_content): void
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-		$hash  = hash('sha256', $subject_value . $message_content);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
+		$hash   = hash('sha256', $subject_value . $message_content);
 		$fields = [
 			$db->quoteName('subject') . ' = ' . $db->quote($subject_value),
 			$db->quoteName('message_content') . ' = ' . $db->quote($message_content),
@@ -214,7 +228,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 	}
 
-	public function updateFulfilledForEvents(int $eventType, int $newsletterId): void
+	public function updateFulfilledForEvents(int $eventType, int $newsletterId, string $subscriber_email): void
 	{
 		/** @var DatabaseDriver $db */
 		$db = $this->getDatabase();
@@ -226,7 +240,8 @@ class NewsLetterModel extends BaseDatabaseModel
 			->leftJoin($db->quoteName('#__semantyca_nm_subscriber_events', 'e') . ' ON ' . $db->quoteName('e.sending_id') . ' = ' . $db->quoteName('s.id'))
 			->where($db->quoteName('e.event_type') . ' = ' . $db->quote($eventType))
 			->where($db->quoteName('e.fulfilled') . ' = ' . Constants::NOT_FULFILLED)
-			->where($db->quoteName('nl.id') . ' = ' . $db->quote($newsletterId));
+			->where($db->quoteName('nl.id') . ' = ' . $db->quote($newsletterId))
+			->where($db->quoteName('e.subscriber_email') . ' = ' . $db->quote($subscriber_email));
 
 		$db->setQuery($query);
 		$records = $db->loadObjectList();
@@ -240,7 +255,7 @@ class NewsLetterModel extends BaseDatabaseModel
 				$updateEventQuery = $db->getQuery(true)
 					->update($db->quoteName('#__semantyca_nm_subscriber_events'))
 					->set($db->quoteName('fulfilled') . ' = ' . Constants::DONE)
-					->where($db->quoteName('id') . ' IN (' . implode(',', $db->quote($eventIds)) . ')');
+					->where($db->quoteName('id') . ' IN (' . implode(',', $eventIds) . ')');
 				$db->setQuery($updateEventQuery);
 				$db->execute();
 			}

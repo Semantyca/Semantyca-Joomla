@@ -33,7 +33,7 @@ class Messaging
 	 * @throws NewsletterSenderException
 	 * @since 1.0
 	 */
-	public function sendEmail($subject, $encodedBody, $user_or_user_group, $send_async = false): bool
+	public function sendEmail($subject, $encodedBody, $user_or_user_group, $send_async = false): int
 	{
 		if (filter_var($user_or_user_group[0], FILTER_VALIDATE_EMAIL))
 		{
@@ -48,7 +48,7 @@ class Messaging
 
 		foreach ($recipients as $e_mail)
 		{
-			$stat_rec_id = $this->statModel->createStatRecord(Constants::NOT_FULFILLED, $newsletter_id);
+			$stat_rec_id = $this->statModel->createSendingRecord(Constants::NOT_FULFILLED, $newsletter_id);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_DISPATCHED);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_READ);
 			$this->eventModel->createSubscriberEvent($stat_rec_id, $e_mail, Constants::EVENT_TYPE_UNSUBSCRIBE);

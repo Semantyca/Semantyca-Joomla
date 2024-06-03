@@ -9,17 +9,17 @@
           {{ globalStore.translations.SAVE }}
         </n-button>
         <span style="display:inline-block; width:32px;"></span>
-        <n-progress
-            type="circle"
-            :percentage="newsLetterStore.progress.dispatched"
-            style="margin-bottom: 10px; margin-right: 8px; width: 34px; height: 34px; line-height: 24px;"
-        ></n-progress>
+        <n-progress type="circle" :percentage="newsLetterStore.progress.dispatched" style="margin-right: 8px; width: 60px; height: 60px; line-height: 24px;">
+          <template #default>
+            <span style="font-size: 16px;">{{newsLetterStore.progress.dispatched}}%</span>
+          </template>
+        </n-progress>
         <span style="display:inline-block; width:16px;"></span>
-        <n-progress
-            type="circle"
-            :percentage="newsLetterStore.progress.read"
-            style="margin-bottom: 10px; margin-right: 8px; width: 34px; height: 34px; line-height: 24px;"
-        ></n-progress>
+        <n-progress type="circle" :percentage="newsLetterStore.progress.read" style="margin-right: 8px; width: 60px; height: 60px; line-height: 24px;">
+          <template #default>
+            <span style="font-size: 16px;">{{newsLetterStore.progress.read}}%</span>
+          </template>
+        </n-progress>
       </n-space>
     </n-gi>
     <n-gi>
@@ -250,11 +250,16 @@ export default defineComponent({
 
     const fetchSubject = async () => {
       try {
-        modelRef.value.subject = await UserExperienceHelper.getSubject(loadingBar);
+        const subject = await UserExperienceHelper.getSubject(loadingBar);
+        modelRef.value.subject = subject;
+        if (modelRef.value.content.trim() === '') {
+          modelRef.value.content = `<body>${subject}</body>`;
+        }
       } catch (error) {
         msgPopup.error("Failed to fetch subject");
       }
     };
+
 
     return {
       globalStore,

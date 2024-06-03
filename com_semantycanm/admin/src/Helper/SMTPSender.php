@@ -59,37 +59,40 @@ class SMTPSender
 	 */
 	public function sendNewsletter($newsletterId, $baseURL): bool
 	{
-		$results = $this->newsletterModel->findUnprocessedEvent($newsletterId);
-		if (empty($results))
-		{
+		$results = $this->newsletterModel->findUnprocessedEvent($newsletterId, Constants::EVENT_TYPE_READ);
+		if (empty($results)) {
 			throw new NewsletterSenderException(["No data found for newsletter ID " . $newsletterId]);
 		}
 
-		foreach ($results as $row)
-		{
-			if (!$this->sendEmail($row, $baseURL))
-			{
-				throw new NewsletterSenderException(["Failed to send to: " . $row->subscriber_email]);
+		foreach ($results as $data) {
+			$email = $data['subscriber_email'];
+			$subject = $data['subject'];
+			$messageContent = $data['message_content'];
+			$readTriggerToken = $data['trigger_token'];
+
+			if (!$this->sendEmail($email, $subject, $messageContent, $readTriggerToken, $baseURL)) {
+				throw new NewsletterSenderException(["Failed to send to: " . $email]);
 			} else {
-				$this->newsletterModel->updateFulfilledForEvents(Constants::EVENT_TYPE_DISPATCHED, $newsletterId);
+				$this->newsletterModel->updateFulfilledForEvents(Constants::EVENT_TYPE_DISPATCHED, $newsletterId, $email);
 			}
 		}
 
 		return true;
 	}
 
+
 	/**
 	 * @throws Exception
 	 * @since 1.0
 	 */
-	private function sendEmail($rowData, $baseURL): bool
+	private function sendEmail($email, $subject, $messageContent, $readTriggerToken, $baseURL): bool
 	{
-		$trackingPixel  = sprintf(self::TRACKING_PIXEL_TEMPLATE, $baseURL, urlencode($rowData->trigger_token));
-		$customizedBody = str_replace('</body>', $trackingPixel . '</body>', $rowData->message_content);
+		$trackingPixel  = sprintf(self::TRACKING_PIXEL_TEMPLATE, $baseURL, urlencode($readTriggerToken));
+		$customizedBody = str_replace('</body>', $trackingPixel . '</body>', $messageContent);
 
-		$this->mailer->addAddress($rowData->subscriber_email);
+		$this->mailer->addAddress($email);
 		$this->mailer->isHTML(true);
-		$this->mailer->Subject = $rowData->subject;
+		$this->mailer->Subject = $subject;
 		$this->mailer->Body    = $customizedBody;
 
 		$result = $this->mailer->send();

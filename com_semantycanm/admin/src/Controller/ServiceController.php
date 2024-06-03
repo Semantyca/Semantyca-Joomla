@@ -60,8 +60,8 @@ class ServiceController extends BaseController
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
-			$messagingHelper = new Messaging($newLetterModel, $statModel, $eventModel, $mailingListModel);
-			$result          = $messagingHelper->sendEmail($subject, $encodedBody, $user_group);
+			$messaging = new Messaging($newLetterModel, $statModel, $eventModel, $mailingListModel);
+			$result    = $messaging->sendEmail($subject, $encodedBody, $user_group);
 			if ($result)
 			{
 				echo new JsonResponse($result);
@@ -85,7 +85,7 @@ class ServiceController extends BaseController
 			http_response_code(500);
 			$errorMessage = $e->getMessage();
 			//TODO temporary
-			$errorData    = $e->getTraceAsString();
+			$errorData = $e->getTraceAsString();
 
 			if ($errorData)
 			{
