@@ -23,13 +23,14 @@
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
           :row-props="getRowProps"
+          v-model:checked-row-keys="checkedRowKeysRef"
       />
     </n-gi>
   </n-grid>
 </template>
 
 <script>
-import {defineComponent, h, onMounted, reactive, ref} from 'vue';
+import { defineComponent, h, onMounted, ref } from 'vue';
 import {
   NDataTable,
   NGi,
@@ -42,10 +43,11 @@ import {
   NEllipsis,
   useDialog
 } from 'naive-ui';
-import {useStatStore} from "../stores/statistics/statStore";
-import {useGlobalStore} from "../stores/globalStore";
+import { useStatStore } from "../stores/statistics/statStore";
+import { useGlobalStore } from "../stores/globalStore";
 import EventTable from "../components/EventTable.vue";
 import NewsletterDialog from "../components/NewsletterDialog.vue";
+import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 
 export default defineComponent({
   name: 'Statistics',
@@ -68,8 +70,10 @@ export default defineComponent({
     const globalStore = useGlobalStore();
     const statStore = useStatStore();
     const msgPopup = useMessage();
-    const loadingBar = useLoadingBar()
+    const loadingBar = useLoadingBar();
     const dialog = useDialog();
+
+    const apiManager = new NewsletterApiManager(msgPopup, loadingBar);
 
     onMounted(() => {
       statStore.fetchNewsletterData(1, 10, msgPopup, loadingBar);
@@ -84,35 +88,28 @@ export default defineComponent({
     }
 
     const handleDeleteSelected = async () => {
-      try {
-        await statStore.deleteDocs(checkedRowKeysRef.value, msgPopup, loadingBar);
-        msgPopup.success('The selected mailing list entries were deleted successfully');
-        await statStore.fetchNewsletterData(1, 10, msgPopup, loadingBar);
-        checkedRowKeysRef.value = [];
-      } catch (error) {
-        msgPopup.error(error.message, {
-          closable: true,
-          duration: 10000
-        });
+      if (checkedRowKeysRef.value.length > 0) {
+        try {
+          await apiManager.deleteNewsletters(checkedRowKeysRef.value);
+          msgPopup.success('Newsletters deleted successfully');
+          // Refresh the data
+          statStore.fetchNewsletterData(statStore.getPagination.page, statStore.getPagination.pageSize, msgPopup, loadingBar);
+        } catch (error) {
+          msgPopup.error('Failed to delete newsletters');
+        }
       }
     };
 
     const getRowProps = (row) => {
       return {
         style: 'cursor: pointer;',
-        /*onClick: (event) => {
-          if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-           showNewsLetter(row);
-          }
-        }*/
       };
     };
 
     const showNewsLetter = (id = -1) => {
-
       dialog.create({
         title: 'Newsletter',
-        content: () => h(NewsletterDialog, {id}),
+        content: () => h(NewsletterDialog, { id }),
         style: 'width: 60%'
       });
     };
@@ -139,7 +136,6 @@ export default defineComponent({
             }
             return h(EventTable, {
               data: statStore.eventListPage.docs[rowData.key],
-
             });
           },
         },
@@ -156,9 +152,46 @@ export default defineComponent({
           ellipsis: true
         }
       ]
-    }
+    };
 
-    const downloadCsv = () => statsTabRef.value?.downloadCsv({ fileName: "data-table" });
+    const jsonToCsv = (json) => {
+      const csvRows = [];
+      const headers = Object.keys(json[0]);
+      csvRows.push(headers.join(','));
+
+      for (const row of json) {
+        const values = headers.map(header => {
+          const escaped = ('' + row[header]).replace(/"/g, '\\"');
+          return `"${escaped}"`;
+        });
+        csvRows.push(values.join(','));
+      }
+
+      return csvRows.join('\n');
+    };
+
+    const downloadCsvFile = (csvContent, fileName) => {
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.setAttribute('hidden', '');
+      a.setAttribute('href', url);
+      a.setAttribute('download', fileName);
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    };
+
+    const downloadCsv = () => {
+      const data = statStore.getCurrentPage;
+      if (!data.length) {
+        msgPopup.warning('No data available to export');
+        return;
+      }
+
+      const csvContent = jsonToCsv(data);
+      downloadCsvFile(csvContent, 'newsletter_data.csv');
+    };
 
     return {
       globalStore,

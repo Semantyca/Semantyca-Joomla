@@ -1,98 +1,95 @@
-```javascript
-// Updated script to remove 'Fulfilled' column and make NTag green if row.fulfilled is true
 <template>
   <div class="table-container">
-    <n-data-table :columns="columns" :data="data"/>
+    <n-data-table :columns="columns" :data="formattedData"/>
   </div>
 </template>
 
 <script>
-import { NDataTable, NPagination, NTag, NIcon } from "naive-ui";
+import { NDataTable, NTag, NIcon } from "naive-ui";
 import { h } from "vue";
 import { Check } from '@vicons/tabler';
 
 export default {
   props: {
-    data: Array
+    data: {
+      type: Array,
+      default: () => []
+    }
   },
   components: {
     NDataTable,
-    NPagination,
     NIcon
   },
   data() {
     return {
       columns: [
         {
-          title: 'Attempt time',
-          key: 'reg_date',
+          title: 'Sending Date',
+          key: 'sending_reg_date',
           width: 200,
           render(row) {
-            if (row.event_type === 100) {
-              return row.reg_date ? new Date(row.reg_date).toLocaleString() : 'No Attempt Time Available';
-            }
-            return '';
+            return row.sending_reg_date ? new Date(row.sending_reg_date).toLocaleString() : 'No Sending Date Available';
           }
         },
         {
-          title: 'Event Name',
-          key: 'event_type',
-          width: 200,
-          render(row) {
-            let type;
-            let title;
-            switch (row.event_type) {
-              case 100:
-                title = 'Dispatched';
-                break;
-              case 101:
-                title = 'Read';
-                break;
-              case 102:
-                title = 'Unsubscribed';
-                break;
-              case 103:
-                title = 'Click';
-                break;
-              default:
-                title = 'Unknown';
-                break;
-            }
-            return h('div', {}, [
-              h(NTag, { type: row.fulfilled === 2 ? 'success' : type }, { default: () => [
-                  title,
-                  row.fulfilled === 2 ? h(NIcon, { component: Check, style: 'margin-left: 8px;' }) : null
-                ]})
-            ]);
-          }
-        },
-        {
-          title: 'Subscriber',
+          title: 'Subscriber Email',
           key: 'subscriber_email',
           width: 200,
+        },
+        {
+          title: 'Events',
+          key: 'events',
+          width: 350,
+          render(row) {
+            return h('div', {}, row.events.map(event => {
+              let title;
+              switch (event.event_type) {
+                case 100:
+                  title = 'Dispatched';
+                  break;
+                case 101:
+                  title = 'Read';
+                  break;
+                case 102:
+                  title = 'Unsubscribed';
+                  break;
+                case 103:
+                  title = 'Click';
+                  break;
+                default:
+                  title = 'Unknown';
+                  break;
+              }
+              return h(NTag, {
+                type: event.fulfilled === 2 ? 'success' : 'default',
+                style: 'margin-right: 8px;',
+              }, { default: () => [
+                  title,
+                  event.fulfilled === 2 ? h(NIcon, { component: Check, style: 'margin-left: 8px;' }) : null
+                ]});
+            }));
+          }
         },
         {
           title: 'Errors',
           key: 'errors',
           render(row) {
-            let errors = [];
-            try {
-              errors = JSON.parse(row.errors);
-            } catch (e) {
-              console.error('Error parsing JSON from errors field', e);
-              return '';
-            }
-
-            if (!errors.length || !errors[0].error) {
-              return '';
-            }
-
-            return h('div', {}, errors.map(errorObj => h('div', { style: 'color: red;' }, errorObj.error)));
+            return h('div', {}, row.errors.map(error => h('div', { style: 'color: red;' }, error)));
           }
-        },
+        }
       ]
     };
   },
+  computed: {
+    formattedData() {
+      return this.data.map(doc => ({
+        sending_reg_date: doc.sending_reg_date,
+        subscriber_email: doc.subscriber_email,
+        events: doc.events,
+        errors: doc.errors
+      }));
+    }
+  }
 };
 </script>
 

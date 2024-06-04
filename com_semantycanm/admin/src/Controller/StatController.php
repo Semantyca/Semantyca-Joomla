@@ -47,7 +47,7 @@ class StatController extends BaseController
 
 			/** @var StatModel $model */
 			$model = $this->getModel('Stat');
-			echo new JsonResponse($model->getEvents($eventId));
+			echo new JsonResponse($model->getMergedEvents($eventId));
 		}
 		catch (\Throwable $e)
 		{
@@ -59,5 +59,7 @@ class StatController extends BaseController
 			$app->close();
 		}
 	}
+
+
 
 }

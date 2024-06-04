@@ -5,6 +5,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 use DateTime;
 use Joomla\CMS\Date\Date;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
+use RuntimeException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
@@ -81,47 +82,59 @@ class StatModel extends BaseDatabaseModel
 		$query = $db->getQuery(true);
 
 		$query->select([
-			$db->quoteName('e.id', 'key'),
-			$db->quoteName('e.reg_date'),
+			$db->quoteName('n.id', 'newsletter_id'),
+			$db->quoteName('s.id', 'sending_id'),
+			$db->quoteName('s.reg_date', 'sending_reg_date'),
+			$db->quoteName('e.id', 'event_id'),
 			$db->quoteName('e.subscriber_email'),
 			$db->quoteName('e.event_type'),
 			$db->quoteName('e.fulfilled'),
 			$db->quoteName('e.event_date'),
-			$db->quoteName('e.errors'),
-			$db->quoteName('e.sending_id'),
-			$db->quoteName('s.newsletter_id'),
-			$db->quoteName('s.status')
+			$db->quoteName('e.errors')
 		])
-			->from($db->quoteName('#__semantyca_nm_subscriber_events', 'e'))
-			->join('INNER', $db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('e.sending_id') . ' = ' . $db->quoteName('s.id'))
-			->where($db->quoteName('s.newsletter_id') . ' = ' . (int) $id)
-			->order($db->quoteName('e.event_date') . ' ASC'); // Optional: order by event_date
+			->from($db->quoteName('#__semantyca_nm_newsletters', 'n'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_sending_events', 's') . ' ON ' . $db->quoteName('n.id') . ' = ' . $db->quoteName('s.newsletter_id'))
+			->join('INNER', $db->quoteName('#__semantyca_nm_subscriber_events', 'e') . ' ON ' . $db->quoteName('s.id') . ' = ' . $db->quoteName('e.sending_id'))
+			->where($db->quoteName('n.id') . ' = ' . (int) $id)
+			->order($db->quoteName('e.event_date') . ' ASC');
 
 		$db->setQuery($query);
 		$events = $db->loadObjectList();
 
-		$mergedEvents = [];
-		$commonInfo = [];
+		$groupedEvents = [];
 
-		foreach ($events as $event) {
-			$commonInfo = [
-				'subscriber_email' => $event->subscriber_email,
-				'sending_id'       => $event->sending_id
+		foreach ($events as $event)
+		{
+			$key = $event->newsletter_id . '_' . $event->sending_id . '_' . $event->subscriber_email;
+			if (!isset($groupedEvents[$key]))
+			{
+				$groupedEvents[$key] = [
+					'newsletter_id'    => $event->newsletter_id,
+					'sending_id'       => $event->sending_id,
+					'sending_reg_date' => $event->sending_reg_date,
+					'subscriber_email' => $event->subscriber_email,
+					'errors'           => [],
+					'events'           => []
+				];
+			}
+
+			$groupedEvents[$key]['events'][] = [
+				'event_type' => $event->event_type,
+				'fulfilled'  => $event->fulfilled,
+				'event_date' => $event->event_date
 			];
 
-			$mergedEvents[] = [
-				'id'          => $event->key,
-				'fulfilled'   => $event->fulfilled,
-				'event_date'  => $event->event_date,
-				'errors'      => $event->errors
-			];
+			if (!empty($event->errors)) {
+				$groupedEvents[$key]['errors'] = array_merge($groupedEvents[$key]['errors'], json_decode($event->errors, true));
+			}
+		}
+
+		foreach ($groupedEvents as &$group) {
+			$group['errors'] = array_unique($group['errors'], SORT_REGULAR);
 		}
 
 		return [
-			'docs' => [
-				'common' => $commonInfo,
-				'events' => $mergedEvents
-			]
+			'docs' => array_values($groupedEvents)
 		];
 	}
 
@@ -177,4 +190,23 @@ class StatModel extends BaseDatabaseModel
 
 		return true;
 	}
+
+	public function deleteNewsletters(array $ids): bool
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$query->delete($db->quoteName('#__semantyca_nm_newsletters'))
+			->where($db->quoteName('id') . ' IN (' . implode(',', array_map('intval', $ids)) . ')');
+
+		$db->setQuery($query);
+
+		try {
+			$db->execute();
+			return true;
+		} catch (RuntimeException $e) {
+			throw new RuntimeException('Failed to delete newsletters: ' . $e->getMessage());
+		}
+	}
+
 }

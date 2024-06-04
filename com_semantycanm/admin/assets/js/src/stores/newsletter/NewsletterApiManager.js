@@ -51,8 +51,45 @@ class NewsletterApiManager extends BaseObject {
         return this.doPostRequest('NewsLetter.add', data);
     }
 
+    async deleteNewsletters(ids) {
+        this.loadingBar.start();
+        const url = `${NewsletterApiManager.BASE_URL}delete`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.headers
+                },
+                body: JSON.stringify({ ids }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+            this.msgPopup.success('Newsletters deleted successfully!', {
+                closable: true,
+                duration: 5000
+            });
+            return result;
+        } catch (error) {
+            this.msgPopup.error(error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
+            throw error;
+        } finally {
+            this.loadingBar.finish();
+        }
+    }
+
     async doPostRequest(endpoint, data) {
-        super.startBusyMessage('Sending ...')
+        super.startBusyMessage('Sending ...');
         const url = `index.php?option=com_semantycanm&task=${endpoint}`;
         try {
             const response = await fetch(url, {
@@ -81,7 +118,7 @@ class NewsletterApiManager extends BaseObject {
             });
             throw error;
         } finally {
-            super.stopBusyMessage()
+            super.stopBusyMessage();
         }
     }
 }
