@@ -36,7 +36,7 @@
                 extension="com_semantycanm"
         />
 
-        <field
+       <!-- <field
                 name="default_banner"
                 type="media"
                 default="http://fpoimg.com/970x250?text=Billboard"
@@ -53,7 +53,7 @@
             <option value="day">DAY_THEME</option>
             <option value="night">NIGHT_THEME</option>
             <option value="automatic">AUTO_THEME</option>
-        </field>
+        </field>-->
 
     </fieldset>
 
