@@ -30,7 +30,11 @@ export const useTemplateStore = defineStore('template', {
         templateOptions: (state) => Object.keys(state.templateMap).map(key => ({
             id: key,
             name: state.templateMap[key].name
-        }))
+        })),
+        templateSelectOptions: (state) => Object.keys(state.templateMap).map(key => ({
+            value: key,
+            label: state.templateMap[key].name
+        })),
     },
     actions: {
         setCurrentTemplate(templateDoc) {

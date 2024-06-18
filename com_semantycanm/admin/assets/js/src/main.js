@@ -1,4 +1,4 @@
-import { createApp } from 'vue';
+import {createApp, defineAsyncComponent} from 'vue';
 import { createPinia } from 'pinia';
 import Workspace from "./views/Workspace.vue";
 import {
@@ -35,7 +35,28 @@ const joomlaBootstrapTheme = {
     }
 };
 
+const loadComponent = (menuId) => {
+    switch (menuId) {
+        case 'dashboard':
+            return defineAsyncComponent(() => import('./views/Composer.vue'));
+        case 'mailing_lists':
+            return defineAsyncComponent(() => import('./views/Lists.vue'));
+        case 'stat':
+            return defineAsyncComponent(() => import('./views/Statistics.vue'));
+        case 'template':
+            return defineAsyncComponent(() => import('./views/TemplateEditor.vue'));
+
+        default:
+            return defineAsyncComponent(() => import('./views/Composer.vue'));
+    }
+}
+
 const pinia = createPinia();
+const appElement = document.getElementById('app');
+const menuId = appElement.getAttribute('data-menu-id');
+console.log(`Loading component for menu ID: ${menuId}`);
+const DynamicComponent = loadComponent(menuId);
+console.log(DynamicComponent);
 
 const app = createApp({
     components: {
@@ -44,7 +65,8 @@ const app = createApp({
         NConfigProvider,
         Workspace,
         NMessageProvider,
-        NDialogProvider
+        NDialogProvider,
+        DynamicComponent
     },
     template: `
       <div>
@@ -52,7 +74,7 @@ const app = createApp({
           <n-message-provider>
             <n-dialog-provider>
               <n-config-provider :theme-overrides="smtcaTheme">
-                <Workspace/>
+                <DynamicComponent/>
               </n-config-provider>
             </n-dialog-provider>
           </n-message-provider>

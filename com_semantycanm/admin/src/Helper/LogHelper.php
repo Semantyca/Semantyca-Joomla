@@ -3,7 +3,6 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
 use Exception;
-use ReflectionClass;
 
 class LogHelper
 {
@@ -12,19 +11,6 @@ class LogHelper
 	const WARN = "WWWWARN";
 	const ERR = "ERRRRR";
 
-	public static function logInfo(string $msg, $componentName)
-	{
-		$className   = $componentName;
-		$logEntry = sprintf(
-			self::log_pattern,
-			INF,
-			date('d.m.y H.i'),
-			$className,
-			$msg
-		);
-		$logFilePath = JPATH_ADMINISTRATOR . '/logs/' . self::getFileName($className, self::INF);
-		error_log($logEntry . PHP_EOL, 3, $logFilePath);
-	}
 
 	public static function logWarn(string $msg, $componentName)
 	{

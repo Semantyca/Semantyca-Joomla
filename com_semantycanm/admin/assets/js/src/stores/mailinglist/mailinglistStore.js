@@ -22,6 +22,16 @@ export const useMailingListStore = defineStore('mailingList', {
         getCurrentPage() {
             const pageData = this.pages.get(this.page);
             return pageData ? pageData.docs : [];
+        },
+        firstPageOptions() {
+            const firstPageData = this.pages.get(1);
+            if (firstPageData) {
+                return firstPageData.docs.map(doc => ({
+                    label: doc.name, // Adjust based on the actual structure of your doc objects
+                    value: doc.id    // Adjust based on the actual structure of your doc objects
+                }));
+            }
+            return [];
         }
     },
     actions: {

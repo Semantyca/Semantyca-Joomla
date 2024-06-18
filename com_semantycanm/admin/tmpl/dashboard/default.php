@@ -61,7 +61,7 @@ $jsonTranslations = json_encode($translations);
     window.globalTranslations = <?php echo $jsonTranslations; ?>;
 </script>
 
-<div id="app">Loading...</div>
+<div id="app" data-menu-id="dashboard">Loading...</div>
 
 
 <?php if (isset($this->js_bundle) && $this->js_bundle): ?>

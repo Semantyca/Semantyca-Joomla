@@ -6,16 +6,32 @@ defined('_JEXEC') or die;
 
 use Exception;
 use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 use Throwable;
 
 class TemplateController extends BaseController
 {
+	public function display($cachable = false, $urlparams = array())
+	{
+		try
+		{
+			$view = $this->getView('Template', 'html');
+			$view->js_bundle = RuntimeUtil::getDynamicScriptUrl('js');
+			$view->display();
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+	}
+
 	public function findAll()
 	{
 		$app = Factory::getApplication();
