@@ -1,9 +1,8 @@
-const {VueLoaderPlugin} = require('vue-loader');
+const { VueLoaderPlugin } = require('vue-loader');
 const webpack = require('webpack');
-const {CleanWebpackPlugin} = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const path = require('path');
-const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
-
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 require('dotenv').config();
 
 console.log('NODE_ENV:', process.env.NODE_ENV);
@@ -13,22 +12,24 @@ const outputDir = process.env.BUILD_OUTPUT_DIR;
 const isProduction = process.env.NODE_ENV === 'production';
 
 module.exports = {
-    optimization: {
-        splitChunks: false,
-        runtimeChunk: false,
-    },
     mode: process.env.NODE_ENV || 'development',
     devtool: isProduction ? false : 'eval-source-map',
     entry: path.resolve(__dirname, 'src/main.js'),
     output: {
         path: path.resolve(__dirname, outputDir),
-        filename: 'bundle-[fullhash].js'
+        filename: 'bundle-[fullhash].js',
+        publicPath: '/administrator/components/com_semantycanm/assets/bundle/',
     },
     watch: process.env.NODE_ENV === 'development',
     watchOptions: {
         ignored: /node_modules/,
         aggregateTimeout: 300,
         poll: 1000
+    },
+    optimization: {
+        splitChunks: false,
+        runtimeChunk: false,
+        usedExports: true, // Enable tree shaking
     },
     module: {
         rules: [

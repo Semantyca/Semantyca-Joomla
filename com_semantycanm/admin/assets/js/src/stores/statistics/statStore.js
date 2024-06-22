@@ -1,103 +1,116 @@
-import {defineStore} from 'pinia';
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import StatApiManager from "./StatApiManager";
 import NewsletterApiManager from "../newsletter/NewsletterApiManager";
 
-export const useStatStore = defineStore('stat', {
-    state: () => ({
-        newsletterListPage: {
-            pageSize: 10,
-            itemCount: 0,
-            pageCount: 1,
-            page: 1,
-            pages: new Map(),
-        },
-        statListPage: {
-            pageSize: 10,
-            itemCount: 0,
-            pageCount: 1,
-            page: 1,
-            pages: new Map(),
-        },
-        eventListPage: {
-            docs: {}
-        }
-    }),
-    getters: {
-        getPagination() {
-            return {
-                page: this.newsletterListPage.page,
-                pageSize: this.newsletterListPage.pageSize,
-                itemCount: this.newsletterListPage.itemCount,
-                pageCount: this.newsletterListPage.pageCount,
-                size: 'large',
-                showSizePicker: true,
-                pageSizes: [10, 20, 50]
-            };
-        },
-        getCurrentPage() {
-            const pageData = this.newsletterListPage.pages.get(this.newsletterListPage.page);
-            return pageData ? pageData.docs : [];
-        }
-    },
-    actions: {
-        async fetchNewsletterData(page, size, msgPopup, loadingBar) {
-            try {
-                loadingBar.start();
-                const manager = new NewsletterApiManager(msgPopup, loadingBar);
-                const respData = await manager.fetch(page, size);
-                if (respData.success && respData.data) {
-                    const { docs, count, maxPage, current } = respData.data;
-                    this.newsletterListPage.page = current;
-                    this.newsletterListPage.pageSize = size;
-                    this.newsletterListPage.itemCount = count;
-                    this.newsletterListPage.pageCount = maxPage;
-                    this.newsletterListPage.pages.set(page, { docs });
-                }
-            } catch (error) {
-                loadingBar.error()
-                msgPopup.error(error.message);
-            } finally {
-                loadingBar.finish()
-            }
-        },
-        async fetchStatisticsData(page, size, msgPopup, loadingBar) {
-            try {
-                loadingBar.start();
-                const manager = new StatApiManager(msgPopup, loadingBar);
-                const respData = await manager.fetch(page, size);
-                if (respData.success && respData.data) {
-                    const { docs, count, maxPage, current } = respData.data;
-                    this.statListPage.page = current;
-                    this.statListPage.pageSize = size;
-                    this.statListPage.itemCount = count;
-                    this.statListPage.pageCount = maxPage;
-                    this.statListPage.pages.set(page, { docs });
-                }
-            } catch (error) {
-                loadingBar.error()
-                msgPopup.error(error.message);
-            } finally {
-                loadingBar.finish()
-            }
-        },
-        async fetchEvents(eventId, msgPopup, loadingBar) {
-            try {
-                loadingBar.start()
-                const response = await fetch('index.php?option=com_semantycanm&task=Stat.getEvents&eventid=' + eventId);
-                const respData = await response.json();
-                if (respData.success && respData.data) {
-                    console.log('resp', respData.data)
-                    this.eventListPage.docs[eventId] = respData.data.docs;
-                }
-            } catch (error) {
-                loadingBar.error()
-                msgPopup.error(error.message);
-            } finally {
-                loadingBar.finish()
-            }
-        },
-        async deleteDocs  (value, msgPopup, loadingBar) {
+export const useStatStore = defineStore('stat', () => {
+    const newsletterListPage = ref({
+        pageSize: 10,
+        itemCount: 0,
+        pageCount: 1,
+        page: 1,
+        pages: new Map(),
+    });
 
+    const statListPage = ref({
+        pageSize: 10,
+        itemCount: 0,
+        pageCount: 1,
+        page: 1,
+        pages: new Map(),
+    });
+
+    const eventListPage = ref({
+        docs: {}
+    });
+
+    const getPagination = computed(() => ({
+        page: newsletterListPage.value.page,
+        pageSize: newsletterListPage.value.pageSize,
+        itemCount: newsletterListPage.value.itemCount,
+        pageCount: newsletterListPage.value.pageCount,
+        size: 'large',
+        showSizePicker: true,
+        pageSizes: [10, 20, 50]
+    }));
+
+    const getCurrentPage = computed(() => {
+        const pageData = newsletterListPage.value.pages.get(newsletterListPage.value.page);
+        return pageData ? pageData.docs : [];
+    });
+
+    const fetchNewsletterData = async (page, size, msgPopup, loadingBar) => {
+        try {
+            loadingBar.start();
+            const manager = new NewsletterApiManager(msgPopup, loadingBar);
+            const respData = await manager.fetch(page, size);
+            if (respData.success && respData.data) {
+                const { docs, count, maxPage, current } = respData.data;
+                newsletterListPage.value.page = current;
+                newsletterListPage.value.pageSize = size;
+                newsletterListPage.value.itemCount = count;
+                newsletterListPage.value.pageCount = maxPage;
+                newsletterListPage.value.pages.set(page, { docs });
+            }
+        } catch (error) {
+            loadingBar.error();
+            msgPopup.error(error.message);
+        } finally {
+            loadingBar.finish();
         }
-    }
+    };
+
+    const fetchStatisticsData = async (page, size, msgPopup, loadingBar) => {
+        try {
+            loadingBar.start();
+            const manager = new StatApiManager(msgPopup, loadingBar);
+            const respData = await manager.fetch(page, size);
+            if (respData.success && respData.data) {
+                const { docs, count, maxPage, current } = respData.data;
+                statListPage.value.page = current;
+                statListPage.value.pageSize = size;
+                statListPage.value.itemCount = count;
+                statListPage.value.pageCount = maxPage;
+                statListPage.value.pages.set(page, { docs });
+            }
+        } catch (error) {
+            loadingBar.error();
+            msgPopup.error(error.message);
+        } finally {
+            loadingBar.finish();
+        }
+    };
+
+    const fetchEvents = async (eventId, msgPopup, loadingBar) => {
+        try {
+            loadingBar.start();
+            const response = await fetch('index.php?option=com_semantycanm&task=Stat.getEvents&eventid=' + eventId);
+            const respData = await response.json();
+            if (respData.success && respData.data) {
+                console.log('resp', respData.data);
+                eventListPage.value.docs[eventId] = respData.data.docs;
+            }
+        } catch (error) {
+            loadingBar.error();
+            msgPopup.error(error.message);
+        } finally {
+            loadingBar.finish();
+        }
+    };
+
+    const deleteDocs = async (value, msgPopup, loadingBar) => {
+        // Implement the deleteDocs action
+    };
+
+    return {
+        newsletterListPage,
+        statListPage,
+        eventListPage,
+        getPagination,
+        getCurrentPage,
+        fetchNewsletterData,
+        fetchStatisticsData,
+        fetchEvents,
+        deleteDocs
+    };
 });

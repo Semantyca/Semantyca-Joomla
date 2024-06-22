@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { useTemplateStore } from '../template/templateStore';
+import { useMessageTemplateStore } from '../template/messageTemplateStore';
 import TemplateManager from "../template/TemplateManager";
 import DynamicBuilder from "../../utils/DynamicBuilder";
 
@@ -15,7 +15,7 @@ export const useComposerStore = defineStore('composer', {
     }),
     getters: {
         cont(state) {
-            const templateStore = useTemplateStore();
+            const templateStore = useMessageTemplateStore();
             const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
             dynamicBuilder.addVariable("articles", state.selectedArticles);
 
@@ -35,7 +35,7 @@ export const useComposerStore = defineStore('composer', {
     },
     actions: {
         async updateFormCustomFields(msgPopup, loadingBar) {
-            const templateStore = useTemplateStore();
+            const templateStore = useMessageTemplateStore();
             const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
             await templateManager.getTemplates(msgPopup);
         },

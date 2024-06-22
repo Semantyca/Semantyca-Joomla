@@ -1,4 +1,5 @@
 <?php
+
 use Joomla\CMS\HTML\HTMLHelper;
 use Joomla\CMS\Language\Text;
 
@@ -26,7 +27,7 @@ $jsonTranslations = json_encode($translations);
     window.globalTranslations = <?php echo $jsonTranslations; ?>;
 </script>
 
-<div id="app" data-menu-id="message_templates">Loading...</div>
+<div id="app" data-menu-id="messagetemplates">Loading...</div>
 
 <?php foreach ($this->js_bundles as $js_bundle): ?>
     <script type="module" src="<?php echo $rootUrl . $smtca_assets . $js_bundle; ?>"></script>

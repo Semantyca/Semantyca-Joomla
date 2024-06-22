@@ -1,5 +1,5 @@
-import {createApp, defineAsyncComponent} from 'vue';
-import {createPinia} from 'pinia';
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import Workspace from "./views/Workspace.vue";
 import {
     NConfigProvider,
@@ -9,6 +9,10 @@ import {
     NMessageProvider
 } from "naive-ui";
 import '../../tailwind.css';
+import Newsletters from './views/Newsletters.vue';
+import Lists from './views/Lists.vue';
+import Statistics from './views/Statistics.vue';
+import MessageTemplates from './views/MessageTemplates.vue';
 
 const joomlaBootstrapTheme = {
     common: {
@@ -38,16 +42,15 @@ const joomlaBootstrapTheme = {
 const loadComponent = (menuId) => {
     switch (menuId) {
         case 'newsletters':
-            return defineAsyncComponent(() => import('./views/Newsletters.vue'));
+            return Newsletters;
         case 'mailing_lists':
-            return defineAsyncComponent(() => import('./views/Lists.vue'));
+            return Lists;
         case 'stat':
-            return defineAsyncComponent(() => import('./views/Statistics.vue'));
-        case 'message_templates':
-            return defineAsyncComponent(() => import('./views/MessageTemplates.vue'));
-
+            return Statistics;
+        case 'messagetemplates':
+            return MessageTemplates;
         default:
-            return defineAsyncComponent(() => import('./views/Newsletters.vue'));
+            return Newsletters;
     }
 }
 

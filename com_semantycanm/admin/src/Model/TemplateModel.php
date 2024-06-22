@@ -34,10 +34,10 @@ class TemplateModel extends BaseDatabaseModel
 			$template->regDate     = new \DateTime($row->reg_date);
 			$template->name        = $row->name;
 			$template->type        = $row->type;
-			$template->isDefault = $row->is_default;
+			$template->isDefault   = $row->is_default;
 			$template->description = $row->description;
-			$template->content = $row->content;
-			$template->wrapper = $row->wrapper;
+			$template->content     = $row->content;
+			$template->wrapper     = $row->wrapper;
 
 			$customFieldsQuery = $db->getQuery(true)
 				->select('id, template_id, name, type, caption, default_value, is_available')
@@ -69,8 +69,8 @@ class TemplateModel extends BaseDatabaseModel
 		$maxPage    = (int) ceil($totalItems / $itemsPerPage);
 
 		return [
-			'messagetemplates' => $templates,
-			'count' => $totalItems,
+			'templates' => $templates,
+			'count'     => $totalItems,
 			'current'   => $currentPage,
 			'maxPage'   => $maxPage
 		];
@@ -116,7 +116,7 @@ class TemplateModel extends BaseDatabaseModel
 
 		foreach ($customFieldsRows as $customFieldRow)
 		{
-			$decodedDefaultValue = $customFieldRow->default_value;
+			$decodedDefaultValue      = $customFieldRow->default_value;
 			$template->customFields[] = [
 				'id'           => $customFieldRow->id,
 				'name'         => $customFieldRow->name,
@@ -235,7 +235,7 @@ class TemplateModel extends BaseDatabaseModel
 
 	public function setDefaultTemplate($id): bool
 	{
-		$db = $this->getDatabase();
+		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$query->clear()

@@ -274,27 +274,27 @@
 
 <script>
 import { computed, h, onMounted, nextTick, ref } from 'vue';
-import { useGlobalStore } from "../stores/globalStore";
+import { useGlobalStore } from "../../stores/globalStore";
 import { debounce } from 'lodash';
-import HtmlWrapper from '../components/HtmlWrapper.vue';
+import HtmlWrapper from '../HtmlWrapper.vue';
 import {
   NButton, NButtonGroup, NColorPicker, NDivider, NForm,
   NFormItem, NGi, NGrid, NIcon, NInput, NInputNumber,
   NSkeleton, NSpace, NSteps, NStep, NSelect, useDialog, useLoadingBar,
   useMessage, NCheckbox, NH3
 } from "naive-ui";
-import { useTemplateStore } from "../stores/template/templateStore";
+import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
-import { useComposerStore } from "../stores/composer/composerStore";
+import { useComposerStore } from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import CodeMirror from 'vue-codemirror6';
 import { html } from '@codemirror/lang-html';
 import { Bold, Code, Italic, Strikethrough, Underline, Photo, ClearFormatting } from '@vicons/tabler';
-import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
-import UserExperienceHelper from "../utils/UserExperienceHelper";
-import { useMailingListStore } from "../stores/mailinglist/mailinglistStore";
-import { composerFormRules } from "../stores/composer/composerUtils";
+import NewsletterApiManager from "../../stores/newsletter/NewsletterApiManager";
+import UserExperienceHelper from "../../utils/UserExperienceHelper";
+import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
+import { composerFormRules } from "../../stores/composer/composerUtils";
 
 export default {
   name: 'Composer',
@@ -308,7 +308,7 @@ export default {
   props: {
     id: {
       type: Number,
-      required: true,
+      required: false,
     },
   },
   emits: ['back'],
@@ -323,7 +323,7 @@ export default {
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
     const mailingListStore = useMailingListStore();
-    const templateStore = useTemplateStore();
+    const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const dialog = useDialog();

@@ -6,16 +6,16 @@
         <n-button size="large" type="primary" @click="$emit('back')">
           < Back
         </n-button>
-        <n-button type="primary" @click="saveTemplate">
+        <n-button size="large" type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary" @click="exportTemplate">
+        <n-button size="large" type="primary" @click="exportTemplate">
           Export
         </n-button>
-        <n-button type="primary" @click="importTemplate">
+        <n-button size="large" type="primary" @click="importTemplate">
           Import
         </n-button>
-        <n-button type="error" @click="deleteTemplate">
+        <n-button size="large" type="error" @click="deleteTemplate">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -152,19 +152,19 @@
 
 <script>
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
-import {useGlobalStore} from "../stores/globalStore";
-import {useTemplateStore} from "../stores/template/templateStore";
+import {useGlobalStore} from "../../stores/globalStore";
+import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import { NButton,NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
   NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 import {ejs} from 'codemirror-lang-ejs';
-import {rules, typeOptions} from '../stores/template/templateEditorUtils';
-import {addCustomField, handleTypeChange, removeCustomField} from '../stores/template/templateEditorHandlers';
-import TemplateManager from "../stores/template/TemplateManager";
+import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
+import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
+import TemplateManager from "../../stores/template/TemplateManager";
 import {debounce} from 'lodash-es';
-import {setCurrentTemplate} from "../utils/fieldUtilities";
+import {setCurrentTemplate} from "../../utils/fieldUtilities";
 
 export default {
   name: 'TemplateEditor',
@@ -177,7 +177,7 @@ export default {
     const formRef = ref(null);
     const selectedTemplateRef = ref(null);
     const globalStore = useGlobalStore();
-    const templateStore = useTemplateStore();
+    const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar()
     const customFormFields = computed(() => templateStore.currentTemplate.customFields);

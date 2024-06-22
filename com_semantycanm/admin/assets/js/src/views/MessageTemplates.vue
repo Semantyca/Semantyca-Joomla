@@ -1,31 +1,33 @@
 <template>
-  <component :is="currentComponent" v-if="currentComponent === 'MessageTemplateGrid'" @row-click="handleRowClick" />
+  <component :is="currentComponent" v-if="currentComponent === 'MessageTemplateGrid'"
+             @row-click="handleRowClick"
+             @create-new="handleCreateNew"
+  />
   <component :is="currentComponent" v-else :id="selectedId" @back="goBack" />
 </template>
 
 <script>
 import { defineComponent, ref, onMounted } from 'vue';
-import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
-import MessageTemplateGrid from "../components/MessageTemplateGrid.vue";
-import MessageTemplateEditor from "./MessageTemplateEditor.vue";
+import MessageTemplateGrid from "../components/lists/MessageTemplateGrid.vue";
+import MessageTemplateEditor from "../components/forms/MessageTemplateEditor.vue";
 
 export default defineComponent({
-  name: 'Templates',
+  name: 'MessageTemplates',
   components: {
     MessageTemplateGrid,
     MessageTemplateEditor,
   },
   setup() {
-    const newsLetterStore = useNewsletterStore();
     const currentComponent = ref('MessageTemplateGrid');
     const selectedId = ref(null);
 
-    onMounted(() => {
-      newsLetterStore.fetchNewsLetters(1, 100);
-    });
 
     const handleRowClick = (row) => {
       selectedId.value = row.key;
+      currentComponent.value = 'MessageTemplateEditor';
+    };
+
+    const handleCreateNew = () => {
       currentComponent.value = 'MessageTemplateEditor';
     };
 
@@ -35,10 +37,10 @@ export default defineComponent({
 
 
     return {
-      newsLetterStore,
       currentComponent,
       selectedId,
       handleRowClick,
+      handleCreateNew,
       goBack
     };
   },

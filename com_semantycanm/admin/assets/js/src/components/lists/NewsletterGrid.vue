@@ -3,7 +3,7 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button size="large" type="primary">
+        <n-button size="large" type="primary"  @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
         <n-button size="large" type="error" disabled>
@@ -26,9 +26,9 @@
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance} from 'vue';
-import { useGlobalStore } from "../stores/globalStore";
-import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
+import {defineComponent, getCurrentInstance, onMounted} from 'vue';
+import { useGlobalStore } from "../../stores/globalStore";
+import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
 import {
   NDataTable,
   NButton,
@@ -48,11 +48,15 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click'],
+  emits: ['row-click', 'create-new'],
   setup() {
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
     const { emit } = getCurrentInstance();
+
+    onMounted(() => {
+      newsLetterStore.fetchNewsLetters(1, 100);
+    });
 
     const getRowProps = (row) => {
       return {
@@ -63,6 +67,10 @@ export default defineComponent({
           }
         }
       };
+    };
+
+    const createNew = () => {
+      emit('create-new');
     };
 
     const createColumns = () => {
@@ -88,6 +96,7 @@ export default defineComponent({
       globalStore,
       newsLetterStore,
       getRowProps,
+      createNew,
       columns: createColumns(),
       rowKey: (row) => row.key,
     };

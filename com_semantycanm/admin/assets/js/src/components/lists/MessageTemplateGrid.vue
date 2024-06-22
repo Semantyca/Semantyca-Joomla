@@ -3,7 +3,7 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button size="large" type="primary">
+        <n-button size="large" type="primary" @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
         <n-button size="large" type="error" disabled>
@@ -17,8 +17,8 @@
           size="large"
           :row-key="rowKey"
           :columns="columns"
-          :data="newsLetterStore.getCurrentPage"
-          :pagination="newsLetterStore.getPagination"
+          :data=" messageTemplateStore.getCurrentPage"
+          :pagination="messageTemplateStore.getPagination"
           :row-props="getRowProps"
       />
     </n-gi>
@@ -26,17 +26,10 @@
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance} from 'vue';
-import { useGlobalStore } from "../stores/globalStore";
-import { useNewsletterStore } from "../stores/newsletter/newsletterStore";
-import {
-  NDataTable,
-  NButton,
-  NH3,
-  NGi,
-  NGrid,
-  NSpace,
-} from "naive-ui";
+import { defineComponent, getCurrentInstance, onMounted, onUnmounted } from 'vue';
+import { useGlobalStore } from "../../stores/globalStore";
+import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
+import { NDataTable, NButton, NH3, NGi, NGrid, NSpace } from "naive-ui";
 
 export default defineComponent({
   name: 'TemplateGrid',
@@ -48,11 +41,17 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click'],
+  emits: ['row-click', 'create-new'],
   setup() {
     const globalStore = useGlobalStore();
-    const newsLetterStore = useNewsletterStore();
+    const messageTemplateStore = useMessageTemplateStore();
     const { emit } = getCurrentInstance();
+
+    const fetchInitialData = async () => {
+      await messageTemplateStore.fetchFromApi(1, 10);
+    };
+
+    fetchInitialData();
 
     const getRowProps = (row) => {
       return {
@@ -64,6 +63,27 @@ export default defineComponent({
         }
       };
     };
+
+    const createNew = () => {
+      emit('create-new');
+    };
+
+    const handleKeyDown = (event) => {
+      if (event.ctrlKey && event.key === 'n') {
+        event.preventDefault();
+        createNew();
+      } else if (event.key === 'Delete') {
+        console.log('Delete key pressed');
+      }
+    };
+
+    onMounted(() => {
+      window.addEventListener('keydown', handleKeyDown);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('keydown', handleKeyDown);
+    });
 
     const createColumns = () => {
       return [
@@ -86,13 +106,15 @@ export default defineComponent({
 
     return {
       globalStore,
-      newsLetterStore,
+      messageTemplateStore,
       getRowProps,
+      createNew,
       columns: createColumns(),
       rowKey: (row) => row.key,
     };
   },
 });
+
 </script>
 
 <style>
