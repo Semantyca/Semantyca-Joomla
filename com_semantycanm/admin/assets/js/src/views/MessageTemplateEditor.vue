@@ -1,7 +1,11 @@
 <template>
-  <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
+  <n-h3>Mail template</n-h3>
+  <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
+        <n-button size="large" type="primary" @click="$emit('back')">
+          < Back
+        </n-button>
         <n-button type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
         </n-button>
@@ -150,22 +154,8 @@
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useGlobalStore} from "../stores/globalStore";
 import {useTemplateStore} from "../stores/template/templateStore";
-import {
-  NButton,
-  NCheckbox,
-  NDivider,
-  NDynamicInput,
-  NForm,
-  NFormItem,
-  NInput,
-  NSelect,
-  NSpace,
-  NTabPane,
-  NTabs,
-  useMessage,
-  useLoadingBar,
-  NGrid,
-  NGi
+import { NButton,NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
+  NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3
 } from "naive-ui";
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
@@ -179,22 +169,10 @@ import {setCurrentTemplate} from "../utils/fieldUtilities";
 export default {
   name: 'TemplateEditor',
   components: {
-    NButton,
-    NSpace,
-    NInput,
-    NSelect,
-    NCheckbox,
-    NForm,
-    NFormItem,
-    CodeMirror,
-    NDivider,
-    NDynamicInput,
-    NTabPane,
-    NTabs,
-    NGrid,
-    NGi
+    NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
+    NTabPane, NTabs, NGrid, NGi, NH3
   },
-
+  emits: ['back'],
   setup() {
     const formRef = ref(null);
     const selectedTemplateRef = ref(null);

@@ -22,6 +22,7 @@ $jsonTranslations = json_encode($translations);
 
 <div id="app" data-menu-id="template">Loading...</div>
 
-<?php if (isset($this->js_bundle) && $this->js_bundle): ?>
-    <script type="module" src="<?php echo $rootUrl . $smtca_assets . $this->js_bundle; ?>"></script>
-<?php endif; ?>
+<?php foreach ($this->js_bundles as $js_bundle): ?>
+    <script type="module" src="<?php echo $rootUrl . $smtca_assets . $js_bundle; ?>"></script>
+<?php endforeach; ?>
+

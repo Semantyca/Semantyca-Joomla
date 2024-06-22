@@ -224,7 +224,7 @@ class NewsLetterModel extends BaseDatabaseModel
 		}
 		else
 		{
-			throw new UpdateRecordException('The newsletter deletion failed');
+			throw new UpdateRecordException('The newsletters deletion failed');
 		}
 	}
 

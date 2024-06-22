@@ -22,9 +22,9 @@
 import { ref } from "vue";
 import Lists from "./Lists.vue";
 import Composer from "./Composer.vue";
-import NewsletterDashboard from "./NewsletterDashboard.vue";
+import NewsletterDashboard from "./Newsletters.vue";
 import Statistics from "./Statistics.vue";
-import TemplateEditor from "./TemplateEditor.vue";
+import TemplateEditor from "./MessageTemplateEditor.vue";
 import { NTabPane, NTabs } from 'naive-ui';
 
 export default {

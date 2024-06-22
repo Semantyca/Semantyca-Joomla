@@ -1,5 +1,5 @@
 import {createApp, defineAsyncComponent} from 'vue';
-import { createPinia } from 'pinia';
+import {createPinia} from 'pinia';
 import Workspace from "./views/Workspace.vue";
 import {
     NConfigProvider,
@@ -37,26 +37,24 @@ const joomlaBootstrapTheme = {
 
 const loadComponent = (menuId) => {
     switch (menuId) {
-        case 'dashboard':
-            return defineAsyncComponent(() => import('./views/Composer.vue'));
+        case 'newsletters':
+            return defineAsyncComponent(() => import('./views/Newsletters.vue'));
         case 'mailing_lists':
             return defineAsyncComponent(() => import('./views/Lists.vue'));
         case 'stat':
             return defineAsyncComponent(() => import('./views/Statistics.vue'));
-        case 'template':
-            return defineAsyncComponent(() => import('./views/TemplateEditor.vue'));
+        case 'message_templates':
+            return defineAsyncComponent(() => import('./views/MessageTemplates.vue'));
 
         default:
-            return defineAsyncComponent(() => import('./views/Composer.vue'));
+            return defineAsyncComponent(() => import('./views/Newsletters.vue'));
     }
 }
 
 const pinia = createPinia();
 const appElement = document.getElementById('app');
 const menuId = appElement.getAttribute('data-menu-id');
-console.log(`Loading component for menu ID: ${menuId}`);
 const DynamicComponent = loadComponent(menuId);
-console.log(DynamicComponent);
 
 const app = createApp({
     components: {

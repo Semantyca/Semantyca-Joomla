@@ -1,6 +1,14 @@
 <template>
-  <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
+  <n-h3>Newsletter</n-h3>
+  <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
+      <n-space>
+        <n-button size="large" type="primary" @click="$emit('back')">
+          < Back
+        </n-button>
+      </n-space>
+    </n-gi>
+    <n-gi class="mt-5">
       <n-steps vertical>
         <n-step title="Choose template">
           <div class="m-4">
@@ -273,7 +281,7 @@ import {
   NButton, NButtonGroup, NColorPicker, NDivider, NForm,
   NFormItem, NGi, NGrid, NIcon, NInput, NInputNumber,
   NSkeleton, NSpace, NSteps, NStep, NSelect, useDialog, useLoadingBar,
-  useMessage, NCheckbox
+  useMessage, NCheckbox, NH3
 } from "naive-ui";
 import { useTemplateStore } from "../stores/template/templateStore";
 import draggable from 'vuedraggable';
@@ -294,11 +302,18 @@ export default {
   components: {
     NSkeleton, NButtonGroup, NButton, NSpace, NDivider, NForm, NFormItem,
     NInput, NInputNumber, NColorPicker, NIcon, NGrid, NGi, NSteps, NStep,
-    NSelect, draggable, NCheckbox,
+    NSelect, draggable, NCheckbox, NH3,
     Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting
   },
-
-  setup() {
+  props: {
+    id: {
+      type: Number,
+      required: true,
+    },
+  },
+  emits: ['back'],
+  setup(props) {
+    console.log('Composer component initialized with id:', props.id);
     const articles = ref([]);
     const formRef = ref(null);
     const articlesListRef = ref(null);
@@ -325,19 +340,28 @@ export default {
       content: composerStore.cont
     });
 
-    onMounted(async () => {
+    const fetchInitialData = async () => {
       try {
         loading.value = true;
-        await composerStore.fetchEverything('', false, msgPopup, loadingBar);
-        await mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar);
+        await Promise.all([
+          composerStore.fetchEverything('', false, msgPopup, loadingBar),
+          mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar)
+        ]);
+
         loading.value = false;
-        window.DOMPurify = DOMPurify;
-        nextTick(() => {
-          squireEditor.value = new Squire(document.getElementById('squire-editor'));
-        });
       } catch (error) {
-        console.error("Error in mounted hook:", error);
+        console.error("Error fetching initial data:", error);
       }
+    };
+
+    fetchInitialData();
+
+
+    onMounted(() => {
+      window.DOMPurify = DOMPurify;
+      nextTick(() => {
+        squireEditor.value = new Squire(document.getElementById('squire-editor'));
+      });
     });
 
     const resetFunction = async () => {

@@ -61,7 +61,7 @@ class SMTPSender
 	{
 		$results = $this->newsletterModel->findUnprocessedEvent($newsletterId, Constants::EVENT_TYPE_READ);
 		if (empty($results)) {
-			throw new NewsletterSenderException(["No data found for newsletter ID " . $newsletterId]);
+			throw new NewsletterSenderException(["No data found for newsletters ID " . $newsletterId]);
 		}
 
 		foreach ($results as $data) {

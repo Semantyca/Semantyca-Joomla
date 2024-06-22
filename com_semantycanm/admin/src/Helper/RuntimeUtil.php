@@ -6,26 +6,28 @@ defined('_JEXEC') or die;
 
 class RuntimeUtil
 {
-	public static function getDynamicScriptUrl($type): ?string
+	public static function getDynamicScriptUrls($type): array
 	{
 		$relativeDirectory = "/components/com_semantycanm/assets/bundle";
-		$directory         = JPATH_ADMINISTRATOR . $relativeDirectory;
-		$prefix            = "bundle-";
+		$directory = JPATH_ADMINISTRATOR . $relativeDirectory;
+		$filesList = [];
 
 		if (!file_exists($directory) || !is_dir($directory))
 		{
-			return null;
+			return $filesList;
 		}
 
 		$files = scandir($directory);
 		foreach ($files as $file)
 		{
-			if (strpos($file, $prefix) === 0 && pathinfo($file, PATHINFO_EXTENSION) === $type)
+			if (pathinfo($file, PATHINFO_EXTENSION) === $type)
 			{
-				return "bundle/" . $file;
+				$filesList[] = "bundle/" . $file;
 			}
 		}
 
-		return null;
+		return $filesList;
 	}
 }
+
+

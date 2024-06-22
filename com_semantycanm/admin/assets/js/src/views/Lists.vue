@@ -1,10 +1,10 @@
 <template>
   <n-grid :cols="1" x-gap="5" y-gap="5" class="mt-1">
     <n-gi :span="24" class="mt-3">
-      <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
+      <n-button size="large" type="primary" @click="() => showGroupEditor()" class="button-margin">
         Create
       </n-button>
-      <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length" class="button-margin">
+      <n-button size="large" type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length" class="button-margin">
         {{ globalStore.translations.DELETE }}
       </n-button>
     </n-gi>

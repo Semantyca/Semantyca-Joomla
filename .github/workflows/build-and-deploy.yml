@@ -5,12 +5,15 @@ on:
     branches:
       - master
 
+env:
+  ENABLE_DEPLOYMENT: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4 
+        uses: actions/checkout@v4
 
       - name: Install Dependencies
         run: sudo apt-get update && sudo apt-get install zip -y
@@ -24,6 +27,7 @@ jobs:
           zip -r dist/semantyca-extension.zip com_semantycanm
 
       - name: Prepare SSH Key
+        if: env.ENABLE_DEPLOYMENT == 'true'
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
         run: |
@@ -32,19 +36,19 @@ jobs:
           chmod 600 ~/.ssh/id_rsa     
 
       - name: Copy Extension to Server
+        if: env.ENABLE_DEPLOYMENT == 'true'
         env:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT }}  
+          SERVER_PORT: ${{ secrets.SERVER_PORT }}
         run: scp -o StrictHostKeyChecking=no -P $SERVER_PORT dist/semantyca-extension.zip $SERVER_USER@$SERVER_HOST:/tmp/
 
       - name: Install Extension
+        if: env.ENABLE_DEPLOYMENT == 'true'
         env:
           SERVER_USER: ${{ secrets.SERVER_USER }}
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SERVER_PORT: ${{ secrets.SERVER_PORT }}
           JOOMLA_PATH: ${{ secrets.JOOMLA_PATH }}
         run: |
-          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install --path=/tmp/semantyca-extension.zip"   
-
-     
+          ssh -p $SERVER_PORT $SERVER_USER@$SERVER_HOST "php $JOOMLA_PATH/cli/joomla.php extension:install --path=/tmp/semantyca-extension.zip"

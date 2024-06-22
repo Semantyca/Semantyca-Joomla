@@ -52,11 +52,11 @@ class TemplateManager  extends BaseObject {
                     setCurrentTemplate(this.templateStore, defaultTemplateId);
                 }
             } else {
-                throw new Error('Failed to fetch templates: No data returned');
+                throw new Error('Failed to fetch messagetemplates: No data returned');
             }
         } catch (error) {
             this.loadingBar.error();
-            this.msgPopup.error('Error fetching templates: ' + error.message, {
+            this.msgPopup.error('Error fetching messagetemplates: ' + error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });

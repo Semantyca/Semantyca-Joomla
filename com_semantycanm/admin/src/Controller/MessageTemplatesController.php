@@ -7,19 +7,16 @@ defined('_JEXEC') or die;
 use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 
-class DashboardController extends BaseController
+class MessageTemplatesController extends BaseController
 {
-	protected $default_view = 'Dashboard';
-
 	public function display($cachable = false, $urlparams = array())
 	{
 		try
 		{
-			$view = $this->getView('Dashboard', 'html');
-			$view->js_bundle = RuntimeUtil::getDynamicScriptUrl('js');
+			$view = $this->getView('MessageTemplates', 'html');
+			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
 			$view->display();
 		}
 		catch (\Exception $e)

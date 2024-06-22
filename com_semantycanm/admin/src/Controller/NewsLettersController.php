@@ -12,11 +12,27 @@ use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
-class NewsLetterController extends BaseController
+class NewsLettersController extends BaseController
 {
+	public function display($cachable = false, $urlparams = array())
+	{
+		try
+		{
+			$view = $this->getView('Newsletters', 'html');
+			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
+			$view->display();
+		}
+		catch (\Exception $e)
+		{
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
+		}
+	}
+
+
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);

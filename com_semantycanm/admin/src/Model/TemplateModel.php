@@ -69,7 +69,7 @@ class TemplateModel extends BaseDatabaseModel
 		$maxPage    = (int) ceil($totalItems / $itemsPerPage);
 
 		return [
-			'templates' => $templates,
+			'messagetemplates' => $templates,
 			'count' => $totalItems,
 			'current'   => $currentPage,
 			'maxPage'   => $maxPage
