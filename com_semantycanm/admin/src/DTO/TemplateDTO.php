@@ -3,8 +3,9 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
 
 use DateTime;
+use JsonSerializable;
 
-class TemplateDTO
+class TemplateDTO implements JsonSerializable
 {
 	public int $id;
 	public DateTime $regDate;
@@ -19,7 +20,7 @@ class TemplateDTO
 	public function toArray(): array
 	{
 		return [
-			'id'           => $this->id,
+			'key'          => $this->id,
 			'regDate'      => $this->regDate->format('Y-m-d H:i:s'),
 			'name'         => $this->name,
 			'type'         => $this->type,
@@ -32,12 +33,17 @@ class TemplateDTO
 					'id'           => $field['id'],
 					'name'         => $field['name'],
 					'type'         => $field['type'],
-					'isDefault' => $field['isDefault'],
 					'caption'      => $field['caption'],
 					'defaultValue' => $field['defaultValue'],
 					'isAvailable'  => $field['isAvailable'],
 				];
 			}, $this->customFields)
 		];
+	}
+
+
+	public function jsonSerialize(): array
+	{
+		return $this->toArray();
 	}
 }

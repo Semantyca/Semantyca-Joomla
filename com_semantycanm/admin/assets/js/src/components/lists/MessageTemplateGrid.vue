@@ -3,10 +3,10 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button size="large" type="primary" @click="createNew">
+        <n-button  type="primary" @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
-        <n-button size="large" type="error" disabled>
+        <n-button type="error" disabled>
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -95,11 +95,11 @@ export default defineComponent({
         },
         {
           title: 'Name',
-          key: 'subject'
+          key: 'name'
         },
         {
-          title: 'Created',
-          key: 'reg_date'
+          title: 'Description',
+          key: 'description'
         }
       ];
     };

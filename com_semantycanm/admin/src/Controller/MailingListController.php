@@ -21,7 +21,7 @@ class MailingListController extends BaseController
 		try
 		{
 			$view = $this->getView('MailingLists', 'html');
-			$view->js_bundle = RuntimeUtil::getDynamicScriptUrl('js');
+			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
 			$view->display();
 		}
 		catch (\Exception $e)

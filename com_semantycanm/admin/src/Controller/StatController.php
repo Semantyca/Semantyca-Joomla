@@ -20,7 +20,7 @@ class StatController extends BaseController
 		try
 		{
 			$view = $this->getView('Stat', 'html');
-			$view->js_bundle = RuntimeUtil::getDynamicScriptUrl('js');
+			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
 			$view->display();
 		}
 		catch (\Exception $e)

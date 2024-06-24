@@ -1,6 +1,7 @@
 import {setCurrentTemplate} from "../../utils/fieldUtilities";
 import BaseObject from "../../utils/BaseObject";
 
+//deprecated ??
 class TemplateManager  extends BaseObject {
 
     constructor(store, msgPopup, loadingBar) {

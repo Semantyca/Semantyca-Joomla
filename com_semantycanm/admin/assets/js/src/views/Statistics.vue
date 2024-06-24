@@ -1,5 +1,6 @@
 <template>
-  <n-grid :cols="1" x-gap="12" y-gap="12" class="mt-1">
+  <n-h3>Statistics</n-h3>
+  <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
         <n-button type="primary" class="button-margin" @click="exportLog">
@@ -11,7 +12,7 @@
         </n-button>
       </n-space>
     </n-gi>
-    <n-gi>
+    <n-gi class="mt-2">
       <n-data-table
           remote
           size="large"
@@ -32,16 +33,7 @@
 <script>
 import { defineComponent, h, onMounted, ref } from 'vue';
 import {
-  NDataTable,
-  NGi,
-  NGrid,
-  NPagination,
-  useLoadingBar,
-  useMessage,
-  NButton,
-  NSpace,
-  NEllipsis,
-  useDialog
+  NDataTable, NGi, NGrid, NPagination, useLoadingBar, useMessage, NButton, NSpace, NEllipsis, useDialog, NH3
 } from 'naive-ui';
 import { useStatStore } from "../stores/statistics/statStore";
 import { useGlobalStore } from "../stores/globalStore";
@@ -54,16 +46,7 @@ export default defineComponent({
   props: {
     spinnerIconUrl: String
   },
-  components: {
-    NGrid,
-    NGi,
-    NDataTable,
-    NPagination,
-    NButton,
-    NSpace,
-    NEllipsis
-  },
-
+  components: {NGrid, NGi, NDataTable, NPagination, NButton, NSpace, NEllipsis, NH3 },
   setup() {
     const statsTabRef = ref(null);
     const checkedRowKeysRef = ref([]);

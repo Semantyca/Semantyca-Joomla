@@ -11,21 +11,22 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundExcept
 class TemplateModel extends BaseDatabaseModel
 {
 
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function getList($currentPage, $itemsPerPage): array
 	{
 		$db     = $this->getDatabase();
 		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
-
 		$query
 			->select('id, reg_date, name, type, description, content, wrapper, is_default')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->order(array('reg_date DESC'))
 			->setLimit($itemsPerPage, $offset);
-
 		$db->setQuery($query);
-		$rows = $db->loadObjectList();
-
+		$rows      = $db->loadObjectList();
 		$templates = [];
 		foreach ($rows as $row)
 		{
@@ -45,7 +46,6 @@ class TemplateModel extends BaseDatabaseModel
 				->where('template_id = ' . (int) $row->id);
 			$db->setQuery($customFieldsQuery);
 			$customFieldsRows = $db->loadObjectList();
-
 			foreach ($customFieldsRows as $field)
 			{
 				$template->customFields[] = [
@@ -60,7 +60,6 @@ class TemplateModel extends BaseDatabaseModel
 
 			$templates[] = $template;
 		}
-
 		$queryCount = $db->getQuery(true)
 			->select('COUNT(' . $db->quoteName('id') . ')')
 			->from($db->quoteName('#__semantyca_nm_templates'));
@@ -69,13 +68,12 @@ class TemplateModel extends BaseDatabaseModel
 		$maxPage    = (int) ceil($totalItems / $itemsPerPage);
 
 		return [
-			'templates' => $templates,
-			'count'     => $totalItems,
-			'current'   => $currentPage,
-			'maxPage'   => $maxPage
+			'docs'    => $templates,
+			'count'   => $totalItems,
+			'current' => $currentPage,
+			'maxPage' => $maxPage
 		];
 	}
-
 
 	/**
 	 * @throws RecordNotFoundException
@@ -99,8 +97,9 @@ class TemplateModel extends BaseDatabaseModel
 		}
 
 		$template              = new TemplateDTO();
-		$template->id          = $row->id;
+		$template->id         = $row->id;
 		$template->regDate     = new \DateTime($row->reg_date);
+		$template->isDefault   = $row->is_default;
 		$template->content     = $row->content;
 		$template->name        = $row->name;
 		$template->type        = $row->type;

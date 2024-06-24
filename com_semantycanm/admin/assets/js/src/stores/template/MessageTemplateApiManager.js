@@ -12,8 +12,8 @@ export default class MessageTemplateApiManager extends BaseObject {
 
     async fetch(currentPage, size) {
         this.loadingBar.start();
-
         const url = `${MessageTemplateApiManager.BASE_URL}findAll&page=${currentPage}&limit=${size}`;
+
         try {
             const response = await fetch(url, {
                 method: 'GET',

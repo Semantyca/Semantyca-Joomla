@@ -1,14 +1,15 @@
 <template>
-  <n-grid :cols="1" x-gap="5" y-gap="5" class="mt-1">
-    <n-gi :span="24" class="mt-3">
-      <n-button size="large" type="primary" @click="() => showGroupEditor()" class="button-margin">
+  <n-h3>Mailing lists</n-h3>
+  <n-grid :cols="1" x-gap="5" y-gap="10" >
+    <n-gi>
+      <n-button type="primary" @click="() => showGroupEditor()" class="button-margin">
         Create
       </n-button>
-      <n-button size="large" type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length" class="button-margin">
+      <n-button  type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length" class="button-margin">
         {{ globalStore.translations.DELETE }}
       </n-button>
     </n-gi>
-    <n-gi :span="24">
+    <n-gi class="mt-2">
       <n-data-table
           remote
           size="large"
@@ -29,16 +30,7 @@
 
 <script>
 import {h, onMounted, ref} from 'vue';
-import {
-  NButton,
-  NDataTable,
-  NGi,
-  NGrid,
-  NGridItem,
-  useDialog,
-  useLoadingBar,
-  useMessage,
-} from "naive-ui";
+import { NButton, NDataTable, NGi, NGrid, NGridItem, NH3, useDialog, useLoadingBar, useMessage } from "naive-ui";
 import {useUserGroupStore} from "../stores/mailinglist/userGroupStore";
 import {useMailingListStore} from "../stores/mailinglist/mailinglistStore";
 import {useGlobalStore} from "../stores/globalStore";
@@ -46,14 +38,7 @@ import GroupEditorDialog from "../components/GroupEditorDialog.vue";
 
 export default {
   name: 'Lists',
-  components: {
-    NGrid,
-    NGi,
-    NGridItem,
-    NButton,
-    NDataTable,
-    GroupEditorDialog
-  },
+  components: { NGrid, NH3, NGi, NGridItem, NButton, NDataTable, GroupEditorDialog },
   setup() {
     const editorDialogRef = ref(null);
     const checkedRowKeysRef = ref([]);

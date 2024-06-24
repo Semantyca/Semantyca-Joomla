@@ -22,8 +22,8 @@ class TemplateController extends BaseController
 	{
 		try
 		{
-			$view = $this->getView('Template', 'html');
-			$view->js_bundle = RuntimeUtil::getDynamicScriptUrl('js');
+			$view             = $this->getView('Template', 'html');
+			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
 			$view->display();
 		}
 		catch (\Exception $e)
@@ -113,7 +113,7 @@ class TemplateController extends BaseController
 				}
 			}
 
-			$model   = $this->getModel('Template');
+			$model  = $this->getModel('Template');
 			$result = $model->update($id, $doc);
 			if ($result)
 			{
@@ -258,7 +258,7 @@ class TemplateController extends BaseController
 				throw new ValidationErrorException(['id is required to set a template as default']);
 			}
 
-			$model = $this->getModel('Template');
+			$model  = $this->getModel('Template');
 			$result = $model->setDefaultTemplate($id);
 
 			if ($result)

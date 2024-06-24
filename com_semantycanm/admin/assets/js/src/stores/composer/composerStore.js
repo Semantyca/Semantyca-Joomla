@@ -2,82 +2,94 @@ import { defineStore } from 'pinia';
 import { useMessageTemplateStore } from '../template/messageTemplateStore';
 import TemplateManager from "../template/TemplateManager";
 import DynamicBuilder from "../../utils/DynamicBuilder";
+import { ref, computed } from 'vue';
+import {useLoadingBar, useMessage} from "naive-ui";
 
-export const useComposerStore = defineStore('composer', {
-    state: () => ({
-        listPage: {
-            docs: []
-        },
-        articlesCache: [],
-        selectedArticles: [],
-        editorCont: '',
-        isLoading: false,
-    }),
-    getters: {
-        cont(state) {
-            const templateStore = useMessageTemplateStore();
-            const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-            dynamicBuilder.addVariable("articles", state.selectedArticles);
+export const useComposerStore = defineStore('composer', () => {
+    const listPage = ref({ docs: [] });
+    const articlesCache = ref([]);
+    const selectedArticles = ref([]);
+    const editorCont = ref('');
+    const isLoading = ref(false);
+    const msgPopup = useMessage();
+    const loadingBar = useLoadingBar();
 
-            Object.keys(templateStore.availableCustomFields).forEach((key) => {
-                const field = templateStore.availableCustomFields[key];
-                const fieldValue = field.defaultValue;
-                dynamicBuilder.addVariable(key, fieldValue);
-            });
+    const templateStore = useMessageTemplateStore();
 
-            try {
-                return dynamicBuilder.buildContent();
-            } catch (e) {
-                console.error(e.message);
-                return '';
-            }
+    const cont = computed(() => {
+        const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+        dynamicBuilder.addVariable("articles", selectedArticles.value);
+
+        Object.keys(templateStore.availableCustomFields).forEach((key) => {
+            const field = templateStore.availableCustomFields[key];
+            const fieldValue = field.defaultValue;
+            dynamicBuilder.addVariable(key, fieldValue);
+        });
+
+        try {
+            return dynamicBuilder.buildContent();
+        } catch (e) {
+            console.error(e.message);
+            return '';
         }
-    },
-    actions: {
-        async updateFormCustomFields(msgPopup, loadingBar) {
-            const templateStore = useMessageTemplateStore();
-            const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
-            await templateManager.getTemplates(msgPopup);
-        },
-        async fetchArticles(searchTerm, msgPopup, forceRefresh = false) {
-            const cacheBuster = forceRefresh ? `&cb=${new Date().getTime()}` : "";
+    });
 
-            if (searchTerm === "" && this.articlesCache.length > 0 && !forceRefresh) {
-                this.listPage.docs = this.articlesCache;
-                return;
+    async function updateFormCustomFields() {
+        const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
+        await templateManager.getTemplates(true);
+    }
+
+    async function fetchArticles(searchTerm, msgPopup, forceRefresh = false) {
+        const cacheBuster = forceRefresh ? `&cb=${new Date().getTime()}` : "";
+
+        if (searchTerm === "" && articlesCache.value.length > 0 && !forceRefresh) {
+            listPage.value.docs = articlesCache.value;
+            return;
+        }
+
+        try {
+            const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}${cacheBuster}`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Network response was not ok for searchTerm ${searchTerm}`);
             }
 
-            try {
-                const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}${cacheBuster}`;
-                const response = await fetch(url);
+            const data = await response.json();
+            listPage.value.docs = data.data.map(a => ({
+                id: a.id,
+                title: a.title,
+                url: a.url,
+                category: a.category,
+                intro: encodeURIComponent(a.introtext)
+            }));
 
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok for searchTerm ${searchTerm}`);
-                }
-
-                const data = await response.json();
-                this.listPage.docs = data.data.map(a => ({
-                    id: a.id,
-                    title: a.title,
-                    url: a.url,
-                    category: a.category,
-                    intro: encodeURIComponent(a.introtext)
-                }));
-
-                if (searchTerm === "") {
-                    this.articlesCache = this.listPage.docs;
-                }
-
-            } catch (error) {
-                msgPopup.error(error, {
-                    closable: true,
-                    duration: this.$errorTimeout
-                });
+            if (searchTerm === "") {
+                articlesCache.value = listPage.value.docs;
             }
-        },
-        async fetchEverything(searchTerm, forceRefresh = false, msgPopup, loadingBar) {
-            await this.updateFormCustomFields(msgPopup, loadingBar);
-            await this.fetchArticles(searchTerm, msgPopup, forceRefresh);
+
+        } catch (error) {
+            msgPopup.error(error, {
+                closable: true,
+                duration: this.$errorTimeout
+            });
         }
     }
+
+    async function fetchEverything(searchTerm, forceRefresh = false) {
+        await updateFormCustomFields();
+        await fetchArticles(searchTerm, msgPopup, forceRefresh);
+    }
+
+    return {
+        listPage,
+        articlesCache,
+        selectedArticles,
+        editorCont,
+        isLoading,
+        cont,
+        updateFormCustomFields,
+        fetchArticles,
+        fetchEverything
+    };
 });

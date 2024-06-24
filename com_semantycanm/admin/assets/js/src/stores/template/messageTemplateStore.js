@@ -1,13 +1,12 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
-import { adaptField, processFormCustomFields } from "../../utils/fieldUtilities";
+import {defineStore} from 'pinia';
+import {ref, computed} from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
 import {useLoadingBar, useMessage} from "naive-ui";
 
-export const useMessageTemplateStore = defineStore('messageTemplate', () => {
+export const useMessageTemplateStore = defineStore('messageTemplates', () => {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
-    const messageTemplateListPage = ref({
+    const templatesPage = ref({
         page: 1,
         pageSize: 10,
         itemCount: 0,
@@ -15,7 +14,7 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
         pages: new Map()
     });
     const currentTemplate = ref({
-        id: 0,
+        key: 1,
         name: '',
         type: '',
         description: '',
@@ -39,36 +38,42 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
         expiration: 0
     });
 
+    const templateSelectOptions = computed(() => {
+        const options = [];
+        templatesPage.value.pages.forEach((pageData, pageNumber) => {
+            pageData.docs.forEach(template => {
+                options.push({
+                    label: template.name,
+                    value: template.key
+                });
+            });
+        });
+        return options;
+    });
+
     const getCurrentPage = computed(() => {
-        const pageData = messageTemplateListPage.value.pages.get(messageTemplateListPage.value.page);
+        const pageData = templatesPage.value.pages.get(templatesPage.value.page);
         return pageData ? pageData.docs : [];
     });
 
-    const getPagination = computed(() =>  {
+    const getPagination = computed(() => {
         return {
-            page: messageTemplateListPage.value.page,
-            pageSize: messageTemplateListPage.value.pageSize,
-            itemCount: messageTemplateListPage.value.itemCount,
-            pageCount: messageTemplateListPage.value.pageCount
+            page: templatesPage.value.page,
+            pageSize: templatesPage.value.pageSize,
+            itemCount: templatesPage.value.itemCount,
+            pageCount: templatesPage.value.pageCount
         };
     });
 
-    const templateOptions = computed(() =>
-        Object.keys(templateMap.value).map(key => ({
-            id: key,
-            name: templateMap.value[key].name
-        }))
-    );
-
-    const templateSelectOptions = computed(() =>
-        Object.keys(templateMap.value).map(key => ({
-            value: key,
-            label: templateMap.value[key].name
-        }))
-    );
+    const setCurrentTemplateById = (id) => {
+        const pageNum = 1;
+        const onePage = templatesPage.value.pages.get(pageNum);
+        const selectedTemplate = onePage.docs.find(document => document.key === id);
+        setCurrentTemplate(selectedTemplate);
+    }
 
     const setCurrentTemplate = (templateDoc) => {
-        currentTemplate.value.id = templateDoc.id;
+        currentTemplate.value.key = templateDoc.key;
         currentTemplate.value.name = templateDoc.name;
         currentTemplate.value.type = templateDoc.type;
         currentTemplate.value.description = templateDoc.description;
@@ -77,11 +82,22 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
         currentTemplate.value.isDefault = templateDoc.isDefault;
         currentTemplate.value.customFields = templateDoc.customFields;
 
-        availableCustomFields.value = processFormCustomFields(
-            templateDoc.customFields.filter(field => field.isAvailable === 1),
-            adaptField
-        );
+        const customFields =  currentTemplate.value.customFields.filter(field => field.isAvailable === 1);
+        console.log('customFields', customFields);
+        availableCustomFields.value = processFormCustomFields(customFields, adaptField);
     };
+
+
+    function processFormCustomFields(availableFields, adaptField) {
+
+        return availableFields.reduce((acc, field) => {
+            if (field.isAvailable === 1) {
+                const key = field.name;
+                acc[key] = adaptField(field);
+            }
+            return acc;
+        }, {});
+    }
 
     const addCustomField = (newField) => {
         const defaultFieldStructure = {
@@ -91,7 +107,7 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
             defaultValue: '',
             isAvailable: 0,
         };
-        currentTemplate.value.customFields.push({ ...defaultFieldStructure, ...newField });
+        currentTemplate.value.customFields.push({...defaultFieldStructure, ...newField});
     };
 
     const removeCustomField = (index) => {
@@ -106,19 +122,56 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
             const respData = await manager.fetch(page, size);
             if (respData.success && respData.data) {
                 const {docs, count, maxPage, current} = respData.data;
-                messageTemplateListPage.value.pageSize = size;
-                messageTemplateListPage.value.itemCount = count;
-                messageTemplateListPage.value.pageCount = maxPage;
-                messageTemplateListPage.value.pageNum = current;
-                messageTemplateListPage.value.pages.set(page, {docs});
+                templatesPage.value.pageSize = size;
+                templatesPage.value.itemCount = count;
+                templatesPage.value.pageCount = maxPage;
+                templatesPage.value.pageNum = current;
+                templatesPage.value.pages.set(page, {docs});
+                const defaultTemplate = docs.find(field => field.isDefault);
+                if (defaultTemplate) {
+                      setCurrentTemplate(defaultTemplate);
+                  }
             }
         } catch (error) {
             console.error(error);
         }
     };
 
+
+    function adaptField(field) {
+        switch (field.type) {
+            case 503:
+                try {
+                    const parsedValue = JSON.parse(field.defaultValue);
+                    return {
+                        ...field,
+                        defaultValue: Array.isArray(parsedValue) ? parsedValue : []
+                    };
+                } catch (error) {
+                    return {
+                        ...field,
+                        defaultValue: []
+                    };
+                }
+            case 504:
+                return {
+                    ...field,
+                    defaultValue: field.defaultValue.replace(/^"|"$/g, "")
+                };
+            case 501:
+                return {
+                    ...field,
+                    defaultValue: Number(field.defaultValue)
+                };
+            default:
+                return {...field};
+        }
+    }
+
+
     return {
         fetchFromApi,
+        templatesPage,
         getCurrentPage,
         getPagination,
         currentTemplate,
@@ -126,9 +179,9 @@ export const useMessageTemplateStore = defineStore('messageTemplate', () => {
         availableCustomFields,
         pagination,
         cache,
-        templateOptions,
         templateSelectOptions,
         setCurrentTemplate,
+        setCurrentTemplateById,
         addCustomField,
         removeCustomField
     };

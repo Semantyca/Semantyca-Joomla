@@ -3,19 +3,24 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button size="large" type="primary" @click="$emit('back')">
-          < Back
+        <n-button  type="info" @click="$emit('back')">
+          <template #icon>
+            <n-icon>
+              <arrow-bar-left />
+            </n-icon>
+          </template>
+          Back
         </n-button>
-        <n-button size="large" type="primary" @click="saveTemplate">
+        <n-button  type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button size="large" type="primary" @click="exportTemplate">
+        <n-button  type="primary" @click="exportTemplate">
           Export
         </n-button>
-        <n-button size="large" type="primary" @click="importTemplate">
+        <n-button  type="primary" @click="importTemplate">
           Import
         </n-button>
-        <n-button size="large" type="error" @click="deleteTemplate">
+        <n-button  type="error" @click="deleteTemplate">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -154,9 +159,11 @@
 import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
-import { NButton,NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
-  NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3
+import {
+  NButton, NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
+  NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3, NIcon
 } from "naive-ui";
+import { ArrowBarLeft } from '@vicons/tabler'
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 import {ejs} from 'codemirror-lang-ejs';
@@ -170,7 +177,13 @@ export default {
   name: 'TemplateEditor',
   components: {
     NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
-    NTabPane, NTabs, NGrid, NGi, NH3
+    NTabPane, NTabs, NGrid, NGi, NH3, NIcon, ArrowBarLeft
+  },
+  props: {
+    id: {
+      type: Number,
+      required: false,
+    },
   },
   emits: ['back'],
   setup() {

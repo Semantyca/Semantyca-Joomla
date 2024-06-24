@@ -27,7 +27,7 @@
         <menu link="index.php?option=com_semantycanm">Semantyca</menu>
         <submenu>
             <menu link="option=com_semantycanm&amp;controller=newsletters" title="NEWSLETTERS" alt="Newsletters">Newsletters</menu>
-            <menu link="option=com_semantycanm&amp;controller=mailing_list" title="MAILING_LISTS" alt="Mailing lists">Mailing lists</menu>
+            <menu link="option=com_semantycanm&amp;controller=mailinglist" title="MAILING_LISTS" alt="Mailing lists">Mailing lists</menu>
             <menu link="option=com_semantycanm&amp;controller=stat" title="STATS" alt="Statistics">Statistics</menu>
             <menu link="option=com_semantycanm&amp;controller=messagetemplates" title="MESSAGE_TEMPLATES" alt="Templates">Templates</menu>
         </submenu>

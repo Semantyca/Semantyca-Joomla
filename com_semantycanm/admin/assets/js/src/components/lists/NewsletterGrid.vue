@@ -3,10 +3,10 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button size="large" type="primary"  @click="createNew">
+        <n-button  type="primary"  @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
-        <n-button size="large" type="error" disabled>
+        <n-button  type="error" disabled>
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -63,7 +63,7 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            emit('row-click', row);
+            emit('row-click', row.key);
           }
         }
       };
