@@ -13,100 +13,43 @@
         </n-button>
       </n-space>
     </n-gi>
-      <n-gi class="mt-2">
-        <n-form-item label="Template name" label-placement="left" path="templateName">
-          <n-select class="w-20"
-                    v-model:value="messageTemplateStore.currentTemplate.key"
-                    :options="messageTemplateStore.templateSelectOptions"
-                    @update:value="handleTemplateChange"
-          ></n-select>
-        </n-form-item>
-      </n-gi>
-      <n-gi>
-        <n-form-item
-            label-placement="left"
-            require-mark-placement="right-hanging"
-            label-width="180px"
-            :style="{ maxWidth: '800px' }"
-            v-for="(field, fieldName) in customFields"
-            :key="field.id"
-            :label="field.caption"
-        >
-          <dynamic-form-field
-              :field="field"
-              @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
-          />
-        </n-form-item>
-      </n-gi>
+    <n-gi class="mt-2">
+      <n-form-item label="Template name" label-placement="left" path="templateName">
+        <n-select class="w-20"
+                  v-model:value="messageTemplateStore.currentTemplate.key"
+                  :options="messageTemplateStore.templateSelectOptions"
+                  @update:value="handleTemplateChange"
+        ></n-select>
+      </n-form-item>
+    </n-gi>
     <n-gi>
-<!--      <n-transfer
-          ref="transfer"
-          v-model:value="value"
-          :options="composerStore.selectedArticles"
-          :render-source-list="composerStore.selectedArticles"
-          source-filterable
-      />-->
+      <n-form-item
+          label-placement="left"
+          require-mark-placement="right-hanging"
+          label-width="180px"
+          :style="{ maxWidth: '800px' }"
+          v-for="(field, fieldName) in customFields"
+          :key="field.id"
+          :label="field.caption"
+      >
+        <dynamic-form-field
+            :field="field"
+            @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
+        />
+      </n-form-item>
+    </n-gi>
+    <n-gi>
+      <!--      <n-transfer
+                ref="transfer"
+                v-model:value="value"
+                :options="composerStore.selectedArticles"
+                :render-source-list="composerStore.selectedArticles"
+                source-filterable
+            />-->
     </n-gi>
 
     <n-gi class="mt-4">
-      <n-button-group>
-        <n-button @click="formatText('bold')" secondary>
-          <template #icon>
-            <n-icon>
-              <Bold/>
-            </n-icon>
-          </template>
-          Bold
-        </n-button>
-        <n-button @click="formatText('italic')" secondary>
-          <template #icon>
-            <n-icon>
-              <Italic/>
-            </n-icon>
-          </template>
-          Italic
-        </n-button>
-        <n-button @click="formatText('underline')" secondary>
-          <template #icon>
-            <n-icon>
-              <Underline/>
-            </n-icon>
-          </template>
-          Underline
-        </n-button>
-        <n-button @click="formatText('strikethrough')" secondary>
-          <template #icon>
-            <n-icon>
-              <Strikethrough/>
-            </n-icon>
-          </template>
-          Strikethrough
-        </n-button>
-        <n-button @click="insertImage" secondary>
-          <template #icon>
-            <n-icon>
-              <Photo/>
-            </n-icon>
-          </template>
-          Insert Image
-        </n-button>
-        <n-button @click="formatText('removeFormat')" secondary>
-          <template #icon>
-            <n-icon>
-              <ClearFormatting/>
-            </n-icon>
-          </template>
-          Remove Formatting
-        </n-button>
-        <n-button @click="previewHtml" secondary>
-          <template #icon>
-            <n-icon>
-              <Code/>
-            </n-icon>
-          </template>
-          HTML Preview
-        </n-button>
-      </n-button-group>
+      <formatting-buttons />
     </n-gi>
     <n-gi>
       <div
@@ -163,7 +106,7 @@
                    placeholder="Subject"/>
           <n-button size="large"
                     type="tertiary"
-                    @click="fetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+                    @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
           </n-button>
         </n-form-item>
       </n-gi>
@@ -172,10 +115,10 @@
                      :show-feedback="false"
                      class="form-item">
           <n-space class="mt-2">
-            <n-button size="large" type="success" @click="sendNewsletter(false)">
+            <n-button size="large" type="success" @click="handleSendNewsletter(false)">
               {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
             </n-button>
-            <n-button size="large" type="primary" @click="sendNewsletter(true)">
+            <n-button size="large" type="primary" @click="handleSendNewsletter(true)">
               {{ globalStore.translations.SAVE }}
             </n-button>
           </n-space>
@@ -186,33 +129,51 @@
 </template>
 
 <script>
-import {computed, h, onMounted, nextTick, ref} from 'vue';
+import {computed, h, nextTick, onMounted, provide, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
-import { NTransfer, NButton, NButtonGroup, NColorPicker, NDivider, NForm,
-  NFormItem, NGi, NGrid, NIcon, NInput, NInputNumber,
-  NSkeleton, NSpace, NSelect, useDialog, useLoadingBar,
-  useMessage, NCheckbox, NH3, NH4
+import {
+  NButton,
+  NButtonGroup,
+  NCheckbox,
+  NColorPicker,
+  NDivider,
+  NForm,
+  NFormItem,
+  NGi,
+  NGrid,
+  NH3,
+  NH4,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NSkeleton,
+  NSpace,
+  NTransfer,
+  useDialog,
+  useLoadingBar,
+  useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
 import {useComposerStore} from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
-import CodeMirror from 'vue-codemirror6';
-import {html} from '@codemirror/lang-html';
-import {Bold, Code, Italic, Strikethrough, Underline, Photo, ClearFormatting, ArrowBigLeft} from '@vicons/tabler';
-import NewsletterApiManager from "../../stores/newsletter/NewsletterApiManager";
-import UserExperienceHelper from "../../utils/UserExperienceHelper";
+import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline} from '@vicons/tabler';
 import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
 import {composerFormRules} from "../../stores/composer/composerUtils";
 import DynamicFormField from "./DynamicFormField.vue";
+import FormattingButtons from "../buttons/FormattingButtons.vue";
+import {fetchSubject, sendNewsletter} from "../../utils/newsletterUtils";
+import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 
 export default {
   name: 'Composer',
   methods: {useMailingListStore},
   components: {
+    FormattingButtons,
     DynamicFormField,
     NSkeleton, NButtonGroup, NButton, NSpace, NDivider, NForm, NFormItem, NInput, NInputNumber,
     NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NTransfer,
@@ -237,11 +198,14 @@ export default {
     const composerStore = useComposerStore();
     const mailingListStore = useMailingListStore();
     const messageTemplateStore = useMessageTemplateStore();
+    const newsLetterStore = useNewsletterStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
-    const dialog = useDialog();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
+    const dialog = useDialog();
+    provide('squireEditor', squireEditor)
+    provide('dialog', dialog)
     const loading = ref(true);
     const isTestMessage = ref(false);
     const testUserEmail = ref('');
@@ -313,29 +277,6 @@ export default {
       messageTemplateStore.setCurrentTemplateById(newTemplateId);
     };
 
-    const previewHtml = () => {
-      dialog.create({
-        title: 'HTML Preview',
-        style: 'width: 1024px',
-        bordered: true,
-        content: () => h('div', {
-          style: {overflow: 'auto', maxHeight: '600px', marginBottom: '40px'}
-        }, [
-          h(CodeMirror, {
-            modelValue: composerStore.cont,
-            basic: true,
-            lang: html(),
-            dark: false,
-            style: {width: '100%'},
-            readOnly: true,
-            extensions: [
-              html()
-            ],
-          }),
-        ]),
-      });
-    };
-
     const handleColorChange = (fieldName, index, newValue) => {
       customFields.value[fieldName].defaultValue[index] = newValue;
     };
@@ -357,92 +298,17 @@ export default {
       }
     };
 
-    const sendNewsletter = async (onlySave) => {
-      formRef.value.validate((errors) => {
-        if (!errors) {
-          const subj = modelRef.value.subject;
-          const msgContent = modelRef.value.content;
-          const newsletterApiManager = new NewsletterApiManager(msgPopup, loadingBar);
-          if (onlySave) {
-            newsletterApiManager.saveNewsletter(subj, msgContent);
-          } else {
-            let listItems;
-            if (isTestMessage.value) {
-              listItems = [testUserEmail.value.trim()];
-            } else {
-              listItems = modelRef.value.mailingList.map(item => item.value);
-            }
-            newsletterApiManager.sendEmail(subj, msgContent, listItems)
-                .then((response) => {
-                  console.log('response data:', response.data);
-                  newsLetterStore.currentNewsletterId = response.data;
-                  newsLetterStore.startPolling();
-                })
-                .catch(error => {
-                  console.log('error: ', error.message);
-                  msgPopup.error(error.message, {
-                    closable: true,
-                    duration: 10000
-                  });
-                });
-          }
-        } else {
-          Object.keys(errors).forEach(fieldName => {
-            const fieldError = errors[fieldName];
-            if (fieldError && fieldError.length > 0) {
-              msgPopup.error(fieldError[0].message, {
-                closable: true,
-                duration: 10000
-              });
-            }
-          });
-        }
-      });
-    };
+    const handleSendNewsletter = (onlySave) => {
+      sendNewsletter(modelRef.value, isTestMessage.value, testUserEmail.value, formRef, msgPopup, loadingBar, newsLetterStore, onlySave)
+    }
 
-    const formatText = (format) => {
-      if (squireEditor.value) {
-        squireEditor.value.focus();
-        switch (format) {
-          case 'bold':
-            squireEditor.value.bold();
-            break;
-          case 'italic':
-            squireEditor.value.italic();
-            break;
-          case 'underline':
-            squireEditor.value.underline();
-            break;
-          case 'strikethrough':
-            squireEditor.value.strikethrough();
-            break;
-          case 'removeFormat':
-            squireEditor.value.removeAllFormatting();
-            break;
-          default:
-            break;
-        }
-      }
-    };
-
-    const insertImage = () => {
-      const imageUrl = prompt("Enter image URL:");
-      if (imageUrl) {
-        squireEditor.value.insertImage(imageUrl);
-      }
-    };
-
-    const fetchSubject = async () => {
+    const handleFetchSubject = async () => {
       try {
-        const subject = await UserExperienceHelper.getSubject(loadingBar);
-        modelRef.value.subject = subject;
-        if (modelRef.value.content.trim() === '') {
-          modelRef.value.content = `<body>${subject}</body>`;
-        }
+        modelRef.value.subject = await fetchSubject(loadingBar)
       } catch (error) {
-        msgPopup.error("Failed to fetch subject");
+        msgPopup.error(error.message)
       }
-    };
+    }
 
     return {
       composerStore,
@@ -462,15 +328,12 @@ export default {
       resetFunction,
       copyContentToClipboard,
       preview,
-      sendNewsletter,
+      handleSendNewsletter,
       handleTemplateChange,
       handleColorChange,
       handleFieldChange,
-      formatText,
-      insertImage,
-      previewHtml,
       loading,
-      fetchSubject,
+      handleFetchSubject,
       isTestMessage,
       testUserEmail,
       handleCheckedChange
