@@ -6,19 +6,19 @@ use Joomla\CMS\Uri\Uri;
 use PHPMailer\PHPMailer\Exception;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
 class Messaging
 {
-	private NewsLetterModel $newsletterModel;
+	private NewslettersModel $newsletterModel;
 	private ?MailingListModel $mailingListModel;
 	private StatModel $statModel;
 	private SubscriberEventModel $eventModel;
 	private string $baseURL;
 
-	public function __construct(NewsLetterModel $newsletterModel, StatModel $statModel, SubscriberEventModel $eventModel = null, MailingListModel $mailingListModel = null)
+	public function __construct(NewslettersModel $newsletterModel, StatModel $statModel, SubscriberEventModel $eventModel = null, MailingListModel $mailingListModel = null)
 	{
 		$this->newsletterModel = $newsletterModel;
 		$this->statModel        = $statModel;

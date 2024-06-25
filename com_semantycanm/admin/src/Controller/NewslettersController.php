@@ -13,10 +13,10 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorExcep
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
-class NewsLettersController extends BaseController
+class NewslettersController extends BaseController
 {
 	public function display($cachable = false, $urlparams = array())
 	{
@@ -79,7 +79,7 @@ class NewsLettersController extends BaseController
 		try
 		{
 			$id = $this->input->getString('id');
-			/** @var NewsLetterModel $model */
+			/** @var NewslettersModel $model */
 			$model   = $this->getModel('NewsLetter');
 			$results = $model->findRelevantEvent($id, [Constants::EVENT_TYPE_DISPATCHED, Constants::EVENT_TYPE_READ]);
 			echo new JsonResponse($results);

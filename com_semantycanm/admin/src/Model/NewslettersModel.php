@@ -7,7 +7,7 @@ use Joomla\Database\DatabaseDriver;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
-class NewsLetterModel extends BaseDatabaseModel
+class NewslettersModel extends BaseDatabaseModel
 {
 	public function getList($currentPage, $itemsPerPage)
 	{

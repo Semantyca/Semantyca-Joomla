@@ -6,13 +6,13 @@ use Joomla\CMS\Factory;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\PHPMailer;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 
 class SMTPSender
 {
 	private $mailer;
 	private $config;
-	private NewsLetterModel $newsletterModel;
+	private NewslettersModel $newsletterModel;
 	private const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
 
 

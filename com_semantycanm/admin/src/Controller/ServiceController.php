@@ -15,7 +15,7 @@ use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewsLetterModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
@@ -56,7 +56,7 @@ class ServiceController extends BaseController
 			$eventModel       = $this->getModel('SubscriberEvent');
 			$mailingListModel = $this->getModel('MailingList');
 
-			/** @var NewsLetterModel $newLetterModel */
+			/** @var NewslettersModel $newLetterModel */
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
