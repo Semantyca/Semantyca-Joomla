@@ -10,6 +10,8 @@ $smtca_assets = "administrator/components/com_semantycanm/assets/";
 $rootUrl      = JUri::root();
 
 $translations     = array(
+	'CREATE' => Text::_('CREATE'),
+	'SAVE'   => Text::_('SAVE'),
 	'DELETE' => Text::_('DELETE'),
 );
 $jsonTranslations = json_encode($translations);

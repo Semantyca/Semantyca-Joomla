@@ -1,4 +1,3 @@
-// DynamicFormField.vue
 <template>
   <template v-if="field.type === 503">
     <div v-for="(color, i) in field.defaultValue" :key="i">
@@ -22,7 +21,7 @@
     <n-input
         v-model:value="field.defaultValue"
         @update:value="newValue => handleFieldChange(newValue)"
-        style="width: 100%;"
+        style="width: 80%; max-width: 600px;"
     />
   </template>
 </template>

@@ -1,71 +1,54 @@
 <template>
-  <n-h3>Mail template</n-h3>
+  <n-h3>Template editor</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button  type="info" @click="$emit('back')">
+        <n-button type="info" @click="$emit('back')">
           <template #icon>
             <n-icon>
-              <arrow-bar-left />
+              <arrow-big-left/>
             </n-icon>
           </template>
           Back
         </n-button>
-        <n-button  type="primary" @click="saveTemplate">
+        <n-button type="primary" @click="saveTemplate">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button  type="primary" @click="exportTemplate">
+        <n-button type="primary" @click="exportTemplate">
           Export
         </n-button>
-        <n-button  type="primary" @click="importTemplate">
+        <n-button type="primary" @click="importTemplate">
           Import
         </n-button>
-        <n-button  type="error" @click="deleteTemplate">
+        <n-button type="error" @click="deleteTemplate">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
     </n-gi>
-
-    <n-gi>
-      <n-divider class="custom-divider" title-placement="left">Template properties</n-divider>
-    </n-gi>
-
-    <n-gi>
+    <n-gi class="mt-4">
       <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-        <n-grid :cols="8">
-          <n-gi span="8">
-            <n-form-item label="Template name" label-placement="left" path="templateName">
-              <n-select
-                  v-model:value="selectedTemplateRef"
-                  :options="templateSelectOptions"
-                  size="large"
-                  style="width: 100%; max-width: 600px;"
-                  placeholder="Select a template"
-                  @update:value="handleTemplateChange"
-              />
-            </n-form-item>
-            <n-form-item label="Description" label-placement="left" path="description">
-              <n-input
-                  v-model:value="description"
-                  type="textarea"
-                  placeholder="Enter template description"
-                  style="width: 100%; max-width: 600px; height: 50px;"
-                  autosize
-              />
-            </n-form-item>
-          </n-gi>
-        </n-grid>
-      </n-form>
-    </n-gi>
 
-    <n-gi>
-      <n-divider title-placement="left">Custom fields</n-divider>
-    </n-gi>
-
-    <n-gi>
-      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-        <n-grid :cols="8">
-          <n-gi span="8">
+        <n-gi span="8">
+          <n-form-item label="Template name" label-placement="left" path="templateName" size="large">
+            <n-select
+                v-model:value="selectedTemplateRef"
+                :options="templateStore.templateSelectOptions"
+                size="large"
+                style="width: 100%; max-width: 600px;"
+                placeholder="Select a template"
+                @update:value="handleTemplateChange"
+            />
+          </n-form-item>
+          <n-form-item label="Description" label-placement="left" path="description">
+            <n-input
+                v-model:value="description"
+                type="textarea"
+                placeholder="Enter template description"
+                style="width: 100%; max-width: 600px; height: 50px;"
+                autosize
+            />
+          </n-form-item>
+          <n-form-item label="Custom fields" label-placement="left" path="templateName">
             <n-dynamic-input
                 v-model:value="customFormFields"
                 :on-create="addCustomField"
@@ -111,73 +94,72 @@
                 />
               </n-form-item>
             </n-dynamic-input>
-          </n-gi>
-        </n-grid>
+          </n-form-item>
+          <n-form-item label="Source" label-placement="left" path="description">
+            <n-tabs v-model:value="activeTabRef" size="small">
+              <template #prefix>&nbsp;&nbsp;
+                <n-select
+                    size="tiny"
+                    v-model:value="selectedMode"
+                    :options="modeOptions"
+                    style="width: 100px"
+                    @update:value="updateEditorMode"
+                />
+              </template>
+              <n-tab-pane name="content" tab="Content">
+                <code-mirror
+                    v-model="templateStore.currentTemplate.content"
+                    @focus="handleEditorFocus"
+                    @blur="handleEditorBlur"
+                    basic
+                    :lang="lang"
+                    :dark="dark"
+                    :style="{ width: '100%'}"
+                />
+              </n-tab-pane>
+              <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e5f2dc;">
+                <code-mirror
+                    v-model="templateStore.currentTemplate.wrapper"
+                    @focus="handleEditorFocus"
+                    @blur="handleEditorBlur"
+                    basic
+                    :lang="lang"
+                    :dark="dark"
+                    :style="{ width: '100%' }"
+                />
+              </n-tab-pane>
+            </n-tabs>
+          </n-form-item>
+        </n-gi>
+
       </n-form>
     </n-gi>
-    <n-gi>
-      <n-divider title-placement="left">Template source</n-divider>
-    </n-gi>
-    <n-gi>
-      <n-select
-          size="tiny"
-          v-model:value="selectedMode"
-          :options="modeOptions"
-          style="width: 100px"
-          @update:value="updateEditorMode"
-      />
-      <n-tabs v-model:value="activeTabRef">
-        <n-tab-pane name="content" tab="Content">
-          <code-mirror
-              v-model="templateStore.currentTemplate.content"
-              @focus="handleEditorFocus"
-              @blur="handleEditorBlur"
-              @change="debouncedAutosave"
-              basic
-              :lang="lang"
-              :dark="dark"
-              :style="{ width: '100%' }"
-          />
-        </n-tab-pane>
-        <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e5f2dc;">
-          <code-mirror
-              v-model="templateStore.currentTemplate.wrapper"
-              @focus="handleEditorFocus"
-              @blur="handleEditorBlur"
-              basic
-              :lang="lang"
-              :dark="dark"
-              :style="{ width: '100%' }"
-          />
-        </n-tab-pane>
-      </n-tabs>
-    </n-gi>
   </n-grid>
+
 </template>
 
 <script>
-import {computed, onMounted, onUnmounted, ref, watch} from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import {
   NButton, NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
   NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3, NIcon
 } from "naive-ui";
-import { ArrowBarLeft } from '@vicons/tabler'
+import {ArrowBigLeft} from '@vicons/tabler'
 import CodeMirror from 'vue-codemirror6';
 import {html} from '@codemirror/lang-html';
 import {ejs} from 'codemirror-lang-ejs';
 import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
-import {debounce} from 'lodash-es';
 import {setCurrentTemplate} from "../../utils/fieldUtilities";
 
 export default {
-  name: 'TemplateEditor',
+  name: 'MessageTemplateEditor',
   components: {
-    NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
-    NTabPane, NTabs, NGrid, NGi, NH3, NIcon, ArrowBarLeft
+    ArrowBigLeft, NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
+    NTabPane, NTabs, NGrid, NGi, NH3, NIcon
   },
   props: {
     id: {
@@ -196,12 +178,6 @@ export default {
     const customFormFields = computed(() => templateStore.currentTemplate.customFields);
     const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
     const editorFocused = ref(false);
-    const autosaveTemplate = () => {
-      if (editorFocused.value) {
-        templateManager.autoSave('content', templateStore.currentTemplate.content);
-      }
-    };
-    const debouncedAutosave = debounce(autosaveTemplate, 2000);
 
     const updateFieldIsAvailable = (index, value) => {
       templateStore.currentTemplate.customFields[index].isAvailable = value ? 1 : 0;
@@ -212,14 +188,9 @@ export default {
       selectedTemplateRef.value = templateStore.currentTemplate.name;
     });
 
-    onUnmounted(() => {
-      debouncedAutosave.cancel();
-    });
-
     watch(() => templateStore.currentTemplate.id, (newVal) => {
       selectedTemplateRef.value = templateStore.templateMap[newVal].name;
     });
-
 
     const handleTemplateChange = (newTemplateId) => {
       setCurrentTemplate(templateStore, newTemplateId);
@@ -268,12 +239,6 @@ export default {
       addCustomField: () => addCustomField(templateStore),
       removeCustomField: (index) => removeCustomField(templateStore, index),
       handleTypeChange: (index) => handleTypeChange(customFormFields, index),
-      templateSelectOptions: computed(() => {
-        return templateStore.templateOptions.map(item => ({
-          label: item.name,
-          value: item.id
-        }));
-      }),
       description: computed({
         get: () => templateStore.currentTemplate.description,
         set: (value) => {
@@ -290,7 +255,6 @@ export default {
       formRef,
       typeOptions,
       activeTabRef: ref('content'),
-      debouncedAutosave,
       handleEditorFocus,
       handleEditorBlur,
       selectedMode,
@@ -303,7 +267,5 @@ export default {
 </script>
 
 <style>
-.n-divider:not(.n-divider--dashed) .n-divider__line {
-  background-color: #a1bce0;
-}
+
 </style>

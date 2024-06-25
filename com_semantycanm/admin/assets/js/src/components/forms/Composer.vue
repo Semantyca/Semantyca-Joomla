@@ -3,7 +3,7 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button type="primary" @click="$emit('back')">
+        <n-button type="info" @click="$emit('back')">
           <template #icon>
             <n-icon>
               <ArrowBigLeft/>
@@ -11,57 +11,48 @@
           </template>
           &nbsp;Back
         </n-button>
+        <n-button type="success" @click="handleSendNewsletter(false)">
+          {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
+        </n-button>
+        <n-button type="primary" @click="handleSendNewsletter(true)">
+          {{ globalStore.translations.SAVE }}
+        </n-button>
       </n-space>
     </n-gi>
-    <n-gi class="mt-2">
-      <n-form-item label="Template name" label-placement="left" path="templateName">
-        <n-select class="w-20"
-                  v-model:value="messageTemplateStore.currentTemplate.key"
-                  :options="messageTemplateStore.templateSelectOptions"
-                  @update:value="handleTemplateChange"
-        ></n-select>
-      </n-form-item>
-    </n-gi>
-    <n-gi>
-      <n-form-item
-          label-placement="left"
-          require-mark-placement="right-hanging"
-          label-width="180px"
-          :style="{ maxWidth: '800px' }"
-          v-for="(field, fieldName) in customFields"
-          :key="field.id"
-          :label="field.caption"
-      >
-        <dynamic-form-field
-            :field="field"
-            @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
-        />
-      </n-form-item>
-    </n-gi>
-    <n-gi>
-      <!--      <n-transfer
-                ref="transfer"
-                v-model:value="value"
-                :options="composerStore.selectedArticles"
-                :render-source-list="composerStore.selectedArticles"
-                source-filterable
-            />-->
-    </n-gi>
-
     <n-gi class="mt-4">
-      <formatting-buttons />
-    </n-gi>
-    <n-gi>
-      <div
-          id="squire-editor"
-          style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
-          v-html="composerStore.cont"
-      ></div>
-    </n-gi>
-  </n-grid>
-  <n-form inline ref="formRef" :rules="composerFormRules" label-placement="left" label-width="auto">
-    <n-grid :cols="1" class="mt-3">
-      <n-gi>
+      <n-form
+          label-placement="left"
+          label-width="auto"
+          require-mark-placement="right-hanging"
+      >
+        <n-form-item label="Template name" path="templateName">
+          <n-select
+              v-model:value="messageTemplateStore.currentTemplate.key"
+              :options="messageTemplateStore.templateSelectOptions"
+              @update:value="handleTemplateChange"
+              style="width: 80%; max-width: 600px;"
+          />
+        </n-form-item>
+        <n-form-item
+            v-for="(field, fieldName) in customFields"
+            :key="field.id"
+            :label="field.caption"
+        >
+          <dynamic-form-field
+              :field="field"
+              @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
+          />
+        </n-form-item>
+        <n-form-item label="Articles" path="templateName">
+          <n-transfer
+              ref="transfer"
+              size="large"
+              :options="composerStore.articleSelectOptions"
+              source-filterable
+              style="width: 80%; max-width: 600px;"
+
+          />
+        </n-form-item>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="mailing_list" :show-feedback="false"
                      class="form-item">
@@ -71,61 +62,45 @@
             :label="isTestMessage ? 'Test user' : 'Mailing List'"
             label-placement="left"
             path="mailing_list"
-            :show-feedback="false"
-            class="form-item"
         >
           <template v-if="isTestMessage">
-            <n-input
-                size="large"
-                v-model:value="testUserEmail"
-                placeholder="Enter test user email"
-                style="width: 100%; max-width: 600px;"
+            <n-input v-model:value="testUserEmail"
+                     placeholder="Enter test user email"
+                     style="width: 80%; max-width: 600px;"
             />
           </template>
           <template v-else>
-            <n-select
-                size="large"
-                multiple
-                checkable
-                v-model:value="modelRef.mailingList"
-                :options="mailingListStore.firstPageOptions"
-                placeholder="Select mailing list"
-                style="width: 100%; max-width: 600px;"
+            <n-select multiple
+                      checkable
+                      v-model:value="modelRef.mailingList"
+                      :options="mailingListStore.firstPageOptions"
+                      placeholder="Select mailing list"
+                      style="width: 80%; max-width: 600px;"
             />
           </template>
         </n-form-item>
-      </n-gi>
-      <n-gi>
-        <n-form-item label="Subject" label-placement="left" path="subject" :show-feedback="false"
-                     class="form-item">
+        <n-form-item label="Subject" path="subject">
           <n-input v-model:value="modelRef.subject"
-                   size="large"
                    type="text"
                    id="subject"
-                   style="width: 100%; max-width: 600px;"
+                   style="width: 80%; max-width: 600px;"
                    placeholder="Subject"/>
-          <n-button size="large"
-                    type="tertiary"
-                    @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
+          <n-button type="tertiary" @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
           </n-button>
         </n-form-item>
-      </n-gi>
-      <n-gi>
-        <n-form-item label="&nbsp;" :show-require-mark="false" label-placement="left" path="mailing_list"
-                     :show-feedback="false"
-                     class="form-item">
-          <n-space class="mt-2">
-            <n-button size="large" type="success" @click="handleSendNewsletter(false)">
-              {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
-            </n-button>
-            <n-button size="large" type="primary" @click="handleSendNewsletter(true)">
-              {{ globalStore.translations.SAVE }}
-            </n-button>
+
+        <n-form-item label="Review" path="subject">
+          <n-space vertical>
+            <formatting-buttons/>
+            <div id="squire-editor"
+                 style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
+                 v-html="composerStore.cont"
+            ></div>
           </n-space>
         </n-form-item>
-      </n-gi>
-    </n-grid>
-  </n-form>
+      </n-form>
+    </n-gi>
+  </n-grid>
 </template>
 
 <script>
@@ -134,27 +109,8 @@ import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
 import {
-  NButton,
-  NButtonGroup,
-  NCheckbox,
-  NColorPicker,
-  NDivider,
-  NForm,
-  NFormItem,
-  NGi,
-  NGrid,
-  NH3,
-  NH4,
-  NIcon,
-  NInput,
-  NInputNumber,
-  NSelect,
-  NSkeleton,
-  NSpace,
-  NTransfer,
-  useDialog,
-  useLoadingBar,
-  useMessage
+  NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
+  NGrid, NH3, NH4, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTransfer, useLoadingBar, useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
@@ -173,9 +129,8 @@ export default {
   name: 'Composer',
   methods: {useMailingListStore},
   components: {
-    FormattingButtons,
-    DynamicFormField,
-    NSkeleton, NButtonGroup, NButton, NSpace, NDivider, NForm, NFormItem, NInput, NInputNumber,
+    FormattingButtons, DynamicFormField,
+    NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber,
     NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NTransfer,
     Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft
   },
@@ -203,9 +158,7 @@ export default {
     const loadingBar = useLoadingBar();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
-    const dialog = useDialog();
     provide('squireEditor', squireEditor)
-    provide('dialog', dialog)
     const loading = ref(true);
     const isTestMessage = ref(false);
     const testUserEmail = ref('');
@@ -343,23 +296,9 @@ export default {
 </script>
 
 <style scoped>
-/* Ensure the layout takes full height */
-.layout-full-height {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
 
-/* Flex-grow 1 ensures the content area takes the remaining space */
-.layout-content-expand {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Footer styling */
 n-layout-footer {
-  flex-shrink: 0; /* Prevent footer from shrinking */
+  flex-shrink: 0;
   padding: 12px 20px;
 }
 </style>

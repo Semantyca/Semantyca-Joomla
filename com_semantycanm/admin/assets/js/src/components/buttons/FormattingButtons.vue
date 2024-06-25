@@ -1,4 +1,3 @@
-// FormattingButtons.vue
 <template>
   <n-button-group>
     <n-button v-for="button in buttons" :key="button.action" @click="handleClick(button.action)" secondary>
@@ -14,7 +13,7 @@
 
 <script>
 import { defineComponent, inject, h } from 'vue'
-import { NButtonGroup, NButton, NIcon } from 'naive-ui'
+import {NButtonGroup, NButton, NIcon, useDialog} from 'naive-ui'
 import { Bold, Italic, Underline, Strikethrough, Photo, ClearFormatting, Code } from '@vicons/tabler'
 import CodeMirror from 'vue-codemirror6'
 import { html } from '@codemirror/lang-html'
@@ -35,7 +34,7 @@ export default defineComponent({
   },
   setup() {
     const squireEditor = inject('squireEditor')
-    const dialog = inject('dialog')
+    const dialog = useDialog();
 
     const buttons = [
       { action: 'bold', icon: Bold, label: 'Bold' },

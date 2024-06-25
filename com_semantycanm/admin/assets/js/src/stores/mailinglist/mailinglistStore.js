@@ -38,7 +38,7 @@ export const useMailingListStore = defineStore('mailingList', () => {
         return [];
     });
 
-    async function getDocs(currentPage, size = 10, forceRefresh = false, msgPopup, loadingBar) {
+    async function getDocs(currentPage, size = 10, forceRefresh = false) {
         if (!pages.value.get(currentPage) || forceRefresh) {
             const manager = new MailingListApiManager(msgPopup, loadingBar);
             const respData = await manager.fetch(currentPage, size);

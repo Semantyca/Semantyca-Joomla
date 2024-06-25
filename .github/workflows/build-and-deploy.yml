@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  ENABLE_DEPLOYMENT: false
+  ENABLE_DEPLOYMENT: true
 
 jobs:
   build:
