@@ -4,11 +4,19 @@ import TemplateManager from "../template/TemplateManager";
 import DynamicBuilder from "../../utils/DynamicBuilder";
 import {ref, computed} from 'vue';
 import {useLoadingBar, useMessage} from "naive-ui";
+import MailingListApiManager from "../mailinglist/MailingListApiManager";
 
 export const useComposerStore = defineStore('composer', () => {
     const articlesPage = ref({docs: []});
     const selectedArticles = ref([]);
     const editorCont = ref('');
+    const mailingListPage = ref({
+        page: 1,
+        pageSize: 10,
+        itemCount: 0,
+        pageCount: 1,
+        pages: new Map()
+    });
     const isLoading = ref(false);
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
@@ -50,7 +58,9 @@ export const useComposerStore = defineStore('composer', () => {
         await templateManager.getTemplates(true);
     }
 
-    async function fetchArticles(searchTerm, msgPopup) {
+
+
+    async function fetchArticlesApi(searchTerm) {
         try {
             const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}&cb=${new Date().getTime()}`;
             const response = await fetch(url);
@@ -76,19 +86,47 @@ export const useComposerStore = defineStore('composer', () => {
         }
     }
 
-    async function fetchEverything(searchTerm) {
-        //     await updateFormCustomFields();
-        await fetchArticles(searchTerm, msgPopup);
+    async function fetchMailingListsApi(currentPage, size = 10, forceRefresh = false) {
+        if (!mailingListPage.value.pages.get(currentPage) || forceRefresh) {
+            const manager = new MailingListApiManager(msgPopup, loadingBar);
+            const respData = await manager.fetch(currentPage, size);
+
+            if (respData.success && respData.data) {
+                const { docs, count, maxPage, current } = respData.data;
+                mailingListPage.value.page = current;
+                mailingListPage.value.pageSize = size;
+                mailingListPage.value.itemCount = count;
+                mailingListPage.value.pageCount = maxPage;
+                mailingListPage.value.pages.set(currentPage, { docs });
+            }
+        }
+        if (mailingListPage.value.page !== currentPage) {
+            mailingListPage.value.page = currentPage;
+        }
+        return mailingListPage.value.pages.get(currentPage)?.docs || [];
     }
+
+    const firstPageOptions = computed(() => {
+        const firstPageData = mailingListPage.value.pages.get(1);
+        if (firstPageData && firstPageData.docs) {
+            return firstPageData.docs.map(doc => ({
+                label: doc.name,
+                value: doc.id
+            }));
+        }
+        return [];
+    });
+
 
     return {
         articlesPage,
         articleSelectOptions,
         selectedArticles,
         editorCont,
+        firstPageOptions,
         isLoading,
         cont,
-        fetchArticles,
-        fetchEverything
+        fetchArticlesApi,
+        fetchMailingListsApi,
     };
 });

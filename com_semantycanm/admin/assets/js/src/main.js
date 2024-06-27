@@ -1,5 +1,5 @@
-import { createApp } from 'vue';
-import { createPinia } from 'pinia';
+import {createApp} from 'vue';
+import {createPinia} from 'pinia';
 import Workspace from "./views/Workspace.vue";
 import {
     NConfigProvider,
@@ -18,24 +18,26 @@ import {joomlaBootstrapTheme} from "./theme";
 const loadComponent = (menuId) => {
     switch (menuId) {
         case 'newsletters':
-            return Newsletters;
+            return {component: Newsletters, name: 'NewslettersApp'};
         case 'mailing_lists':
-            return Lists;
+            return {component: Lists, name: 'MailingListsApp'};
         case 'stat':
-            return Statistics;
+            return {component: Statistics, name: 'StatisticsApp'};
         case 'messagetemplates':
-            return MessageTemplates;
+            return {component: MessageTemplates, name: 'MessageTemplatesApp'};
         default:
-            return Newsletters;
+            return {component: Newsletters, name: 'DefaultApp'};
     }
 }
 
 const pinia = createPinia();
 const appElement = document.getElementById('app');
 const menuId = appElement.getAttribute('data-menu-id');
-const DynamicComponent = loadComponent(menuId);
+const {component: DynamicComponent, name: appName} = loadComponent(menuId);
 
-const app = createApp({
+const app = createApp(
+    {
+    name: appName,
     components: {
         NLoadingBarProvider,
         NGlobalStyle,
@@ -68,4 +70,3 @@ const app = createApp({
 app.config.globalProperties.$errorTimeout = 10000;
 app.use(pinia);
 app.mount('#app');
-

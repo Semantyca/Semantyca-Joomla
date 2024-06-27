@@ -12,27 +12,11 @@ use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
 class NewslettersController extends BaseController
 {
-	public function display($cachable = false, $urlparams = array())
-	{
-		try
-		{
-			$view = $this->getView('Newsletters', 'html');
-			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
-			$view->display();
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-		}
-	}
-
-
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -41,7 +25,7 @@ class NewslettersController extends BaseController
 		{
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
-			$model = $this->getModel('NewsLetter');
+			$model        = $this->getModel('NewsLetters');
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Throwable $e)
@@ -59,7 +43,7 @@ class NewslettersController extends BaseController
 		try
 		{
 			$id      = $this->input->getString('id');
-			$model = $this->getModel('NewsLetter');
+			$model   = $this->getModel('NewsLetter');
 			$results = $model->find($id);
 			echo new JsonResponse($results);
 		}
@@ -140,18 +124,22 @@ class NewslettersController extends BaseController
 		header(Constants::JSON_CONTENT_TYPE);
 		$app = Factory::getApplication();
 
-		if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
+		if ($_SERVER['REQUEST_METHOD'] !== 'DELETE')
+		{
 			http_response_code(405); // Method Not Allowed
 			echo new JsonResponse('Method Not Allowed', 'error', true);
 			$app->close();
+
 			return;
 		}
 
-		try {
+		try
+		{
 			$input = json_decode(file_get_contents('php://input'), true);
-			$ids = isset($input['ids']) ? $input['ids'] : [];
+			$ids   = isset($input['ids']) ? $input['ids'] : [];
 
-			if (empty($ids)) {
+			if (empty($ids))
+			{
 				throw new InvalidArgumentException('No IDs provided');
 			}
 
@@ -160,11 +148,14 @@ class NewslettersController extends BaseController
 			$model->deleteNewsletters($ids);
 
 			echo new JsonResponse(['success' => true, 'message' => 'Newsletters deleted successfully']);
-		} catch (\Throwable $e) {
+		}
+		catch (\Throwable $e)
+		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally {
+		} finally
+		{
 			$app->close();
 		}
 	}

@@ -92,41 +92,42 @@ export default class MailingListApiManager extends BaseObject {
         }
     }
 
-    async upsert(mailingListName, listItems, id) {
+    async upsert(mailingListName, listItems, id = null) {
         this.loadingBar.start();
-        const operation = id === -1 ? 'add' : 'update';
 
-        fetch(MailingListApiManager.BASE_URL + operation, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                'id': id,
-                'mailinglistname': mailingListName,
-                'mailinglists': listItems.join(',')
-            })
-        })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('HTTP error, status = ' + response.status);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (!data.success) {
-                    throw new Error(data.message || 'Unknown error occurred');
-                }
-            })
-            .catch(error => {
-                this.loadingBar.error();
-                this.msgPopup.error(error.message, {
-                    closable: true,
-                    duration: this.errorTimeout
-                });
-            })
-            .finally(() => {
-                this.loadingBar.finish();
+        try {
+            const response = await fetch(MailingListApiManager.BASE_URL + 'upsert', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    'id': id || '',
+                    'mailinglistname': mailingListName,
+                    'mailinglists': listItems.join(',')
+                })
             });
+
+            if (!response.ok) {
+                throw new Error('HTTP error, status = ' + response.status);
+            }
+
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.message || 'Unknown error occurred');
+            }
+
+            return data;
+        } catch (error) {
+            this.loadingBar.error();
+            this.msgPopup.error(error.message, {
+                closable: true,
+                duration: this.errorTimeout.value
+            });
+            throw error;
+        } finally {
+            this.loadingBar.finish();
+        }
     }
 }

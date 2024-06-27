@@ -153,7 +153,7 @@ import {ejs} from 'codemirror-lang-ejs';
 import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
-import {setCurrentTemplate} from "../../utils/fieldUtilities";
+import {setCurrentTemplate} from "../../stores/storeUtils";
 
 export default {
   name: 'MessageTemplateEditor',

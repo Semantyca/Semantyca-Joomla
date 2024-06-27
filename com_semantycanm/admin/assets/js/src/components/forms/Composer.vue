@@ -44,13 +44,16 @@
           />
         </n-form-item>
         <n-form-item label="Articles" path="templateName">
-          <n-transfer
-              ref="transfer"
-              size="large"
-              :options="composerStore.articleSelectOptions"
-              source-filterable
+          <n-select
+              v-model:value="formValue.selectedArticles"
+              multiple
+              filterable
+              placeholder="Search articles"
+              :options="articleOptions"
+              :render-label="renderArticleOption"
+              :render-tag="renderSelectedArticle"
+              :clear-filter-after-select="true"
               style="width: 80%; max-width: 600px;"
-
           />
         </n-form-item>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
@@ -73,7 +76,7 @@
             <n-select multiple
                       checkable
                       v-model:value="modelRef.mailingList"
-                      :options="mailingListStore.firstPageOptions"
+                      :options="mailingListStore.getMailingListOptions"
                       placeholder="Select mailing list"
                       style="width: 80%; max-width: 600px;"
             />
@@ -104,13 +107,12 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, ref} from 'vue';
+import {computed, h, nextTick, onMounted, provide, reactive, ref, watch} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
-import {
-  NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
-  NGrid, NH3, NH4, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTransfer, useLoadingBar, useMessage
+import { NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
+  NGrid, NH3, NH4, NH6, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTag, NTransfer, useLoadingBar, useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
@@ -131,8 +133,8 @@ export default {
   components: {
     FormattingButtons, DynamicFormField,
     NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber,
-    NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NTransfer,
-    Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft
+    NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NH6, NTransfer,
+    Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft,
   },
   props: {
     id: {
@@ -145,23 +147,28 @@ export default {
     console.log('Composer component initialized with id:', props.id);
     const articles = ref([]);
     const formRef = ref(null);
+    const formValue = reactive({
+      id: props.id,
+      selectedArticles: []
+    });
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
     const activeTabName = ref('Composer');
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
-    const mailingListStore = useMailingListStore();
     const messageTemplateStore = useMessageTemplateStore();
     const newsLetterStore = useNewsletterStore();
+    const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
-    const loading = ref(true);
     const isTestMessage = ref(false);
     const testUserEmail = ref('');
+
+    const orderedSelectedArticles = ref([]);
 
     const modelRef = ref({
       mailingList: [],
@@ -172,14 +179,12 @@ export default {
 
     const fetchInitialData = async () => {
       try {
-        loading.value = true;
         await Promise.all([
           messageTemplateStore.fetchFromApi(1, 10),
-          composerStore.fetchEverything('', false),
-          //  mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar)
+          composerStore.fetchArticlesApi(''),
+          composerStore.fetchMailingListsApi(1, 20, true),
+          mailingListStore.fetchMailingList(1, 10, true)
         ]);
-
-        loading.value = false;
       } catch (error) {
         console.error("Error fetching initial data:", error);
       }
@@ -197,7 +202,7 @@ export default {
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
       composerStore.editorCont = '';
-      await composerStore.fetchArticles('', true);
+      await composerStore.fetchArticlesApi('');
     };
 
     const copyContentToClipboard = () => {
@@ -238,7 +243,7 @@ export default {
       customFields.value[fieldName].defaultValue = newValue;
     };
 
-    const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
+    const fetchArticlesDebounced = debounce(composerStore.fetchArticlesApi, 300);
 
     const debouncedFetchArticles = (val) => {
       fetchArticlesDebounced(val);
@@ -263,18 +268,56 @@ export default {
       }
     }
 
+    const articleOptions = computed(() =>
+        composerStore.articleSelectOptions.map(option => ({
+          ...option,
+          groupName: "option.label",
+          articleTitle: option.label
+        }))
+    );
+
+    const renderArticleOption = (option) => {
+      return h('div', [
+        h('div', { style: 'font-weight: bold;' }, option.groupName),
+        h('div', option.articleTitle)
+      ]);
+    };
+    const renderSelectedArticle = ({ option, handleClose }) => {
+      return h(NTag, {
+        closable: true,
+        onClose: handleClose,
+      }, {
+        default: () => option.articleTitle
+      });
+    };
+
+    const moveArticle = (option, direction, event) => {
+      event.stopPropagation();
+      const index = formValue.selectedArticles.indexOf(option.value);
+      if (direction === 'up' && index > 0) {
+        const newArray = [...formValue.selectedArticles];
+        [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
+        formValue.selectedArticles = newArray;
+      } else if (direction === 'down' && index < formValue.selectedArticles.length - 1) {
+        const newArray = [...formValue.selectedArticles];
+        [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
+        formValue.selectedArticles = newArray;
+      }
+    };
+
     return {
       composerStore,
       articles,
       globalStore,
-      mailingListStore,
       messageTemplateStore,
+      mailingListStore,
       customFields,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
       modelRef,
       formRef,
+      formValue,
       activeTabName,
       composerFormRules,
       debouncedFetchArticles,
@@ -285,11 +328,14 @@ export default {
       handleTemplateChange,
       handleColorChange,
       handleFieldChange,
-      loading,
       handleFetchSubject,
       isTestMessage,
       testUserEmail,
-      handleCheckedChange
+      handleCheckedChange,
+      articleOptions,
+      renderArticleOption,
+      renderSelectedArticle,
+      orderedSelectedArticles,
     };
   }
 };

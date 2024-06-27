@@ -6,7 +6,7 @@
         <n-button type="primary" @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
-        <n-button type="error" disabled>
+        <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -23,7 +23,6 @@
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
           @update:checked-row-keys="handleCheck"
-          @row-click="handleRowClick"
           :row-props="getRowProps"
       />
     </n-gi>
@@ -46,7 +45,7 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click', 'create-new'],
+  emits: ['row-click', 'create-new', 'edit'],
   setup() {
     const globalStore = useGlobalStore();
     const mailingListStore = useMailingListStore();
@@ -54,7 +53,7 @@ export default defineComponent({
     const checkedRowKeysRef = ref([]);
 
     const fetchInitialData = async () => {
-      await mailingListStore.getDocs(1, 10, true);
+      await mailingListStore.fetchMailingList(1, 10, true);
     };
 
     fetchInitialData();
@@ -75,29 +74,19 @@ export default defineComponent({
     };
 
     function handlePageChange(page) {
-      mailingListStore.getDocs(page, mailingListStore.getPagination.pageSize, true);
+      mailingListStore.fetchMailingList(page, mailingListStore.getPagination.pageSize, true);
     }
 
     function handlePageSizeChange(pageSize) {
-      mailingListStore.getDocs(mailingListStore.getPagination.page, pageSize, true);
+      mailingListStore.fetchMailingList(mailingListStore.getPagination.page, pageSize, true);
     }
 
     const handleDeleteSelected = async () => {
-     /* try {
-        await mailingListStore.deleteDocs(checkedRowKeysRef.value, msgPopup, loadingBar);
-        msgPopup.success('The selected mailing list entries were deleted successfully');
-        await mailingListStore.getDocs(1, 10, true, msgPopup, loadingBar);
+      if (checkedRowKeysRef.value.length > 0) {
+        await mailingListStore.deleteMailingList(checkedRowKeysRef.value);
+        await mailingListStore.fetchMailingList(mailingListStore.getPagination.page, mailingListStore.getPagination.pageSize, true);
         checkedRowKeysRef.value = [];
-      } catch (error) {
-        msgPopup.error(error.message, {
-          closable: true,
-          duration: 10000
-        });
-      }*/
-    };
-
-    const handleRowClick = (row) => {
-
+      }
     };
 
     const createColumns = () => {
@@ -125,19 +114,15 @@ export default defineComponent({
       getRowProps,
       createNew,
       columns: createColumns(),
-      rowKey: (row) => row.key,
+      rowKey: (row) => row.id,
       handlePageChange,
       handlePageSizeChange,
       handleDeleteSelected,
       handleCheck(rowKeys) {
         checkedRowKeysRef.value = rowKeys;
       },
-      handleRowClick
+      checkedRowKeysRef,
     };
   },
 });
-
 </script>
-
-<style>
-</style>

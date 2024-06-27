@@ -21,9 +21,8 @@ export default defineComponent({
     const currentComponent = ref('MailingListGrid');
     const selectedId = ref(null);
 
-
     const handleRowClick = (row) => {
-      selectedId.value = row.key;
+      selectedId.value = row.id;
       currentComponent.value = 'MailingListEditor';
     };
 

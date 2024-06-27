@@ -26,13 +26,13 @@
 </template>
 
 <script>
-import { defineComponent, getCurrentInstance, onMounted, onUnmounted } from 'vue';
+import { defineComponent, getCurrentInstance } from 'vue';
 import { useGlobalStore } from "../../stores/globalStore";
 import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
 import { NDataTable, NButton, NH3, NGi, NGrid, NSpace } from "naive-ui";
 
 export default defineComponent({
-  name: 'TemplateGrid',
+  name: 'MessageTemplateGrid',
   components: {
     NDataTable,
     NButton,
@@ -67,23 +67,6 @@ export default defineComponent({
     const createNew = () => {
       emit('create-new');
     };
-
-    const handleKeyDown = (event) => {
-      if (event.ctrlKey && event.key === 'n') {
-        event.preventDefault();
-        createNew();
-      } else if (event.key === 'Delete') {
-        console.log('Delete key pressed');
-      }
-    };
-
-    onMounted(() => {
-      window.addEventListener('keydown', handleKeyDown);
-    });
-
-    onUnmounted(() => {
-      window.removeEventListener('keydown', handleKeyDown);
-    });
 
     const createColumns = () => {
       return [

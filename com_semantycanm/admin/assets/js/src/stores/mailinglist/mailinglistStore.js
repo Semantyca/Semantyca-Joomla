@@ -1,102 +1,119 @@
 import { defineStore } from 'pinia';
 import MailingListApiManager from './MailingListApiManager';
-//import { globalProperties } from "../../main";
-import { ref, computed } from 'vue';
-import {useLoadingBar, useMessage} from "naive-ui";
+import { computed } from 'vue';
+import { useLoadingBar, useMessage } from "naive-ui";
+import PaginatedData from '../PaginatedData';
 
 export const useMailingListStore = defineStore('mailingList', () => {
-    const page = ref(1);
-    const pageSize = ref(10);
-    const itemCount = ref(0);
-    const pageCount = ref(1);
-    const pages = ref(new Map());
+    const mailingListPage = new PaginatedData();
+    const userGroupsPage = new PaginatedData();
+
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
-    const getPagination = computed(() => {
-        return {
-            page: page.value,
-            pageSize: pageSize.value,
-            itemCount: itemCount.value,
-            pageCount: pageCount.value
-        };
-    });
+    const getPagination = computed(() => ({
+        page: mailingListPage.page.value,
+        pageSize: mailingListPage.pageSize.value,
+        itemCount: mailingListPage.itemCount.value,
+        pageCount: mailingListPage.pageCount.value
+    }));
 
-    const getCurrentPage = computed(() => {
-        const pageData = pages.value.get(page.value);
-        return pageData ? pageData.docs : [];
-    });
+    const getCurrentPage = computed(() => mailingListPage.getCurrentPageData());
 
-    const firstPageOptions = computed(() => {
-        const firstPageData = pages.value.get(1);
-        if (firstPageData) {
-            return firstPageData.docs.map(doc => ({
-                label: doc.name, // Adjust based on the actual structure of your doc objects
-                value: doc.id    // Adjust based on the actual structure of your doc objects
-            }));
-        }
-        return [];
-    });
+    const getUserGroupsOptions = computed(() =>
+        userGroupsPage.getAllDocs().map(group => ({
+            label: group.title,
+            value: group.id
+        }))
+    );
 
-    async function getDocs(currentPage, size = 10, forceRefresh = false) {
-        if (!pages.value.get(currentPage) || forceRefresh) {
+    const getMailingListOptions = computed(() =>
+        mailingListPage.getAllDocs().map(group => ({
+            label: group.title,
+            value: group.key
+        }))
+    );
+
+    async function fetchMailingList(currentPage, size = 10, forceRefresh = false) {
+        if (!mailingListPage.pages.value.get(currentPage) || forceRefresh) {
             const manager = new MailingListApiManager(msgPopup, loadingBar);
             const respData = await manager.fetch(currentPage, size);
 
             if (respData.success && respData.data) {
-                const { docs, count, maxPage, current } = respData.data;
-                page.value = current;
-                pageSize.value = size;
-                itemCount.value = count;
-                pageCount.value = maxPage;
-                pages.value.set(currentPage, { docs });
+                mailingListPage.updateData(respData.data);
+                mailingListPage.setPageSize(size);
             }
         }
-        if (page.value !== currentPage) {
-            page.value = currentPage;
-        }
-        return pages.value.get(currentPage)?.docs || [];
+        mailingListPage.setPage(currentPage);
+        return mailingListPage.getCurrentPageData();
     }
 
-    async function getDetails(id, msgPopup, loadingBar, detailed = false) {
+    async function getDetails(id, detailed = false) {
         const manager = new MailingListApiManager(msgPopup, loadingBar);
         return await manager.fetchDetails(id, detailed);
     }
 
-    async function saveList(model, id, msgPopup, loadingBar) {
+    async function saveList(model) {
         loadingBar.start();
         try {
             const mailingListName = model.groupName;
-            const listItems = model.selectedGroups.map(group => group.id);
+            const listItems = model.selectedGroups;
             const manager = new MailingListApiManager(msgPopup, loadingBar);
-            await manager.upsert(mailingListName, listItems, id);
+            const result = await manager.upsert(mailingListName, listItems, model.id);
+            if (result.success) {
+                msgPopup.success('Mailing list saved successfully');
+                return true;
+            } else {
+                throw new Error(result.message || 'Failed to save mailing list');
+            }
         } catch (error) {
             msgPopup.error(error.message, {
                 closable: true,
-                //duration: globalProperties.$errorTimeout
+                duration: 10000
+            });
+            return false;
+        } finally {
+            loadingBar.finish();
+        }
+    }
+
+    async function deleteMailingList(ids) {
+        const manager = new MailingListApiManager(msgPopup, loadingBar);
+        await manager.delete(ids);
+    }
+
+    async function fetchUserGroupsList() {
+        loadingBar.start();
+        try {
+            const url = `index.php?option=com_semantycanm&task=UserGroup.find`;
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Network response was not 200`);
+            }
+            const json = await response.json();
+            userGroupsPage.updateData(json.data);
+        } catch (error) {
+            loadingBar.error();
+            msgPopup.error(error.message, {
+                closable: true,
+                duration: 10000
             });
         } finally {
             loadingBar.finish();
         }
     }
 
-    async function deleteDocs(ids, msgPopup, loadingBar) {
-        const manager = new MailingListApiManager(msgPopup, loadingBar);
-        await manager.delete(ids);
-    }
-
     return {
-        page,
-        pageSize,
-        itemCount,
-        pageCount,
-        pages,
+        mailingListPage,
+        userGroupsPage,
         getPagination,
         getCurrentPage,
-        firstPageOptions,
-        getDocs,
+        fetchMailingList,
         getDetails,
         saveList,
-        deleteDocs
+        deleteMailingList,
+        getUserGroupsOptions,
+        getMailingListOptions,
+        fetchUserGroupsList
     };
 });

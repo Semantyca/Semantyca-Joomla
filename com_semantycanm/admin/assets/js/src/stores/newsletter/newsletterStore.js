@@ -1,24 +1,12 @@
-import {defineStore} from 'pinia';
-import {ref, computed} from 'vue';
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import MailingListApiManager from "../mailinglist/MailingListApiManager";
-import {useLoadingBar, useMessage} from "naive-ui";
+import { useLoadingBar, useMessage } from "naive-ui";
+import PaginatedData from '../PaginatedData';
 
 export const useNewsletterStore = defineStore('newsletters', () => {
-    const newslettersListPage = ref({
-        page: 1,
-        pageSize: 10,
-        itemCount: 0,
-        pageCount: 1,
-        pages: new Map()
-    });
-
-    const mailingListPage = ref({
-        page: 1,
-        pageSize: 10,
-        itemCount: 0,
-        pageCount: 1,
-        pages: new Map(),
-    });
+    const newslettersListPage = new PaginatedData();
+    const mailingListPage = new PaginatedData();
 
     const currentNewsletterId = ref(0);
     const progress = ref({
@@ -33,48 +21,31 @@ export const useNewsletterStore = defineStore('newsletters', () => {
     const loadingBar = useLoadingBar();
     const mailingListApiManager = new MailingListApiManager(msgPopup, loadingBar);
 
-    const getMailingListPage = computed(() => {
-        const pageData = mailingListPage.value.pages.get(mailingListPage.value.page);
-        return pageData ? pageData.docs : [];
-    });
+    const getMailingListPage = computed(() => mailingListPage.getCurrentPageData());
 
-    const mailingListOptions = computed(() => {
-        const allDocs = [];
-        for (const page of mailingListPage.value.pages.values()) {
-            allDocs.push(...page.docs);
-        }
-        return allDocs.map(doc => ({
+    const mailingListOptions = computed(() =>
+        mailingListPage.getAllDocs().map(doc => ({
             label: doc.name,
             value: doc.id
-        }));
-    });
+        }))
+    );
 
-    const getCurrentPage = computed(() => {
-        const pageData = newslettersListPage.value.pages.get(newslettersListPage.value.page);
-        return pageData ? pageData.docs : [];
-    });
+    const getCurrentPage = computed(() => newslettersListPage.getCurrentPageData());
 
-    const getPagination = computed(() =>  {
-        return {
-            page: newslettersListPage.value.page,
-            pageSize: newslettersListPage.value.pageSize,
-            itemCount: newslettersListPage.value.itemCount,
-            pageCount: newslettersListPage.value.pageCount
-        };
-    });
+    const getPagination = computed(() => ({
+        page: newslettersListPage.page.value,
+        pageSize: newslettersListPage.pageSize.value,
+        itemCount: newslettersListPage.itemCount.value,
+        pageCount: newslettersListPage.pageCount.value
+    }));
 
     const getMailingLists = async (currentPage, size = 10) => {
         const respData = await mailingListApiManager.fetch(currentPage, size);
 
         if (respData.success && respData.data) {
-            const {docs, count, maxPage, current} = respData.data;
-            mailingListPage.value.page = current;
-            mailingListPage.value.pageSize = size;
-            mailingListPage.value.itemCount = count;
-            mailingListPage.value.pageCount = maxPage;
-            mailingListPage.value.pages.set(current, {docs});
+            mailingListPage.updateData(respData.data);
+            mailingListPage.setPageSize(size);
         }
-
     };
 
     const fetchNewsLetters = async (page, size) => {
@@ -86,12 +57,8 @@ export const useNewsletterStore = defineStore('newsletters', () => {
             }
             const respData = await response.json();
             if (respData.success && respData.data) {
-                const {docs, count, maxPage, current} = respData.data;
-                newslettersListPage.value.pageSize = size;
-                newslettersListPage.value.itemCount = count;
-                newslettersListPage.value.pageCount = maxPage;
-                newslettersListPage.value.pageNum = current;
-                newslettersListPage.value.pages.set(page, {docs});
+                newslettersListPage.updateData(respData.data);
+                newslettersListPage.setPageSize(size);
             }
         } catch (error) {
             console.error(error);
@@ -116,17 +83,11 @@ export const useNewsletterStore = defineStore('newsletters', () => {
             }
         } catch (error) {
             console.error(error);
-        } finally {
-
         }
     };
 
-
-
-
     const getRowByKey = (key) => {
-        console.log(key);
-        return newslettersListPage.value.pages.get(newslettersListPage.value.page).docs.find(doc => doc.key === key);
+        return newslettersListPage.getCurrentPageData().find(doc => doc.key === key);
     };
 
     return {

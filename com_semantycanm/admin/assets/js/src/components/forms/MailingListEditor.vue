@@ -14,45 +14,47 @@
         <n-button type="primary" @click="handleSave">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="error" @click="handleDelete">
-          {{ globalStore.translations.DELETE }}
-        </n-button>
       </n-space>
     </n-gi>
-    <n-gi>
-      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-        <n-grid :cols="8">
-
-
-        </n-grid>
+    <n-gi class="mt-4">
+      <n-form ref="formRef" label-placement="left" label-width="auto" :model="formValue" :rules="rules">
+        <n-form-item label="User groups" path="selectedGroups">
+          <n-select
+              v-model:value="formValue.selectedGroups"
+              multiple
+              filterable
+              placeholder="Search user groups"
+              :options="mailingListStore.getUserGroupsOptions"
+              :clear-filter-after-select="true"
+              style="width: 80%; max-width: 600px;"
+          />
+        </n-form-item>
+        <n-form-item label="Group name" path="groupName">
+          <n-input v-model:value="formValue.groupName"
+                   type="text"
+                   id="groupName"
+                   style="width: 80%; max-width: 600px;"
+                   placeholder="Mailing list group name"/>
+        </n-form-item>
       </n-form>
     </n-gi>
-
   </n-grid>
 </template>
 
 <script>
-import { onMounted, ref} from 'vue';
-import {useGlobalStore} from "../../stores/globalStore";
+import { ref, reactive } from 'vue';
+import { useGlobalStore } from "../../stores/globalStore";
 import {
-  NButton,
-  NCheckbox,
-  NForm,
-  NFormItem,
-  NGi,
-  NGrid,
-  NH3,
-  NIcon,
-  NInput,
-  NSpace,
+  NButton, NCheckbox, NForm, NFormItem,
+  NGi, NGrid, NH3, NIcon, NInput, NSpace, NSelect,
 } from "naive-ui";
-import {ArrowBigLeft} from '@vicons/tabler'
-import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
+import { ArrowBigLeft } from '@vicons/tabler'
+import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
 
 export default {
   name: 'MailingListEditor',
   components: {
-    NButton, NSpace, NInput, NCheckbox, NForm, NFormItem, NGrid, NGi, NH3, NIcon, ArrowBigLeft
+    NButton, NSpace, NInput, NCheckbox, NForm, NFormItem, NGrid, NGi, NH3, NIcon, NSelect, ArrowBigLeft
   },
   props: {
     id: {
@@ -60,33 +62,63 @@ export default {
       required: false,
     },
   },
-  emits: ['back'],
-  setup() {
+  emits: ['back', 'saved', 'deleted'],
+  setup(props, { emit }) {
     const formRef = ref(null);
-    const globalStore = useGlobalStore();
-
-
-    onMounted(async () => {
+    const formValue = reactive({
+      id: props.id,
+      groupName: '',
+      selectedGroups: []
     });
+    const globalStore = useGlobalStore();
+    const mailingListStore = useMailingListStore();
+
+    const fetchInitialData = async () => {
+      const [details, _] = await Promise.all([
+        props.id ? mailingListStore.getDetails(props.id, true) : Promise.resolve(null),
+        mailingListStore.fetchUserGroupsList()
+      ]);
+
+      if (details) {
+        formValue.groupName = details.name;
+        formValue.selectedGroups = details.groups.map(group => group.id);
+      }
+    };
+
+    fetchInitialData();
 
     const handleSave = () => {
+      formRef.value.validate(async (errors) => {
+        if (!errors) {
+          const success = await mailingListStore.saveList(formValue);
+          if (success) {
+            emit('saved');
+            emit('back');
+          }
+        }
+      });
     }
 
-    const handleDelete = () => {
-    }
+    const rules = {
+      groupName: [
+        { required: true, message: 'Please input the group name', trigger: 'blur' }
+      ],
+      selectedGroups: [
+        { type: 'array', min: 1, message: 'Please select at least one user group', trigger: 'change' }
+      ]
+    };
 
     return {
       globalStore,
+      mailingListStore,
       handleSave,
-      handleDelete,
       rules,
       formRef,
-      typeOptions,
+      formValue,
     };
   }
 };
 </script>
 
-<style>
-
+<style scoped>
 </style>

@@ -1,4 +1,11 @@
 <?php
+/**
+ * @package     SemantycaNM
+ * @subpackage  Administrator
+ *
+ * @copyright   Copyright (C) 2024 Absolute Management SIA. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
@@ -6,30 +13,14 @@ defined('_JEXEC') or die;
 
 use Exception;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 
 class MailingListController extends BaseController
 {
-	public function display($cachable = false, $urlparams = array())
-	{
-		try
-		{
-			$view = $this->getView('MailingLists', 'html');
-			$view->js_bundles = RuntimeUtil::getDynamicScriptUrls('js');
-			$view->display();
-		}
-		catch (\Exception $e)
-		{
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-		}
-	}
-
 	/**
 	 * @throws Exception
 	 * @since 1.0
@@ -50,7 +41,8 @@ class MailingListController extends BaseController
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+		}
+		finally
 		{
 			$app->close();
 		}
@@ -71,7 +63,8 @@ class MailingListController extends BaseController
 		{
 			http_response_code(500);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+		}
+		finally
 		{
 			Factory::getApplication()->close();
 		}
@@ -81,25 +74,24 @@ class MailingListController extends BaseController
 	 * @throws Exception
 	 * @since 1.0
 	 */
-	public function add()
+	public function upsert()
 	{
 		$app = Factory::getApplication();
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$input = $app->input;
-			if ($input->getMethod() === 'POST')
-			{
-				$mailing_lst_name   = $this->input->getString('mailinglistname');
-				$mailing_lists      = $this->input->getString('mailinglists');
-				$mailing_list_model = $this->getModel('MailingList');
+			$id                 = $this->input->getString('id', null);
+			$mailing_lst_name   = $this->input->getString('mailinglistname');
+			$mailing_lists      = $this->input->getString('mailinglists');
+			$mailing_list_model = $this->getModel('MailingList');
+
+			if ($id) {
+				$results = $mailing_list_model->update($id, $mailing_lst_name, $mailing_lists);
+			} else {
 				$results = $mailing_list_model->add($mailing_lst_name, $mailing_lists);
-				echo new JsonResponse($results);
 			}
-			else
-			{
-				throw new ValidationErrorException([], "Only POST request allowed");
-			}
+
+			echo new JsonResponse($results);
 		}
 		catch (ValidationErrorException $e)
 		{
@@ -111,40 +103,12 @@ class MailingListController extends BaseController
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+		}
+		finally
 		{
 			$app->close();
 		}
 	}
-
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
-	public function update()
-	{
-		$app = Factory::getApplication();
-		header(Constants::JSON_CONTENT_TYPE);
-		try
-		{
-			$id                 = $this->input->getString('id');
-			$mailing_lst_name   = $this->input->getString('mailinglistname');
-			$mailing_lists      = $this->input->getString('mailinglists');
-			$mailing_list_model = $this->getModel('MailingList');
-			$results            = $mailing_list_model->update($id, $mailing_lst_name, $mailing_lists);
-			echo new JsonResponse($results);
-		}
-		catch (Exception $e)
-		{
-			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			$app->close();
-		}
-	}
-
 
 	public function delete()
 	{
@@ -152,9 +116,8 @@ class MailingListController extends BaseController
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$input = $app->input;
-			$ids   = $this->input->getString('ids');
-			//TODO ids should be be a list
+			$ids = $this->input->getString('ids');
+
 			if (empty($ids) || $ids === 'null')
 			{
 				throw new ValidationErrorException([], 'id cannot be null');
@@ -165,16 +128,9 @@ class MailingListController extends BaseController
 				$ids = explode(',', $ids);
 			}
 
-			if ($input->getMethod() === 'DELETE')
-			{
-				$mailing_list_model = $this->getModel('MailingList');
-				$results            = $mailing_list_model->remove($ids);
-				echo new JsonResponse($results);
-			}
-			else
-			{
-				throw new ValidationErrorException([], "Only DELETE request allowed");
-			}
+			$mailing_list_model = $this->getModel('MailingList');
+			$results = $mailing_list_model->remove($ids);
+			echo new JsonResponse($results);
 		}
 		catch (ValidationErrorException $e)
 		{
@@ -186,7 +142,8 @@ class MailingListController extends BaseController
 			LogHelper::logException($e, __CLASS__);
 			http_response_code(500);
 			echo new JsonResponse($e->getMessage(), "error", true);
-		} finally
+		}
+		finally
 		{
 			$app->close();
 		}

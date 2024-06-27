@@ -1,4 +1,4 @@
-import {setCurrentTemplate} from "../../utils/fieldUtilities";
+import {setCurrentTemplate} from "../storeUtils";
 import BaseObject from "../../utils/BaseObject";
 
 //deprecated ??

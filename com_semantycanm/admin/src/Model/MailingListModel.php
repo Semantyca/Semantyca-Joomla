@@ -1,4 +1,11 @@
 <?php
+/**
+ * @package     SemantycaNM
+ * @subpackage  Administrator
+ *
+ * @copyright   Copyright (C) 2024 Absolute Management SIA. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
