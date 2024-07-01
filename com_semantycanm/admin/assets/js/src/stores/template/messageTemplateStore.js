@@ -14,7 +14,7 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         pages: new Map()
     });
     const currentTemplate = ref({
-        key: 1,
+        key: 0,
         name: '',
         type: '',
         description: '',

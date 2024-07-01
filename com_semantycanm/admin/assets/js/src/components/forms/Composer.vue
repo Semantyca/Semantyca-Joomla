@@ -320,7 +320,6 @@ export default {
       formRef,
       composerFormRules,
       debouncedFetchArticles,
-      resetFunction,
       copyContentToClipboard,
       preview,
       handleSendNewsletter,
