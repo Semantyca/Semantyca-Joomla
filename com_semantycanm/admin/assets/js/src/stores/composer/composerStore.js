@@ -1,15 +1,14 @@
 import {defineStore} from 'pinia';
 import {useMessageTemplateStore} from '../template/messageTemplateStore';
 import TemplateManager from "../template/TemplateManager";
-import DynamicBuilder from "../../utils/DynamicBuilder";
-import {ref, computed} from 'vue';
+import {computed, ref} from 'vue';
 import {useLoadingBar, useMessage} from "naive-ui";
 import MailingListApiManager from "../mailinglist/MailingListApiManager";
 
 export const useComposerStore = defineStore('composer', () => {
     const articlesPage = ref({docs: []});
-    const selectedArticles = ref([]);
-    const editorCont = ref('');
+    //const selectedArticles = ref([]);
+    //const editorCont = ref('');
     const mailingListPage = ref({
         page: 1,
         pageSize: 10,
@@ -24,14 +23,15 @@ export const useComposerStore = defineStore('composer', () => {
 
     const articleOptions = computed(() => {
         return articlesPage.value.docs.map(doc => ({
-            label: doc.title,
             value: doc.id,
-            groupName: doc.category,
-            articleTitle: doc.title
+            category: doc.category,
+            title: doc.title,
+            url: doc.url,
+            intro: doc.intro
         }));
     });
 
-    const cont = computed(() => {
+   /* const cont = computed(() => {
         const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
         dynamicBuilder.addVariable("articles", selectedArticles.value);
 
@@ -50,7 +50,7 @@ export const useComposerStore = defineStore('composer', () => {
             });
             return '';
         }
-    });
+    });*/
 
     async function updateFormCustomFields() {
         const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
@@ -119,11 +119,8 @@ export const useComposerStore = defineStore('composer', () => {
     return {
         articlesPage,
         articleOptions,
-        selectedArticles,
-        editorCont,
         firstPageOptions,
         isLoading,
-        cont,
         fetchArticlesApi,
         fetchMailingListsApi,
     };

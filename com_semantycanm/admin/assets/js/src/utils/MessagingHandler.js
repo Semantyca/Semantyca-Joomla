@@ -3,7 +3,7 @@ import { useMessage, useLoadingBar } from 'naive-ui';
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 import UserExperienceHelper from './UserExperienceHelper';
 
-export class ComposerMessage {
+export class MessagingHandler {
 
     constructor(formRef, modelRef, newsLetterStore) {
         this.formRef = formRef;

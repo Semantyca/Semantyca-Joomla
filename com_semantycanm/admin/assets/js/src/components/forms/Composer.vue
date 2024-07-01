@@ -45,7 +45,7 @@
         </n-form-item>
         <n-form-item label="Articles" path="templateName">
           <n-select
-              v-model:value="composerStore.selectedArticles"
+              v-model:value="selectedArticleIds"
               multiple
               filterable
               placeholder="Search articles"
@@ -54,6 +54,7 @@
               :render-tag="renderSelectedArticle"
               :clear-filter-after-select="true"
               style="width: 80%; max-width: 600px;"
+              @update:value="updateSelectedArticles"
           />
         </n-form-item>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
@@ -97,7 +98,7 @@
             <formatting-buttons/>
             <div id="squire-editor"
                  style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
-                 v-html="composerStore.cont"
+                 v-html="previewContent"
             ></div>
           </n-space>
         </n-form-item>
@@ -107,12 +108,12 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, reactive, ref} from 'vue';
+import {computed, h, nextTick, onMounted, provide, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
 import { NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
-  NGrid, NH3, NH4, NH6, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTag, NTransfer, useLoadingBar, useMessage
+  NGrid, NH3, NH4, NH6, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTag, NTransfer, useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
@@ -125,11 +126,11 @@ import {composerFormRules} from "../../stores/composer/composerUtils";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
-import {ComposerMessage} from "../../utils/ComposerMessage";
+import {MessagingHandler} from "../../utils/MessagingHandler";
+import DynamicBuilder from "../../utils/DynamicBuilder";
 
 export default {
   name: 'Composer',
-  methods: {useMailingListStore},
   components: {
     FormattingButtons, DynamicFormField,
     NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber,
@@ -145,16 +146,16 @@ export default {
   emits: ['back'],
   setup(props) {
     console.log('Composer component initialized with id:', props.id);
-    const articles = ref([]);
     const formRef = ref(null);
-    const articlesListRef = ref(null);
-    const selectedArticlesListRef = ref(null);
+    const selectedArticlesListRef = ref([]);
+    const selectedArticleIds = ref([]);
     const composerRef = ref(null);
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
     const messageTemplateStore = useMessageTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const mailingListStore = useMailingListStore();
+    const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
@@ -162,13 +163,33 @@ export default {
     const isTestMessage = ref(false);
     const testUserEmail = ref('');
 
-    const orderedSelectedArticles = ref([]);
+    const previewContent = computed(() => {
+      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+      dynamicBuilder.addVariable("articles", selectedArticlesListRef.value);
+
+      Object.keys(templateStore.availableCustomFields).forEach((key) => {
+        const field = templateStore.availableCustomFields[key];
+        const fieldValue = field.defaultValue;
+        dynamicBuilder.addVariable(key, fieldValue);
+      });
+
+      try {
+        return dynamicBuilder.buildContent();
+      } catch (e) {
+        console.log(e.message);
+        msgPopup.error(e.message, {
+          closable: true,
+          duration: 10000
+        });
+        return '';
+      }
+    });
 
     const modelRef = ref({
       mailingList: [],
       testEmail: '',
       subject: '',
-      content: composerStore.cont
+      content: previewContent.value
     });
 
     const fetchInitialData = async () => {
@@ -184,17 +205,9 @@ export default {
       }
     };
 
-
-    const resetFunction = async () => {
-      composerStore.selectedArticles = [];
-      composerStore.editorCont = '';
-      await composerStore.fetchArticlesApi('');
-    };
-
     const copyContentToClipboard = () => {
-      const completeHTML = composerStore.cont;
       const tempTextArea = document.createElement('textarea');
-      tempTextArea.value = completeHTML;
+      tempTextArea.value = previewContent.value;
       document.body.appendChild(tempTextArea);
       tempTextArea.select();
       const successful = document.execCommand('copy');
@@ -242,7 +255,7 @@ export default {
       }
     };
 
-    const composerMsg = new ComposerMessage(formRef, modelRef.value, newsLetterStore);
+    const composerMsg = new MessagingHandler(formRef, modelRef.value, newsLetterStore);
 
     const handleSendNewsletter = (onlySave) => {
       composerMsg.send(isTestMessage.value, testUserEmail.value, onlySave)
@@ -258,9 +271,15 @@ export default {
 
    const renderArticleOption = (option) => {
       return h('div', [
-        h('div', { style: 'font-weight: bold;' }, option.groupName),
-        h('div', option.articleTitle)
+        h('div', { style: 'font-weight: bold;' }, option.category),
+        h('div', option.title)
       ]);
+    };
+
+    const updateSelectedArticles = (selectedIds) => {
+      selectedArticlesListRef.value = selectedIds.map(id => {
+        return composerStore.articleOptions.find(article => article.value === id);
+      });
     };
 
     const renderSelectedArticle = ({ option, handleClose }) => {
@@ -268,9 +287,10 @@ export default {
         closable: true,
         onClose: handleClose,
       }, {
-        default: () => option.articleTitle
+        default: () => option.title
       });
     };
+
 
 
     fetchInitialData();
@@ -283,17 +303,18 @@ export default {
     });
 
 
+
     return {
       composerStore,
       globalStore,
       messageTemplateStore,
       mailingListStore,
-      articles,
       customFields,
       isTestMessage,
       testUserEmail,
-      articlesListRef,
       selectedArticlesListRef,
+      selectedArticleIds,
+      previewContent,
       composerRef,
       modelRef,
       formRef,
@@ -310,7 +331,7 @@ export default {
       handleCheckedChange,
       renderArticleOption,
       renderSelectedArticle,
-      orderedSelectedArticles,
+      updateSelectedArticles
     };
   }
 };

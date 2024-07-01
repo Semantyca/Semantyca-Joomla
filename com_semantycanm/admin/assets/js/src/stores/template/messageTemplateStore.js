@@ -3,7 +3,7 @@ import {ref, computed} from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
 import {useLoadingBar, useMessage} from "naive-ui";
 
-export const useMessageTemplateStore = defineStore('messageTemplates', () => {
+export const useMessageTemplateStore = defineStore('templates', () => {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const templatesPage = ref({
@@ -83,7 +83,7 @@ export const useMessageTemplateStore = defineStore('messageTemplates', () => {
         currentTemplate.value.customFields = templateDoc.customFields;
 
         const customFields =  currentTemplate.value.customFields.filter(field => field.isAvailable === 1);
-        console.log('customFields', customFields);
+        //console.log('customFields', customFields);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
     };
 
