@@ -4,6 +4,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseDriver;
+use Semantyca\Component\SemantycaNM\Administrator\DTO\NewsletterDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\UpdateRecordException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 
@@ -150,20 +151,93 @@ class NewslettersModel extends BaseDatabaseModel
 		return $db->loadObject();
 	}
 
-	public function upsert($subjectValue, $messageContent): int
+	public function upsert(NewsletterDTO $newsletter): int
 	{
-		$newsLetter = $this->findByContent($subjectValue, $messageContent);
-		if ($newsLetter == null)
-		{
-			$id = $this->add($subjectValue, $messageContent);
-		}
-		else
-		{
-			$id = $newsLetter->id;
-			//$this->update($id, $subjectValue, $messageContent);
-		}
+		$db = $this->getDatabase();
+		$query = $db->getQuery(true);
 
-		return $id;
+		$hashComponents = [
+			$newsletter->messageContent,
+			$newsletter->wrapper,
+			$newsletter->template_id,
+			json_encode($newsletter->customFieldsValues),
+			json_encode($newsletter->articlesIds),
+			$newsletter->isTest ? '1' : '0',
+			json_encode($newsletter->mailingList),
+			$newsletter->testEmail
+		];
+		$hash = hash('sha256', implode('', $hashComponents));
+
+		$existingNewsletter = $this->findByHash($hash);
+
+		if ($existingNewsletter === null) {
+			// Insert new newsletter
+			$columns = [
+				'reg_date', 'template_id', 'custom_fields_values', 'articles_ids',
+				'is_test', 'mailing_list', 'test_email', 'message_content',
+				'wrapper', 'hash'
+			];
+
+			$values = [
+				$db->quote($newsletter->regDate->format('Y-m-d H:i:s')),
+				$db->quote($newsletter->template_id),
+				$db->quote(json_encode($newsletter->customFieldsValues)),
+				$db->quote(json_encode($newsletter->articlesIds)),
+				$newsletter->isTest ? '1' : '0',
+				$db->quote(json_encode($newsletter->mailingList)),
+				$db->quote($newsletter->testEmail),
+				$db->quote($newsletter->messageContent),
+				$db->quote($newsletter->wrapper),
+				$db->quote($hash)
+			];
+
+			$query
+				->insert($db->quoteName('#__semantyca_nm_newsletters'))
+				->columns($db->quoteName($columns))
+				->values(implode(',', $values));
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return $db->insertid();
+		} else {
+			// Update existing newsletter
+			$fields = [
+				$db->quoteName('reg_date') . ' = ' . $db->quote($newsletter->regDate->format('Y-m-d H:i:s')),
+				$db->quoteName('template_id') . ' = ' . $db->quote($newsletter->template_id),
+				$db->quoteName('custom_fields_values') . ' = ' . $db->quote(json_encode($newsletter->customFieldsValues)),
+				$db->quoteName('articles_ids') . ' = ' . $db->quote(json_encode($newsletter->articlesIds)),
+				$db->quoteName('is_test') . ' = ' . ($newsletter->isTest ? '1' : '0'),
+				$db->quoteName('mailing_list') . ' = ' . $db->quote(json_encode($newsletter->mailingList)),
+				$db->quoteName('test_email') . ' = ' . $db->quote($newsletter->testEmail),
+				$db->quoteName('message_content') . ' = ' . $db->quote($newsletter->messageContent),
+				$db->quoteName('wrapper') . ' = ' . $db->quote($newsletter->wrapper)
+			];
+
+			$query
+				->update($db->quoteName('#__semantyca_nm_newsletters'))
+				->set($fields)
+				->where($db->quoteName('id') . ' = ' . $db->quote($existingNewsletter->id));
+
+			$db->setQuery($query);
+			$db->execute();
+
+			return $existingNewsletter->id;
+		}
+	}
+
+	private function findByHash(string $hash): ?object
+	{
+		$db = $this->getDatabase();
+		$query = $db->getQuery(true);
+		$query
+			->select($db->quoteName(['id', 'hash']))
+			->from($db->quoteName('#__semantyca_nm_newsletters'))
+			->where($db->quoteName('hash') . ' = ' . $db->quote($hash));
+
+		$db->setQuery($query);
+
+		return $db->loadObject();
 	}
 
 	public function add($subject_value, $message_content): int

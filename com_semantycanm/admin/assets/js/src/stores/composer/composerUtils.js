@@ -4,17 +4,33 @@ export const composerFormRules = {
     subject: {
         required: true,
         message: 'Subject cannot be empty',
+        trigger: ['blur', 'input']
     },
-    mailing_list: {
+    selectedArticles: {
         required: true,
         validator(rule, value) {
             if (Array.isArray(value) && value.length > 0) {
                 return true;
-            } else if (typeof value === 'string' && isEmail(value)) {
-                return true;
             }
-            return new Error('Must be a valid email or non-empty mailing list');
+            return new Error('Please select at least one article');
         },
-        trigger: 'blur'
+        trigger: ['blur', 'change']
+    },
+    recipientField: {
+        required: true,
+        validator(rule, value, model) {
+            if (model.isTestMessage) {
+                if (isEmail(model.testUserEmail)) {
+                    return true;
+                }
+                return new Error('Please enter a valid email address for test user');
+            } else {
+                if (Array.isArray(model.mailingList) && model.mailingList.length > 0) {
+                    return true;
+                }
+                return new Error('Please select at least one mailing list');
+            }
+        },
+        trigger: ['blur', 'change']
     }
 };

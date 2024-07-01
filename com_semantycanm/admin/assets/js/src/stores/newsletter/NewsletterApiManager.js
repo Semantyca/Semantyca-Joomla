@@ -40,7 +40,7 @@ class NewsletterApiManager extends BaseObject {
             'msg': msgContent,
             'user_group': listOfUserGroups
         };
-        return this.doPostRequest('Service.sendEmailAsync', data);
+        return this.doPostRequest('Service.sendEmailAsync', data, 'Sending');
     }
 
     saveNewsletter(subj, msgContent) {
@@ -48,7 +48,7 @@ class NewsletterApiManager extends BaseObject {
             'subject': subj,
             'msg': msgContent
         };
-        return this.doPostRequest('NewsLetter.add', data);
+        return this.doPostRequest('Newsletters.add', data, 'Saving');
     }
 
     async deleteNewsletters(ids) {
@@ -88,8 +88,8 @@ class NewsletterApiManager extends BaseObject {
         }
     }
 
-    async doPostRequest(endpoint, data) {
-        super.startBusyMessage('Sending ...');
+    async doPostRequest(endpoint, data, actionType) {
+        super.startBusyMessage(actionType + '...');
         const url = `index.php?option=com_semantycanm&task=${endpoint}`;
         try {
             const response = await fetch(url, {

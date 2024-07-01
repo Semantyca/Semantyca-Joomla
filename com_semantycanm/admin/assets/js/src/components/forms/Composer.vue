@@ -20,10 +20,12 @@
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
-      <n-form
-          label-placement="left"
-          label-width="auto"
-          require-mark-placement="right-hanging"
+      <n-form ref="formRef"
+              :model="modelRef"
+              :rules="composerFormRules"
+              label-placement="left"
+              label-width="auto"
+              require-mark-placement="right-hanging"
       >
         <n-form-item label="Template name" path="templateName">
           <n-select
@@ -60,14 +62,14 @@
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="mailing_list" :show-feedback="false"
                      class="form-item">
-          <n-checkbox size="large" v-model:checked="isTestMessage" @update:checked="handleCheckedChange"/>
+          <n-checkbox size="large" v-model:checked="modelRef.isTestMessage" @update:checked="handleCheckedChange"/>
         </n-form-item>
         <n-form-item
-            :label="isTestMessage ? 'Test user' : 'Mailing List'"
+            :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'"
             label-placement="left"
             path="mailing_list"
         >
-          <template v-if="isTestMessage">
+          <template v-if="modelRef.isTestMessage">
             <n-input v-model:value="testUserEmail"
                      placeholder="Enter test user email"
                      style="width: 80%; max-width: 600px;"
@@ -98,7 +100,7 @@
             <formatting-buttons/>
             <div id="squire-editor"
                  style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
-                 v-html="previewContent"
+                 v-html="content"
             ></div>
           </n-space>
         </n-form-item>
@@ -112,7 +114,8 @@ import {computed, h, nextTick, onMounted, provide, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
-import { NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
+import {
+  NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
   NGrid, NH3, NH4, NH6, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTag, NTransfer, useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
@@ -160,10 +163,9 @@ export default {
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
-    const isTestMessage = ref(false);
     const testUserEmail = ref('');
 
-    const previewContent = computed(() => {
+    const content = computed(() => {
       const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
       dynamicBuilder.addVariable("articles", selectedArticlesListRef.value);
 
@@ -189,7 +191,8 @@ export default {
       mailingList: [],
       testEmail: '',
       subject: '',
-      content: previewContent.value
+      content: content.value,
+      isTestMessage: false
     });
 
     const fetchInitialData = async () => {
@@ -207,7 +210,7 @@ export default {
 
     const copyContentToClipboard = () => {
       const tempTextArea = document.createElement('textarea');
-      tempTextArea.value = previewContent.value;
+      tempTextArea.value = content.value;
       document.body.appendChild(tempTextArea);
       tempTextArea.select();
       const successful = document.execCommand('copy');
@@ -248,17 +251,34 @@ export default {
       fetchArticlesDebounced(val);
     };
 
+
     const handleCheckedChange = (checked) => {
-      isTestMessage.value = checked;
-      if (!checked) {
-        testUserEmail.value = '';
+      modelRef.value.isTestMessage = checked;
+      if (checked) {
+        modelRef.value.mailingList = [];
+      } else {
+        modelRef.value.testUserEmail = '';
       }
     };
 
-    const composerMsg = new MessagingHandler(formRef, modelRef.value, newsLetterStore);
+    const composerMsg = new MessagingHandler(modelRef.value, newsLetterStore);
 
     const handleSendNewsletter = (onlySave) => {
-      composerMsg.send(isTestMessage.value, testUserEmail.value, onlySave)
+      formRef.value.validate((errors) => {
+        if (!errors) {
+          composerMsg.send(onlySave)
+        } else {
+          Object.keys(errors).forEach(fieldName => {
+            const fieldError = errors[fieldName];
+            if (fieldError && fieldError.length > 0) {
+              msgPopup.error(fieldError[0].message, {
+                closable: true,
+                duration: 10000
+              });
+            }
+          });
+        }
+      });
     }
 
     const handleFetchSubject = async () => {
@@ -269,9 +289,9 @@ export default {
       }
     }
 
-   const renderArticleOption = (option) => {
+    const renderArticleOption = (option) => {
       return h('div', [
-        h('div', { style: 'font-weight: bold;' }, option.category),
+        h('div', {style: 'font-weight: bold;'}, option.category),
         h('div', option.title)
       ]);
     };
@@ -282,7 +302,7 @@ export default {
       });
     };
 
-    const renderSelectedArticle = ({ option, handleClose }) => {
+    const renderSelectedArticle = ({option, handleClose}) => {
       return h(NTag, {
         closable: true,
         onClose: handleClose,
@@ -290,7 +310,6 @@ export default {
         default: () => option.title
       });
     };
-
 
 
     fetchInitialData();
@@ -303,18 +322,16 @@ export default {
     });
 
 
-
     return {
       composerStore,
       globalStore,
       messageTemplateStore,
       mailingListStore,
       customFields,
-      isTestMessage,
       testUserEmail,
       selectedArticlesListRef,
       selectedArticleIds,
-      previewContent,
+      content,
       composerRef,
       modelRef,
       formRef,

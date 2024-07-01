@@ -192,7 +192,7 @@ export default {
       editorFocused.value = true;
     };
 
-    const selectedMode = ref('html');
+    const selectedMode = ref('ejs');
     const modeOptions = [
       {label: 'HTML', value: 'html'},
       {label: 'EJS', value: 'ejs'}
