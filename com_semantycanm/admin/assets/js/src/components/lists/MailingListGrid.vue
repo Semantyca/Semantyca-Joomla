@@ -16,7 +16,7 @@
           remote
           size="large"
           :columns="columns"
-          :data="mailingListStore.getCurrentPage"
+          :data="mailingListStore.getMailingListPage"
           :bordered="false"
           :pagination="mailingListStore.getPagination"
           :row-key="rowKey"

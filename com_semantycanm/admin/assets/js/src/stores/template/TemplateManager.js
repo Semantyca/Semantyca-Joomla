@@ -1,8 +1,7 @@
 import {setCurrentTemplate} from "../storeUtils";
 import BaseObject from "../../utils/BaseObject";
 
-//deprecated ??
-class TemplateManager  extends BaseObject {
+class TemplateManager extends BaseObject {
 
     constructor(store, msgPopup, loadingBar) {
         super();
@@ -12,17 +11,7 @@ class TemplateManager  extends BaseObject {
         this.errorTimeout = 50000;
     }
 
-    async getTemplates(forceReload = false) {
-        const cacheDuration = 2 * 60 * 1000; // 2 min
-        const now = Date.now();
-
-        if (!forceReload && this.templateStore.cache.templateMap && this.templateStore.cache.expiration > now) {
-            this.templateStore.templateMap = this.templateStore.cache.templateMap;
-            return;
-        }
-
-        console.log('cache expired', this.templateStore.cache.expiration, now);
-
+    async getTemplates() {
         const currentPage = 1;
         const itemsPerPage = 10;
         this.loadingBar.start();
@@ -38,9 +27,6 @@ class TemplateManager  extends BaseObject {
                     acc[template.id] = template;
                     return acc;
                 }, {});
-
-                this.templateStore.cache.templateMap = this.templateStore.templateMap;
-                this.templateStore.cache.expiration = now + cacheDuration;
 
                 this.templateStore.pagination = {
                     currentPage: jsonResponse.data.current,
@@ -66,38 +52,6 @@ class TemplateManager  extends BaseObject {
         }
     }
 
-    async autoSave(field, dataToUpdate) {
-        console.log(new Date().toLocaleTimeString(), "Autosaving ...");
-
-        const endpoint = `index.php?option=com_semantycanm&task=Template.autoSave&id=${encodeURIComponent(this.templateStore.currentTemplate.id)}`;
-        const method = 'PUT';
-        const payload = {
-            [field]: dataToUpdate
-        };
-
-        try {
-            const response = await fetch(endpoint, {
-                method: method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error, status = ${response.status}`);
-            }
-
-            const jsonResponse = await response.json();
-            if (!jsonResponse.success) {
-                throw new Error(jsonResponse.message || "Failed to auto-save the template.");
-            }
-        } catch (error) {
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-        }
-    }
-
     async saveTemplate(doc, isNew = false) {
         this.startBusyMessage('Saving template ...');
         const endpoint = isNew ? `index.php?option=com_semantycanm&task=Template.update&id=` :
@@ -117,7 +71,7 @@ class TemplateManager  extends BaseObject {
             const result = await response.json();
             this.msgPopup.success(result.data.message);
 
-            await this.getTemplates(true);
+            await this.getTemplates();
             return result;
         } catch (error) {
             this.msgPopup.error(error.message, {
@@ -144,7 +98,7 @@ class TemplateManager  extends BaseObject {
             const deletedId = this.templateStore.currentTemplate.id;
             console.log('deletedId', deletedId);
 
-            await this.getTemplates(true);
+            await this.getTemplates();
 
             const newTemplateId = this.selectNewTemplateId(deletedId);
             console.log('new', newTemplateId);
@@ -199,7 +153,7 @@ class TemplateManager  extends BaseObject {
                         this.startBusyMessage('Importing template ...');
                         const jsonObj = JSON.parse(e.target.result);
                         await this.saveTemplate(jsonObj, true);
-                        await this.getTemplates(true);
+                        await this.getTemplates();
                         this.msgPopup.success('Template imported and saved successfully.');
                     } catch (err) {
                         this.msgPopup.error('Failed to import template: ' + err, {

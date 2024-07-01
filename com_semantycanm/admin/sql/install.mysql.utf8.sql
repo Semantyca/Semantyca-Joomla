@@ -71,7 +71,8 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_newsletters`
     modified_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
     subject         VARCHAR(255),
     message_content MEDIUMTEXT,
-    hash            CHAR(64) AS (SHA2(CONCAT(subject, message_content), 256)) STORED,
+    parameters      JSON     DEFAULT (JSON_ARRAY()),
+    hash            CHAR(64) AS (SHA2(CONCAT(subject, message_content, parameters), 256)) STORED,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 

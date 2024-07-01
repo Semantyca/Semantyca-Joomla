@@ -45,11 +45,11 @@
         </n-form-item>
         <n-form-item label="Articles" path="templateName">
           <n-select
-              v-model:value="formValue.selectedArticles"
+              v-model:value="composerStore.selectedArticles"
               multiple
               filterable
               placeholder="Search articles"
-              :options="articleOptions"
+              :options="composerStore.articleOptions"
               :render-label="renderArticleOption"
               :render-tag="renderSelectedArticle"
               :clear-filter-after-select="true"
@@ -92,7 +92,7 @@
           </n-button>
         </n-form-item>
 
-        <n-form-item label="Review" path="subject">
+        <n-form-item label="Review">
           <n-space vertical>
             <formatting-buttons/>
             <div id="squire-editor"
@@ -107,7 +107,7 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, reactive, ref, watch} from 'vue';
+import {computed, h, nextTick, onMounted, provide, reactive, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
@@ -124,8 +124,8 @@ import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
 import {composerFormRules} from "../../stores/composer/composerUtils";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
-import {fetchSubject, sendNewsletter} from "../../utils/newsletterUtils";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
+import {ComposerMessage} from "../../utils/ComposerMessage";
 
 export default {
   name: 'Composer',
@@ -147,21 +147,15 @@ export default {
     console.log('Composer component initialized with id:', props.id);
     const articles = ref([]);
     const formRef = ref(null);
-    const formValue = reactive({
-      id: props.id,
-      selectedArticles: []
-    });
     const articlesListRef = ref(null);
     const selectedArticlesListRef = ref(null);
     const composerRef = ref(null);
-    const activeTabName = ref('Composer');
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
     const messageTemplateStore = useMessageTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const mailingListStore = useMailingListStore();
     const msgPopup = useMessage();
-    const loadingBar = useLoadingBar();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
@@ -190,14 +184,6 @@ export default {
       }
     };
 
-    fetchInitialData();
-
-    onMounted(() => {
-      window.DOMPurify = DOMPurify;
-      nextTick(() => {
-        squireEditor.value = new Squire(document.getElementById('squire-editor'));
-      });
-    });
 
     const resetFunction = async () => {
       composerStore.selectedArticles = [];
@@ -256,32 +242,27 @@ export default {
       }
     };
 
+    const composerMsg = new ComposerMessage(formRef, modelRef.value, newsLetterStore);
+
     const handleSendNewsletter = (onlySave) => {
-      sendNewsletter(modelRef.value, isTestMessage.value, testUserEmail.value, formRef, msgPopup, loadingBar, newsLetterStore, onlySave)
+      composerMsg.send(isTestMessage.value, testUserEmail.value, onlySave)
     }
 
     const handleFetchSubject = async () => {
       try {
-        modelRef.value.subject = await fetchSubject(loadingBar)
+        modelRef.value.subject = await composerMsg.fetchSubject();
       } catch (error) {
         msgPopup.error(error.message)
       }
     }
 
-    const articleOptions = computed(() =>
-        composerStore.articleSelectOptions.map(option => ({
-          ...option,
-          groupName: "option.label",
-          articleTitle: option.label
-        }))
-    );
-
-    const renderArticleOption = (option) => {
+   const renderArticleOption = (option) => {
       return h('div', [
         h('div', { style: 'font-weight: bold;' }, option.groupName),
         h('div', option.articleTitle)
       ]);
     };
+
     const renderSelectedArticle = ({ option, handleClose }) => {
       return h(NTag, {
         closable: true,
@@ -291,34 +272,31 @@ export default {
       });
     };
 
-    const moveArticle = (option, direction, event) => {
-      event.stopPropagation();
-      const index = formValue.selectedArticles.indexOf(option.value);
-      if (direction === 'up' && index > 0) {
-        const newArray = [...formValue.selectedArticles];
-        [newArray[index - 1], newArray[index]] = [newArray[index], newArray[index - 1]];
-        formValue.selectedArticles = newArray;
-      } else if (direction === 'down' && index < formValue.selectedArticles.length - 1) {
-        const newArray = [...formValue.selectedArticles];
-        [newArray[index], newArray[index + 1]] = [newArray[index + 1], newArray[index]];
-        formValue.selectedArticles = newArray;
-      }
-    };
+
+    fetchInitialData();
+
+    onMounted(() => {
+      window.DOMPurify = DOMPurify;
+      nextTick(() => {
+        squireEditor.value = new Squire(document.getElementById('squire-editor'));
+      });
+    });
+
 
     return {
       composerStore,
-      articles,
       globalStore,
       messageTemplateStore,
       mailingListStore,
+      articles,
       customFields,
+      isTestMessage,
+      testUserEmail,
       articlesListRef,
       selectedArticlesListRef,
       composerRef,
       modelRef,
       formRef,
-      formValue,
-      activeTabName,
       composerFormRules,
       debouncedFetchArticles,
       resetFunction,
@@ -329,10 +307,7 @@ export default {
       handleColorChange,
       handleFieldChange,
       handleFetchSubject,
-      isTestMessage,
-      testUserEmail,
       handleCheckedChange,
-      articleOptions,
       renderArticleOption,
       renderSelectedArticle,
       orderedSelectedArticles,

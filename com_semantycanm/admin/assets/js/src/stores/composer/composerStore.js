@@ -22,17 +22,13 @@ export const useComposerStore = defineStore('composer', () => {
     const loadingBar = useLoadingBar();
     const templateStore = useMessageTemplateStore();
 
-    const articleSelectOptions = computed(() => {
-        const options = [];
-        articlesPage.value.docs.forEach((doc, pageNumber) => {
-
-            options.push({
-                label: doc.title,
-                value: doc.id
-            });
-
-        });
-        return options;
+    const articleOptions = computed(() => {
+        return articlesPage.value.docs.map(doc => ({
+            label: doc.title,
+            value: doc.id,
+            groupName: doc.category,
+            articleTitle: doc.title
+        }));
     });
 
     const cont = computed(() => {
@@ -48,7 +44,10 @@ export const useComposerStore = defineStore('composer', () => {
         try {
             return dynamicBuilder.buildContent();
         } catch (e) {
-            console.error(e.message);
+            msgPopup.error(e.message, {
+                closable: true,
+                duration: 10000
+            });
             return '';
         }
     });
@@ -117,10 +116,9 @@ export const useComposerStore = defineStore('composer', () => {
         return [];
     });
 
-
     return {
         articlesPage,
-        articleSelectOptions,
+        articleOptions,
         selectedArticles,
         editorCont,
         firstPageOptions,

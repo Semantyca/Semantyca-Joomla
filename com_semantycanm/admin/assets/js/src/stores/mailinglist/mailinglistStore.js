@@ -7,7 +7,6 @@ import PaginatedData from '../PaginatedData';
 export const useMailingListStore = defineStore('mailingList', () => {
     const mailingListPage = new PaginatedData();
     const userGroupsPage = new PaginatedData();
-
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
@@ -18,7 +17,7 @@ export const useMailingListStore = defineStore('mailingList', () => {
         pageCount: mailingListPage.pageCount.value
     }));
 
-    const getCurrentPage = computed(() => mailingListPage.getCurrentPageData());
+    const getMailingListPage = computed(() => mailingListPage.getCurrentPageData());
 
     const getUserGroupsOptions = computed(() =>
         userGroupsPage.getAllDocs().map(group => ({
@@ -29,8 +28,8 @@ export const useMailingListStore = defineStore('mailingList', () => {
 
     const getMailingListOptions = computed(() =>
         mailingListPage.getAllDocs().map(group => ({
-            label: group.title,
-            value: group.key
+            label: group.name,
+            value: group.id
         }))
     );
 
@@ -107,7 +106,7 @@ export const useMailingListStore = defineStore('mailingList', () => {
         mailingListPage,
         userGroupsPage,
         getPagination,
-        getCurrentPage,
+        getMailingListPage,
         fetchMailingList,
         getDetails,
         saveList,

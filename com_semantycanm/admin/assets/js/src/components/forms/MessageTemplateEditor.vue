@@ -30,13 +30,10 @@
 
         <n-gi span="8">
           <n-form-item label="Template name" label-placement="left" path="templateName" size="large">
-            <n-select
+            <n-input
                 v-model:value="selectedTemplateRef"
-                :options="templateStore.templateSelectOptions"
-                size="large"
                 style="width: 100%; max-width: 600px;"
-                placeholder="Select a template"
-                @update:value="handleTemplateChange"
+                placeholder="Enter template name"
             />
           </n-form-item>
           <n-form-item label="Description" label-placement="left" path="description">
@@ -139,7 +136,7 @@
 </template>
 
 <script>
-import {computed, onMounted, ref, watch} from 'vue';
+import {computed, onMounted, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import {
@@ -153,7 +150,6 @@ import {ejs} from 'codemirror-lang-ejs';
 import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
-import {setCurrentTemplate} from "../../stores/storeUtils";
 
 export default {
   name: 'MessageTemplateEditor',
@@ -185,18 +181,8 @@ export default {
 
     onMounted(async () => {
       await templateManager.getTemplates();
-      selectedTemplateRef.value = templateStore.currentTemplate.name;
     });
 
-    watch(() => templateStore.currentTemplate.id, (newVal) => {
-      selectedTemplateRef.value = templateStore.templateMap[newVal].name;
-    });
-
-    const handleTemplateChange = (newTemplateId) => {
-      setCurrentTemplate(templateStore, newTemplateId);
-      templateManager.setDefaultTemplate(newTemplateId);
-      editorFocused.value = false;
-    };
 
     const handleEditorBlur = () => {
       editorFocused.value = false;
@@ -246,7 +232,6 @@ export default {
         }
       }),
       selectedTemplateRef,
-      handleTemplateChange,
       updateFieldIsAvailable,
       rules,
       customFormFields,
