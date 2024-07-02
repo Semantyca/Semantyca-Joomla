@@ -1,12 +1,10 @@
 import BaseObject from "../../utils/BaseObject";
 
 class NewsletterApiManager extends BaseObject {
-    static BASE_URL = 'index.php?option=com_semantycanm&task=NewsLetter.';
+    static BASE_URL = 'index.php?option=com_semantycanm&task=newsletters.';
 
-    constructor(msgPopup, loadingBar) {
+    constructor() {
         super();
-        this.msgPopup = msgPopup;
-        this.loadingBar = loadingBar;
         this.errorTimeout = 50000;
         this.headers = new Headers({
             'Content-Type': 'application/json',
@@ -14,45 +12,77 @@ class NewsletterApiManager extends BaseObject {
     }
 
     async fetch(currentPage, size) {
-        this.loadingBar.start();
-
         const url = `${NewsletterApiManager.BASE_URL}findAll&page=${currentPage}&limit=${size}`;
+
         try {
-            const response = await fetch(url, {
-                method: 'GET',
-            });
+            const response = await fetch(url, { method: 'GET' });
             if (!response.ok) {
                 throw new Error('Network response was not ok: ' + response.statusText);
             }
             return await response.json();
         } catch (error) {
-            this.loadingBar.error();
-            this.msgPopup.error(error.message);
             throw error;
-        } finally {
-            this.loadingBar.finish();
         }
     }
 
-    sendEmail(subj, msgContent, listOfUserGroups) {
-        const data = {
-            'subject': subj,
-            'msg': msgContent,
-            'user_group': listOfUserGroups
-        };
-        return this.doPostRequest('Service.sendEmailAsync', data, 'Sending');
+    async upsert(newsletter) {
+        const url = `${NewsletterApiManager.BASE_URL}upsert`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.headers
+                },
+                body: JSON.stringify(newsletter),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+            return result;
+        } catch (error) {
+            throw error;
+        }
     }
 
-    saveNewsletter(subj, msgContent) {
+    async sendEmail(subject, messageContent, listOfUserGroups) {
+        const url = `${NewsletterApiManager.BASE_URL}Service.sendEmailAsync`;
         const data = {
-            'subject': subj,
-            'msg': msgContent
+            subject,
+            msg: messageContent,
+            user_group: listOfUserGroups
         };
-        return this.doPostRequest('Newsletters.add', data, 'Saving');
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...this.headers
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error: ${response.status} - ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log(result);
+            return result;
+        } catch (error) {
+            throw error;
+        }
     }
 
     async deleteNewsletters(ids) {
-        this.loadingBar.start();
         const url = `${NewsletterApiManager.BASE_URL}delete`;
 
         try {
@@ -72,53 +102,9 @@ class NewsletterApiManager extends BaseObject {
 
             const result = await response.json();
             console.log(result);
-            this.msgPopup.success('Newsletters deleted successfully!', {
-                closable: true,
-                duration: 5000
-            });
             return result;
         } catch (error) {
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
             throw error;
-        } finally {
-            this.loadingBar.finish();
-        }
-    }
-
-    async doPostRequest(endpoint, data, actionType) {
-        super.startBusyMessage(actionType + '...');
-        const url = `index.php?option=com_semantycanm&task=${endpoint}`;
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...this.headers
-                },
-                body: JSON.stringify(data),
-            });
-            if (!response.ok) {
-                const errorText = await response.text();
-                throw new Error(`Server error: ${response.status} - ${errorText}`);
-            }
-            const result = await response.json();
-            console.log(result);
-            this.msgPopup.success('Operation completed successfully!', {
-                closable: true,
-                duration: 5000
-            });
-            return result;
-        } catch (error) {
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-            throw error;
-        } finally {
-            super.stopBusyMessage();
         }
     }
 }

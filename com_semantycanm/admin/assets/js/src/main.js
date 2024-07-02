@@ -18,15 +18,15 @@ import {joomlaBootstrapTheme} from "./theme";
 const loadComponent = (menuId) => {
     switch (menuId) {
         case 'newsletters':
-            return {component: Newsletters, name: 'NewslettersApp'};
+            return {component: Newsletters, name: 'Newsletters'};
         case 'mailing_lists':
-            return {component: Lists, name: 'MailingListsApp'};
+            return {component: Lists, name: 'Lists'};
         case 'stat':
-            return {component: Statistics, name: 'StatisticsApp'};
+            return {component: Statistics, name: 'Statistics'};
         case 'messagetemplates':
-            return {component: MessageTemplates, name: 'MessageTemplatesApp'};
+            return {component: MessageTemplates, name: 'MessageTemplates'};
         default:
-            return {component: Newsletters, name: 'DefaultApp'};
+            return {component: Newsletters, name: 'Newsletters'};
     }
 }
 

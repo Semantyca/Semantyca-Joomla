@@ -29,7 +29,7 @@
       >
         <n-form-item label="Template name" path="templateName">
           <n-select
-              v-model:value="messageTemplateStore.currentTemplate.key"
+              v-model:value="modelRef.templateId"
               :options="messageTemplateStore.templateSelectOptions"
               @update:value="handleTemplateChange"
               style="width: 80%; max-width: 600px;"
@@ -70,7 +70,7 @@
             path="mailing_list"
         >
           <template v-if="modelRef.isTestMessage">
-            <n-input v-model:value="testUserEmail"
+            <n-input v-model:value="modelRef.testEmail"
                      placeholder="Enter test user email"
                      style="width: 80%; max-width: 600px;"
             />
@@ -100,7 +100,7 @@
             <formatting-buttons/>
             <div id="squire-editor"
                  style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
-                 v-html="content"
+                 v-html="modelRef.content"
             ></div>
           </n-space>
         </n-form-item>
@@ -110,13 +110,33 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, ref} from 'vue';
+import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
 import {
-  NButton, NButtonGroup, NCheckbox, NColorPicker, NForm, NFormItem, NGi,
-  NGrid, NH3, NH4, NH6, NIcon, NInput, NInputNumber, NSelect, NSkeleton, NSpace, NTag, NTransfer, useMessage
+  NButton,
+  NButtonGroup,
+  NCheckbox,
+  NColorPicker,
+  NForm,
+  NFormItem,
+  NGi,
+  NGrid,
+  NH3,
+  NH4,
+  NH6,
+  NIcon,
+  NInput,
+  NInputNumber,
+  NSelect,
+  NSkeleton,
+  NSpace,
+  NTag,
+  NTransfer,
+  useDialog,
+  useLoadingBar,
+  useMessage
 } from "naive-ui";
 import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
 import draggable from 'vuedraggable';
@@ -150,7 +170,6 @@ export default {
   setup(props) {
     console.log('Composer component initialized with id:', props.id);
     const formRef = ref(null);
-    const selectedArticlesListRef = ref([]);
     const selectedArticleIds = ref([]);
     const composerRef = ref(null);
     const globalStore = useGlobalStore();
@@ -160,38 +179,19 @@ export default {
     const mailingListStore = useMailingListStore();
     const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
+    const dialog = useDialog();
+    const loadingBar = useLoadingBar();
     const customFields = computed(() => messageTemplateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
-    const testUserEmail = ref('');
-
-    const content = computed(() => {
-      const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-      dynamicBuilder.addVariable("articles", selectedArticlesListRef.value);
-
-      Object.keys(templateStore.availableCustomFields).forEach((key) => {
-        const field = templateStore.availableCustomFields[key];
-        const fieldValue = field.defaultValue;
-        dynamicBuilder.addVariable(key, fieldValue);
-      });
-
-      try {
-        return dynamicBuilder.buildContent();
-      } catch (e) {
-        console.log(e.message);
-        msgPopup.error(e.message, {
-          closable: true,
-          duration: 10000
-        });
-        return '';
-      }
-    });
 
     const modelRef = ref({
+      templateId: null,
+      selectedArticles: [],
       mailingList: [],
       testEmail: '',
       subject: '',
-      content: content.value,
+      content: '',
       isTestMessage: false
     });
 
@@ -210,7 +210,7 @@ export default {
 
     const copyContentToClipboard = () => {
       const tempTextArea = document.createElement('textarea');
-      tempTextArea.value = content.value;
+      tempTextArea.value = modelRef.value.content;
       document.body.appendChild(tempTextArea);
       tempTextArea.select();
       const successful = document.execCommand('copy');
@@ -234,6 +234,7 @@ export default {
     };
 
     const handleTemplateChange = (newTemplateId) => {
+      modelRef.value.templateId = newTemplateId;
       messageTemplateStore.setCurrentTemplateById(newTemplateId);
     };
 
@@ -261,12 +262,46 @@ export default {
       }
     };
 
-    const composerMsg = new MessagingHandler(modelRef.value, newsLetterStore);
+    const composerMsg = new MessagingHandler(newsLetterStore);
 
     const handleSendNewsletter = (onlySave) => {
       formRef.value.validate((errors) => {
         if (!errors) {
-          composerMsg.send(onlySave)
+          loadingBar.start(); // Start the loading bar
+
+          const subj = modelRef.value.subject;
+          const msgContent = modelRef.value.content;
+          const templateId = modelRef.value.templateId;
+          const customFieldsValues = modelRef.value.customFieldsValues;
+          const selectedArticleIds = modelRef.value.selectedArticles.map(article => article.value);
+          const isTestMessage = modelRef.value.isTestMessage;
+          const mailingList = modelRef.value.mailingList;
+          const testEmail = modelRef.value.testEmail;
+
+          composerMsg.send(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave)
+              .then(() => {
+                if (onlySave) {
+                  msgPopup.success('Newsletter saved successfully', {
+                    closable: true,
+                    duration: 5000
+                  });
+                } else {
+                  msgPopup.success('Newsletter sent successfully', {
+                    closable: true,
+                    duration: 5000
+                  });
+                }
+              })
+              .catch(error => {
+                console.error('Error sending/saving newsletter:', error);
+                msgPopup.error('An error occurred while sending/saving the newsletter', {
+                  closable: true,
+                  duration: 10000
+                });
+              })
+              .finally(() => {
+                loadingBar.finish(); // Finish the loading bar
+              });
         } else {
           Object.keys(errors).forEach(fieldName => {
             const fieldError = errors[fieldName];
@@ -279,7 +314,7 @@ export default {
           });
         }
       });
-    }
+    };
 
     const handleFetchSubject = async () => {
       try {
@@ -297,7 +332,7 @@ export default {
     };
 
     const updateSelectedArticles = (selectedIds) => {
-      selectedArticlesListRef.value = selectedIds.map(id => {
+      modelRef.value.selectedArticles = selectedIds.map(id => {
         return composerStore.articleOptions.find(article => article.value === id);
       });
     };
@@ -319,8 +354,40 @@ export default {
       nextTick(() => {
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
       });
+
+      if (messageTemplateStore.templatesPage.itemCount === 0) {
+        msgPopup.warning('At least one template should exist.', {
+          closable: true,
+          duration: 10000
+        });
+      }
     });
 
+    watch(
+        [() => messageTemplateStore.currentTemplate, () => messageTemplateStore.availableCustomFields],
+        () => {
+          modelRef.value.templateId = templateStore.currentTemplate.key;
+          const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+          dynamicBuilder.addVariable("articles", modelRef.value.selectedArticles.value);
+
+          Object.keys(templateStore.availableCustomFields).forEach((key) => {
+            const field = templateStore.availableCustomFields[key];
+            const fieldValue = field.defaultValue;
+            dynamicBuilder.addVariable(key, fieldValue);
+          });
+
+          try {
+            modelRef.value.content = dynamicBuilder.buildContent();
+          } catch (e) {
+            console.log(e.message);
+            msgPopup.error(e.message, {
+              closable: true,
+              duration: 10000
+            });
+          }
+        },
+        { deep: true }
+    );
 
     return {
       composerStore,
@@ -328,13 +395,10 @@ export default {
       messageTemplateStore,
       mailingListStore,
       customFields,
-      testUserEmail,
-      selectedArticlesListRef,
-      selectedArticleIds,
-      content,
       composerRef,
       modelRef,
       formRef,
+      selectedArticleIds,
       composerFormRules,
       debouncedFetchArticles,
       copyContentToClipboard,

@@ -22,7 +22,7 @@ class TemplateManager extends BaseObject {
                 throw new Error(`Failed to fetch templates, HTTP status = ${response.status}`);
             }
             const jsonResponse = await response.json();
-            if (jsonResponse.success && jsonResponse.data) {
+            if (jsonResponse.success && jsonResponse.data && jsonResponse.data.templates) {
                 this.templateStore.templateMap = jsonResponse.data.templates.reduce((acc, template) => {
                     acc[template.id] = template;
                     return acc;
@@ -39,7 +39,13 @@ class TemplateManager extends BaseObject {
                     setCurrentTemplate(this.templateStore, defaultTemplateId);
                 }
             } else {
-                throw new Error('Failed to fetch templates: No data returned');
+                this.templateStore.templateMap = {}; // Set templateMap to an empty object
+                this.templateStore.pagination = {
+                    currentPage: 1,
+                    itemsPerPage: itemsPerPage,
+                    totalItems: 0,
+                    totalPages: 1
+                };
             }
         } catch (error) {
             this.loadingBar.error();

@@ -26,28 +26,30 @@
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
-      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-
+      <n-form inline ref="formRef" :model="modelRef" :rules="rules" label-placement="left" label-width="auto">
         <n-gi span="8">
           <n-form-item label="Template name" label-placement="left" path="templateName" size="large">
             <n-input
-                v-model:value="selectedTemplateRef"
-                style="width: 100%; max-width: 600px;"
+                v-model:value="modelRef.templateName"
+                style="width: 100%; max-width: 600px; min-width: 500px;"
                 placeholder="Enter template name"
             />
           </n-form-item>
+          <n-form-item label="Default template" label-placement="left" path="defaultTemplate">
+            <n-checkbox size="large" v-model:value="modelRef.isDefault"></n-checkbox>
+          </n-form-item>
           <n-form-item label="Description" label-placement="left" path="description">
             <n-input
-                v-model:value="description"
+                v-model:value="modelRef.description"
                 type="textarea"
                 placeholder="Enter template description"
-                style="width: 100%; max-width: 600px; height: 50px;"
+                style="width: 100%; max-width: 600px; min-width: 500px; height: 50px;"
                 autosize
             />
           </n-form-item>
           <n-form-item label="Custom fields" label-placement="left" path="templateName">
             <n-dynamic-input
-                v-model:value="customFormFields"
+                v-model:value="modelRef.customFields"
                 :on-create="addCustomField"
                 :on-remove="removeCustomField"
                 item-style="margin-bottom: 0;"
@@ -57,36 +59,36 @@
             >
               <n-form-item :show-label="false" path="valueType">
                 <n-select
-                    v-model:value="customFormFields[index].type"
+                    v-model:value="modelRef.customFields[index].type"
                     :options="typeOptions"
-                    style="margin-right: 12px; width: 160px"
+                    style="margin-right: 12px; width: 160px;"
                     @update:value="() => handleTypeChange(index)"
                 />
               </n-form-item>
               <n-form-item :show-label="false" path="variableName">
                 <n-input
-                    v-model:value="customFormFields[index].name"
+                    v-model:value="modelRef.customFields[index].name"
                     placeholder="Variable name"
-                    style="margin-right: 12px;"
+                    style="margin-right: 12px; min-width: 200px;"
                 />
               </n-form-item>
               <n-form-item :show-label="false" path="caption">
                 <n-input
-                    v-model:value="customFormFields[index].caption"
+                    v-model:value="modelRef.customFields[index].caption"
                     placeholder="Caption"
-                    style="margin-right: 12px; width: 260px"
+                    style="margin-right: 12px; width: 260px; min-width: 200px;"
                 />
               </n-form-item>
               <n-form-item :show-label="false" path="defaultValue">
                 <n-input
-                    v-model:value="customFormFields[index].defaultValue"
+                    v-model:value="modelRef.customFields[index].defaultValue"
                     placeholder="Value"
-                    style="margin-right: 12px; width: 360px"
+                    style="margin-right: 12px; width: 360px; min-width: 200px;"
                 />
               </n-form-item>
               <n-form-item :show-label="false" path="valueType">
                 <n-checkbox
-                    :checked="customFormFields[index].isAvailable === 1"
+                    :checked="modelRef.customFields[index].isAvailable === 1"
                     @update:checked="value => updateFieldIsAvailable(index, value)"
                 />
               </n-form-item>
@@ -99,24 +101,24 @@
                     size="tiny"
                     v-model:value="selectedMode"
                     :options="modeOptions"
-                    style="width: 100px"
+                    style="width: 100px;"
                     @update:value="updateEditorMode"
                 />
               </template>
               <n-tab-pane name="content" tab="Content">
                 <code-mirror
-                    v-model="templateStore.currentTemplate.content"
+                    v-model="modelRef.content"
                     @focus="handleEditorFocus"
                     @blur="handleEditorBlur"
                     basic
                     :lang="lang"
                     :dark="dark"
-                    :style="{ width: '100%'}"
+                    :style="{ width: '100%' }"
                 />
               </n-tab-pane>
               <n-tab-pane name="wrapper" tab="Wrapper" style="background-color: #e5f2dc;">
                 <code-mirror
-                    v-model="templateStore.currentTemplate.wrapper"
+                    v-model="modelRef.wrapper"
                     @focus="handleEditorFocus"
                     @blur="handleEditorBlur"
                     basic
@@ -128,27 +130,24 @@
             </n-tabs>
           </n-form-item>
         </n-gi>
-
       </n-form>
     </n-gi>
   </n-grid>
-
 </template>
-
 <script>
-import {computed, onMounted, ref} from 'vue';
-import {useGlobalStore} from "../../stores/globalStore";
-import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
+import { onMounted, ref } from 'vue';
+import { useGlobalStore } from "../../stores/globalStore";
+import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
 import {
   NButton, NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
   NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3, NIcon
 } from "naive-ui";
-import {ArrowBigLeft} from '@vicons/tabler'
+import { ArrowBigLeft } from '@vicons/tabler';
 import CodeMirror from 'vue-codemirror6';
-import {html} from '@codemirror/lang-html';
-import {ejs} from 'codemirror-lang-ejs';
-import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
-import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
+import { html } from '@codemirror/lang-html';
+import { ejs } from 'codemirror-lang-ejs';
+import { rules, typeOptions } from '../../stores/template/templateEditorUtils';
+import { addCustomField, handleTypeChange, removeCustomField } from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
 
 export default {
@@ -164,25 +163,42 @@ export default {
     },
   },
   emits: ['back'],
-  setup() {
+  setup(props) {
+    console.log('Template initialized with id:', props.id);
     const formRef = ref(null);
-    const selectedTemplateRef = ref(null);
     const globalStore = useGlobalStore();
     const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
-    const loadingBar = useLoadingBar()
-    const customFormFields = computed(() => templateStore.currentTemplate.customFields);
+    const loadingBar = useLoadingBar();
+
+    const modelRef = ref({
+      templateName: '',
+      isDefault: false,
+      description: '',
+      customFields: [],
+      content: '',
+      wrapper: ''
+    });
+
     const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
+
     const editorFocused = ref(false);
 
     const updateFieldIsAvailable = (index, value) => {
-      templateStore.currentTemplate.customFields[index].isAvailable = value ? 1 : 0;
+      modelRef.value.customFields[index].isAvailable = value ? 1 : 0;
     };
 
     onMounted(async () => {
-      await templateManager.getTemplates();
+      if (props.id != null) {
+        await templateManager.getTemplates();
+        modelRef.value.templateName = templateStore.currentTemplate.name;
+        modelRef.value.isDefault = templateStore.currentTemplate.isDefault;
+        modelRef.value.description = templateStore.currentTemplate.description;
+        modelRef.value.customFields = templateStore.currentTemplate.customFields.map(field => ({...field}));
+        modelRef.value.content = templateStore.currentTemplate.content;
+        modelRef.value.wrapper = templateStore.currentTemplate.wrapper;
+      }
     });
-
 
     const handleEditorBlur = () => {
       editorFocused.value = false;
@@ -194,11 +210,11 @@ export default {
 
     const selectedMode = ref('ejs');
     const modeOptions = [
-      {label: 'HTML', value: 'html'},
-      {label: 'EJS', value: 'ejs'}
+      { label: 'HTML', value: 'html' },
+      { label: 'EJS', value: 'ejs' }
     ];
 
-    const lang = ref(html());
+    const lang = ref(ejs());
 
     const updateEditorMode = (mode) => {
       if (mode === 'html') {
@@ -209,32 +225,29 @@ export default {
     };
 
     const updateSequence = (newValue) => {
-      //  console.log('Old Order:', items.value);
       console.log('New Order:', newValue);
-      //  items.value = newValue;
-      //  console.log('Updated Order:', items.value);
+    };
+
+    const saveTemplate = () => {
+      const updatedTemplate = {
+        ...templateStore.currentTemplate,
+        ...modelRef.value
+      };
+      templateManager.saveTemplate(updatedTemplate, false);
     };
 
     return {
       globalStore,
-      templateStore,
-      saveTemplate: () => templateManager.saveTemplate(templateStore.currentTemplate, false),
+      modelRef,
+      saveTemplate,
       deleteTemplate: () => templateManager.deleteCurrentTemplate(),
       exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),
-      addCustomField: () => addCustomField(templateStore),
-      removeCustomField: (index) => removeCustomField(templateStore, index),
-      handleTypeChange: (index) => handleTypeChange(customFormFields, index),
-      description: computed({
-        get: () => templateStore.currentTemplate.description,
-        set: (value) => {
-          templateStore.currentTemplate.description = value;
-        }
-      }),
-      selectedTemplateRef,
+      addCustomField: () => addCustomField(modelRef),
+      removeCustomField: (index) => removeCustomField(modelRef, index),
+      handleTypeChange: (index) => handleTypeChange(modelRef.value.customFields, index),
       updateFieldIsAvailable,
       rules,
-      customFormFields,
       lang,
       dark: ref(false),
       formRef,
@@ -250,7 +263,6 @@ export default {
   }
 };
 </script>
-
 <style>
-
+/* ... */
 </style>

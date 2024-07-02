@@ -1,33 +1,25 @@
 import {ref} from 'vue';
-import {useMessage, useLoadingBar} from 'naive-ui';
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 import UserExperienceHelper from './UserExperienceHelper';
 
 export class MessagingHandler {
-
-    constructor(modelRef, newsLetterStore) {
-        this.modelRef = modelRef;
+    constructor(newsLetterStore) {
         this.newsLetterStore = newsLetterStore;
-        this.msgPopup = useMessage();
-        this.loadingBar = useLoadingBar();
         this.isTestMessage = ref(false);
         this.testUserEmail = ref('');
     }
 
-    async send(onlySave = false) {
-        const subj = this.modelRef.subject;
-        const msgContent = this.modelRef.content;
-        const newsletterApiManager = new NewsletterApiManager(this.msgPopup, this.loadingBar);
-        console.log(onlySave);
+    async send(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave = false) {
+        const newsletterApiManager = new NewsletterApiManager();
 
         if (onlySave) {
-            await newsletterApiManager.saveNewsletter(subj, msgContent);
+            await this.saveNewsletter(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail);
         } else {
             let listItems;
-            if (this.modelRef.isTestMessage) {
-                listItems = [this.modelRef.testEmail.trim()];
+            if (isTestMessage) {
+                listItems = [testEmail.trim()];
             } else {
-                listItems = this.modelRef.mailingList.map(item => item.value);
+                listItems = mailingList.map(item => item.value);
             }
 
             newsletterApiManager.sendEmail(subj, msgContent, listItems)
@@ -37,11 +29,28 @@ export class MessagingHandler {
                 })
                 .catch(error => {
                     console.log('error: ', error.message);
-                    this.msgPopup.error(error.message, {
-                        closable: true,
-                        duration: 10000
-                    });
+                    throw error;
                 });
+        }
+    }
+
+    async saveNewsletter(subj, msgContent, templateId, customFieldsValues, articlesIds, isTest, mailingList, testEmail) {
+        try {
+            const newsletterApiManager = new NewsletterApiManager(this.loadingBar);
+            const result = await newsletterApiManager.upsert({
+                template_id: templateId,
+                customFieldsValues: customFieldsValues,
+                articlesIds: articlesIds,
+                subject: subj,
+                isTest: isTest,
+                mailingList: mailingList,
+                testEmail: testEmail,
+                messageContent: msgContent
+            });
+            console.log('Newsletter saved successfully:', result.id);
+        } catch (error) {
+            console.error('Error saving newsletter:', error.message);
+            throw error;
         }
     }
 

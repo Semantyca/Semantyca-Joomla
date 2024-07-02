@@ -6,7 +6,7 @@ export const composerFormRules = {
         message: 'Subject cannot be empty',
         trigger: ['blur', 'input']
     },
-    selectedArticles: {
+    selectedArticleIds: {
         required: true,
         validator(rule, value) {
             if (Array.isArray(value) && value.length > 0) {

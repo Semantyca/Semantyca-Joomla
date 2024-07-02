@@ -12,7 +12,6 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use DateTime;
-use Exception;
 use InvalidArgumentException;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
@@ -21,9 +20,6 @@ use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\NewsletterDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
-use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 use Throwable;
 
 class NewslettersController extends BaseController
@@ -39,54 +35,51 @@ class NewslettersController extends BaseController
 			$model        = $this->getModel('Newsletters');
 			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			$app->close();
 		}
+		$app->close();
 	}
 
 	public function find()
 	{
+		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
 		try
 		{
-			$id      = $this->input->getString('id');
-			$model   = $this->getModel('Newsletters');
-			$results = $model->find($id);
-			echo new JsonResponse($results);
+			$id    = $this->input->getString('id');
+			$model = $this->getModel('Newsletters');
+			echo new JsonResponse($model->find($id));
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			Factory::getApplication()->close();
 		}
+		$app->close();
 	}
 
 	public function findNewsletterEvents()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
 		try
 		{
-			$id = $this->input->getString('id');
-			/** @var NewslettersModel $model */
-			$model   = $this->getModel('Newsletters');
-			$results = $model->findRelevantEvent($id, [Constants::EVENT_TYPE_DISPATCHED, Constants::EVENT_TYPE_READ]);
-			echo new JsonResponse($results);
+			$id    = $this->input->getString('id');
+			$model = $this->getModel('Newsletters');
+			echo new JsonResponse($model->findRelevantEvent($id, [Constants::EVENT_TYPE_DISPATCHED, Constants::EVENT_TYPE_READ]));
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			Factory::getApplication()->close();
 		}
+		$app->close();
 	}
 
 	public function add()
@@ -107,9 +100,8 @@ class NewslettersController extends BaseController
 					throw new ValidationErrorException(['Message body is required']);
 				}
 
-				$model   = $this->getModel('Newsletters');
-				$results = $model->upsert($subj, $msg);
-				echo new JsonResponse($results);
+				$model = $this->getModel('Newsletters');
+				echo new JsonResponse($model->upsert($subj, $msg));
 			}
 			else
 			{
@@ -119,9 +111,11 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'Error', true);
+			$errors = $e->getErrors();
+			$message = $e->getMessage();
+			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
 			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
@@ -130,10 +124,6 @@ class NewslettersController extends BaseController
 		$app->close();
 	}
 
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
 	public function upsert()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -144,27 +134,46 @@ class NewslettersController extends BaseController
 
 			if ($_SERVER['REQUEST_METHOD'] === 'POST')
 			{
-				// Validate input
-				if (empty($input['messageContent']) || empty($input['wrapper']))
+				if (empty($input['messageContent']))
 				{
-					throw new ValidationErrorException(['Message content and wrapper are required']);
+					throw new ValidationErrorException(['Message content is required']);
 				}
 
-				// Create NewsletterDTO from input
+				$isTest = $input['isTest'] ?? false;
+
+				if (empty($input['template_id']))
+				{
+					throw new ValidationErrorException(['Template ID is required']);
+				}
+
+				if ($isTest)
+				{
+					if (empty($input['testEmail']))
+					{
+						throw new ValidationErrorException(['Test email is required when isTest is true']);
+					}
+				}
+				else
+				{
+					if (empty($input['mailingList']))
+					{
+						throw new ValidationErrorException(['Mailing list is required when isTest is false']);
+					}
+				}
+
 				$newsletterDTO = new NewsletterDTO();
 				$newsletterDTO->regDate = new DateTime();
-				$newsletterDTO->template_id = $input['template_id'] ?? 0;
+				$newsletterDTO->template_id = $input['template_id'];
 				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
 				$newsletterDTO->articlesIds = $input['articlesIds'] ?? [];
-				$newsletterDTO->isTest = $input['isTest'] ?? false;
+				$newsletterDTO->isTest = $isTest;
 				$newsletterDTO->mailingList = $input['mailingList'] ?? [];
 				$newsletterDTO->testEmail = $input['testEmail'] ?? '';
 				$newsletterDTO->messageContent = $input['messageContent'];
-				$newsletterDTO->wrapper = $input['wrapper'];
+				$newsletterDTO->useWrapper = $input['wrapper'];
 
 				$model = $this->getModel('Newsletters');
-				$result = $model->upsert($newsletterDTO);
-				echo new JsonResponse(['id' => $result]);
+				echo new JsonResponse(['id' => $model->upsert($newsletterDTO)]);
 			}
 			else
 			{
@@ -174,7 +183,9 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'Error', true);
+			$errors = $e->getErrors();
+			$message = $e->getMessage();
+			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
 		catch (Throwable $e)
 		{
@@ -192,37 +203,33 @@ class NewslettersController extends BaseController
 
 		if ($_SERVER['REQUEST_METHOD'] !== 'DELETE')
 		{
-			http_response_code(405); // Method Not Allowed
+			http_response_code(405);
 			echo new JsonResponse('Method Not Allowed', 'error', true);
 			$app->close();
-
 			return;
 		}
 
 		try
 		{
 			$input = json_decode(file_get_contents('php://input'), true);
-			$ids   = isset($input['ids']) ? $input['ids'] : [];
+			$ids   = $input['ids'] ?? [];
 
 			if (empty($ids))
 			{
 				throw new InvalidArgumentException('No IDs provided');
 			}
 
-			/** @var StatModel $model */
 			$model = $this->getModel('Stat');
 			$model->deleteNewsletters($ids);
 
 			echo new JsonResponse(['success' => true, 'message' => 'Newsletters deleted successfully']);
 		}
-		catch (\Throwable $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
+			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
 			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			$app->close();
 		}
+		$app->close();
 	}
 }

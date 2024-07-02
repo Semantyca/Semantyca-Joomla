@@ -7,8 +7,6 @@ import MailingListApiManager from "../mailinglist/MailingListApiManager";
 
 export const useComposerStore = defineStore('composer', () => {
     const articlesPage = ref({docs: []});
-    //const selectedArticles = ref([]);
-    //const editorCont = ref('');
     const mailingListPage = ref({
         page: 1,
         pageSize: 10,
@@ -31,33 +29,11 @@ export const useComposerStore = defineStore('composer', () => {
         }));
     });
 
-   /* const cont = computed(() => {
-        const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-        dynamicBuilder.addVariable("articles", selectedArticles.value);
-
-        Object.keys(templateStore.availableCustomFields).forEach((key) => {
-            const field = templateStore.availableCustomFields[key];
-            const fieldValue = field.defaultValue;
-            dynamicBuilder.addVariable(key, fieldValue);
-        });
-
-        try {
-            return dynamicBuilder.buildContent();
-        } catch (e) {
-            msgPopup.error(e.message, {
-                closable: true,
-                duration: 10000
-            });
-            return '';
-        }
-    });*/
 
     async function updateFormCustomFields() {
         const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
         await templateManager.getTemplates(true);
     }
-
-
 
     async function fetchArticlesApi(searchTerm) {
         try {

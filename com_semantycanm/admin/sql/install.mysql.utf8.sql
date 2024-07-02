@@ -66,15 +66,24 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_mailing_list_rel_usergroups`
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_newsletters`
 (
-    id              INT AUTO_INCREMENT,
-    reg_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
-    modified_date   DATETIME DEFAULT CURRENT_TIMESTAMP,
-    subject         VARCHAR(255),
-    message_content MEDIUMTEXT,
-    parameters      JSON     DEFAULT (JSON_ARRAY()),
-    hash            CHAR(64) AS (SHA2(CONCAT(subject, message_content, parameters), 256)) STORED,
+    id                   INT AUTO_INCREMENT,
+    reg_date             DATETIME DEFAULT CURRENT_TIMESTAMP,
+    modified_date        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    subject              VARCHAR(255),
+    use_wrapper          BOOL     DEFAULT TRUE,
+    template_id          INT,
+    custom_fields_values JSON     DEFAULT (JSON_ARRAY()),
+    articles_ids         JSON     DEFAULT (JSON_ARRAY()),
+    is_test              BOOL,
+    mailing_list_ids     JSON     DEFAULT (JSON_ARRAY()),
+    test_email           VARCHAR(255),
+    message_content      MEDIUMTEXT,
+    hash                 CHAR(64) AS (SHA2(CONCAT(subject, use_wrapper, template_id,
+                                                  custom_fields_values, articles_ids, is_test, mailing_list_ids,
+                                                  is_test, test_email, message_content), 256)) STORED,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
+
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_sending_events`
 (

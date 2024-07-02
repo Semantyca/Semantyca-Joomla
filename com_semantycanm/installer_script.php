@@ -70,7 +70,7 @@ class Com_SemantycanmInstallerScript
 	{
 		$markerFilePath = $dir . '/deletion_log.txt';
 		if (!empty($logEntries)) {
-			file_put_contents($markerFilePath, implode("\n", $logEntries));
+			@file_put_contents($markerFilePath, implode("\n", $logEntries));
 			$this->logMessage("Created marker file: {$markerFilePath}");
 		}
 	}

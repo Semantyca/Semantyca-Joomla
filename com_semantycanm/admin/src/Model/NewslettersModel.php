@@ -153,33 +153,36 @@ class NewslettersModel extends BaseDatabaseModel
 
 	public function upsert(NewsletterDTO $newsletter): int
 	{
-		$db = $this->getDatabase();
+		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$hashComponents = [
-			$newsletter->messageContent,
-			$newsletter->wrapper,
+			$newsletter->subject,
+			$newsletter->useWrapper ? '1' : '0',
 			$newsletter->template_id,
 			json_encode($newsletter->customFieldsValues),
 			json_encode($newsletter->articlesIds),
 			$newsletter->isTest ? '1' : '0',
 			json_encode($newsletter->mailingList),
-			$newsletter->testEmail
+			$newsletter->isTest ? '1' : '0',
+			$newsletter->testEmail,
+			$newsletter->messageContent
 		];
-		$hash = hash('sha256', implode('', $hashComponents));
 
+		$hash = hash('sha256', implode('', $hashComponents));
 		$existingNewsletter = $this->findByHash($hash);
 
-		if ($existingNewsletter === null) {
-			// Insert new newsletter
+		if ($existingNewsletter === null)
+		{
 			$columns = [
-				'reg_date', 'template_id', 'custom_fields_values', 'articles_ids',
-				'is_test', 'mailing_list', 'test_email', 'message_content',
-				'wrapper', 'hash'
+				'reg_date', 'subject', 'use_wrapper', 'template_id', 'custom_fields_values',
+				'articles_ids', 'is_test', 'mailing_list_ids', 'test_email', 'message_content', 'hash'
 			];
 
 			$values = [
 				$db->quote($newsletter->regDate->format('Y-m-d H:i:s')),
+				$db->quote($newsletter->subject),
+				$newsletter->useWrapper ? '1' : '0',
 				$db->quote($newsletter->template_id),
 				$db->quote(json_encode($newsletter->customFieldsValues)),
 				$db->quote(json_encode($newsletter->articlesIds)),
@@ -187,7 +190,6 @@ class NewslettersModel extends BaseDatabaseModel
 				$db->quote(json_encode($newsletter->mailingList)),
 				$db->quote($newsletter->testEmail),
 				$db->quote($newsletter->messageContent),
-				$db->quote($newsletter->wrapper),
 				$db->quote($hash)
 			];
 
@@ -200,18 +202,20 @@ class NewslettersModel extends BaseDatabaseModel
 			$db->execute();
 
 			return $db->insertid();
-		} else {
-			// Update existing newsletter
+		}
+		else
+		{
 			$fields = [
-				$db->quoteName('reg_date') . ' = ' . $db->quote($newsletter->regDate->format('Y-m-d H:i:s')),
+				$db->quoteName('modified_date') . ' = NOW()',
+				$db->quoteName('subject') . ' = ' . $db->quote($newsletter->subject),
+				$db->quoteName('use_wrapper') . ' = ' . ($newsletter->useWrapper ? '1' : '0'),
 				$db->quoteName('template_id') . ' = ' . $db->quote($newsletter->template_id),
 				$db->quoteName('custom_fields_values') . ' = ' . $db->quote(json_encode($newsletter->customFieldsValues)),
 				$db->quoteName('articles_ids') . ' = ' . $db->quote(json_encode($newsletter->articlesIds)),
 				$db->quoteName('is_test') . ' = ' . ($newsletter->isTest ? '1' : '0'),
-				$db->quoteName('mailing_list') . ' = ' . $db->quote(json_encode($newsletter->mailingList)),
+				$db->quoteName('mailing_list_ids') . ' = ' . $db->quote(json_encode($newsletter->mailingList)),
 				$db->quoteName('test_email') . ' = ' . $db->quote($newsletter->testEmail),
-				$db->quoteName('message_content') . ' = ' . $db->quote($newsletter->messageContent),
-				$db->quoteName('wrapper') . ' = ' . $db->quote($newsletter->wrapper)
+				$db->quoteName('message_content') . ' = ' . $db->quote($newsletter->messageContent)
 			];
 
 			$query
@@ -228,7 +232,7 @@ class NewslettersModel extends BaseDatabaseModel
 
 	private function findByHash(string $hash): ?object
 	{
-		$db = $this->getDatabase();
+		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query
 			->select($db->quoteName(['id', 'hash']))

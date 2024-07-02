@@ -16,7 +16,8 @@ class NewsletterDTO implements JsonSerializable
 	public array $mailingList;
 	public string $testEmail;
 	public string $messageContent;
-	public string $wrapper;
+	public string $subject;
+	public bool $useWrapper;
 
 	public function toArray(): array
 	{
@@ -30,7 +31,8 @@ class NewsletterDTO implements JsonSerializable
 			'mailingList'        => $this->mailingList,
 			'testEmail'          => $this->testEmail,
 			'content'            => $this->messageContent,
-			'wrapper'            => $this->wrapper,
+			'subject'            => $this->subject,
+			'useWrapper'         => $this->useWrapper,
 		];
 	}
 
