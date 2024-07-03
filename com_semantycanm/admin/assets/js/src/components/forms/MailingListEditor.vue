@@ -14,8 +14,8 @@
         <n-button type="primary" @click="handleSave">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <div v-if="isLoading" class="custom-loader">
-          <progress />
+        <div v-if="isLoading" class="mt-1">
+          <progress-svg :size="24"  />
         </div>
       </n-space>
     </n-gi>
@@ -52,7 +52,7 @@ import {
 } from "naive-ui";
 import { ArrowBigLeft } from '@vicons/tabler'
 import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
-import Progress from '../ui/KneoProgress.vue';
+import ProgressSvg from "../ui/ProgressSvg.vue";
 
 const props = defineProps({
   id: {
@@ -116,7 +116,5 @@ const rules = {
 </script>
 
 <style scoped>
-.custom-loader {
-  @apply flex justify-center items-center h-[50px];
-}
+
 </style>

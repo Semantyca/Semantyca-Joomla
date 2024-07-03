@@ -10,7 +10,6 @@ class PaginatedData {
     }
 
     updateData(data) {
-        console.log(data);
         const { docs, count, maxPage, current } = data;
         this.page.value = current;
         this.itemCount.value = count;

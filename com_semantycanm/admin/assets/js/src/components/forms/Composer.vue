@@ -22,7 +22,7 @@
     <n-gi class="mt-4">
       <n-form ref="formRef"
               :model="modelRef"
-              :rules="composerFormRules"
+              :rules="rules"
               label-placement="left"
               label-width="auto"
               require-mark-placement="right-hanging"
@@ -45,7 +45,7 @@
               @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
           />
         </n-form-item>
-        <n-form-item label="Articles" path="templateName">
+        <n-form-item label="Articles" path="selectedArticles">
           <n-select
               v-model:value="selectedArticleIds"
               multiple
@@ -60,14 +60,13 @@
           />
         </n-form-item>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
-                     path="mailing_list" :show-feedback="false"
-                     class="form-item">
-          <n-checkbox size="large" v-model:checked="modelRef.isTestMessage" @update:checked="handleCheckedChange"/>
+                     path="recipientField" :show-feedback="false">
+          <n-checkbox v-model:checked="modelRef.isTestMessage"/>
         </n-form-item>
         <n-form-item
             :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'"
             label-placement="left"
-            path="mailing_list"
+            path="recipientField"
         >
           <template v-if="modelRef.isTestMessage">
             <n-input v-model:value="modelRef.testEmail"
@@ -145,12 +144,12 @@ import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
 import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline} from '@vicons/tabler';
 import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
-import {composerFormRules} from "../../stores/composer/composerUtils";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
 import DynamicBuilder from "../../utils/DynamicBuilder";
+import {isEmail} from "validator";
 
 export default {
   name: 'Composer',
@@ -192,6 +191,7 @@ export default {
       testEmail: '',
       subject: '',
       content: '',
+      useWrapper: true,
       isTestMessage: false
     });
 
@@ -252,25 +252,16 @@ export default {
       fetchArticlesDebounced(val);
     };
 
-
-    const handleCheckedChange = (checked) => {
-      modelRef.value.isTestMessage = checked;
-      if (checked) {
-        modelRef.value.mailingList = [];
-      } else {
-        modelRef.value.testUserEmail = '';
-      }
-    };
-
     const composerMsg = new MessagingHandler(newsLetterStore);
 
     const handleSendNewsletter = (onlySave) => {
       formRef.value.validate((errors) => {
         if (!errors) {
-          loadingBar.start(); // Start the loading bar
+          loadingBar.start();
 
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
+          const useWrapper = modelRef.value.useWrapper;
           const templateId = modelRef.value.templateId;
           const customFieldsValues = modelRef.value.customFieldsValues;
           const selectedArticleIds = modelRef.value.selectedArticles.map(article => article.value);
@@ -278,7 +269,7 @@ export default {
           const mailingList = modelRef.value.mailingList;
           const testEmail = modelRef.value.testEmail;
 
-          composerMsg.send(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave)
+          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave)
               .then(() => {
                 if (onlySave) {
                   msgPopup.success('Newsletter saved successfully', {
@@ -300,27 +291,39 @@ export default {
                 });
               })
               .finally(() => {
-                loadingBar.finish(); // Finish the loading bar
+                loadingBar.finish();
               });
         } else {
-          Object.keys(errors).forEach(fieldName => {
-            const fieldError = errors[fieldName];
-            if (fieldError && fieldError.length > 0) {
-              msgPopup.error(fieldError[0].message, {
+          if (errors && typeof errors === 'object') {
+            const errorMessages = {};
+
+            Object.keys(errors).forEach(fieldName => {
+              const fieldError = errors[fieldName];
+              if (fieldError && fieldError.length > 0) {
+                errorMessages[fieldName] = fieldError[0].message + ` [${fieldName}]`;
+              }
+            });
+
+            Object.values(errorMessages).forEach(errorMessage => {
+              msgPopup.error(errorMessage, {
                 closable: true,
                 duration: 10000
               });
-            }
-          });
+            });
+          }
         }
       });
     };
 
     const handleFetchSubject = async () => {
+      loadingBar.start();
       try {
         modelRef.value.subject = await composerMsg.fetchSubject();
       } catch (error) {
+        loadingBar.error();
         msgPopup.error(error.message)
+      } finally {
+        loadingBar.finish();
       }
     }
 
@@ -346,6 +349,37 @@ export default {
       });
     };
 
+    const rules = {
+      subject: {
+        required: true,
+        message: 'Subject cannot be empty',
+      },
+      selectedArticles: {
+        required: true,
+        validator(rule, value) {
+          if (value.length > 0) {
+            return true;
+          }
+          return new Error('Please select at least one article');
+        },
+      },
+      recipientField: {
+        required: true,
+        validator(rule, value) {
+          if (modelRef.value.isTestMessage) {
+            if (modelRef.value.testEmail && isEmail(modelRef.value.testEmail)) {
+              return true;
+            }
+            return new Error('Please enter a valid email address for test user');
+          } else {
+            if (modelRef.value.mailingList && Array.isArray(modelRef.value.mailingList) && modelRef.value.mailingList.length > 0) {
+              return true;
+            }
+            return new Error('Please select at least one mailing list');
+          }
+        },
+      },
+    };
 
     fetchInitialData();
 
@@ -354,21 +388,18 @@ export default {
       nextTick(() => {
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
       });
-
-      if (messageTemplateStore.templatesPage.itemCount === 0) {
-        msgPopup.warning('At least one template should exist.', {
-          closable: true,
-          duration: 10000
-        });
-      }
     });
 
     watch(
-        [() => messageTemplateStore.currentTemplate, () => messageTemplateStore.availableCustomFields],
+        [
+          () => messageTemplateStore.currentTemplate,
+          () => messageTemplateStore.availableCustomFields,
+          () => modelRef.value.selectedArticles
+        ],
         () => {
           modelRef.value.templateId = templateStore.currentTemplate.key;
           const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-          dynamicBuilder.addVariable("articles", modelRef.value.selectedArticles.value);
+          dynamicBuilder.addVariable("articles", modelRef.value.selectedArticles);
 
           Object.keys(templateStore.availableCustomFields).forEach((key) => {
             const field = templateStore.availableCustomFields[key];
@@ -389,6 +420,8 @@ export default {
         { deep: true }
     );
 
+
+
     return {
       composerStore,
       globalStore,
@@ -399,7 +432,7 @@ export default {
       modelRef,
       formRef,
       selectedArticleIds,
-      composerFormRules,
+      rules,
       debouncedFetchArticles,
       copyContentToClipboard,
       preview,
@@ -408,7 +441,6 @@ export default {
       handleColorChange,
       handleFieldChange,
       handleFetchSubject,
-      handleCheckedChange,
       renderArticleOption,
       renderSelectedArticle,
       updateSelectedArticles

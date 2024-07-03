@@ -6,14 +6,13 @@ export class MessagingHandler {
     constructor(newsLetterStore) {
         this.newsLetterStore = newsLetterStore;
         this.isTestMessage = ref(false);
-        this.testUserEmail = ref('');
     }
 
-    async send(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave = false) {
+    async send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave = false) {
         const newsletterApiManager = new NewsletterApiManager();
 
         if (onlySave) {
-            await this.saveNewsletter(subj, msgContent, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail);
+            await this.saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail);
         } else {
             let listItems;
             if (isTestMessage) {
@@ -28,15 +27,14 @@ export class MessagingHandler {
                     this.newsLetterStore.currentNewsletterId = response.data;
                 })
                 .catch(error => {
-                    console.log('error: ', error.message);
                     throw error;
                 });
         }
     }
 
-    async saveNewsletter(subj, msgContent, templateId, customFieldsValues, articlesIds, isTest, mailingList, testEmail) {
+    async saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, articlesIds, isTest, mailingList, testEmail) {
         try {
-            const newsletterApiManager = new NewsletterApiManager(this.loadingBar);
+            const newsletterApiManager = new NewsletterApiManager();
             const result = await newsletterApiManager.upsert({
                 template_id: templateId,
                 customFieldsValues: customFieldsValues,
@@ -45,18 +43,17 @@ export class MessagingHandler {
                 isTest: isTest,
                 mailingList: mailingList,
                 testEmail: testEmail,
-                messageContent: msgContent
+                messageContent: msgContent,
+                useWrapper: useWrapper
             });
-            console.log('Newsletter saved successfully:', result.id);
         } catch (error) {
-            console.error('Error saving newsletter:', error.message);
             throw error;
         }
     }
 
     async fetchSubject() {
         try {
-            return await UserExperienceHelper.getSubject(this.loadingBar);
+            return await UserExperienceHelper.getSubject();
         } catch (error) {
             throw new Error("Failed to fetch subject");
         }

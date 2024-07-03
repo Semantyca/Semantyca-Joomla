@@ -12,6 +12,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use DateTime;
+use Exception;
 use InvalidArgumentException;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Log\Log;
@@ -111,7 +112,7 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors = $e->getErrors();
+			$errors  = $e->getErrors();
 			$message = $e->getMessage();
 			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
@@ -124,6 +125,10 @@ class NewslettersController extends BaseController
 		$app->close();
 	}
 
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function upsert()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -137,6 +142,11 @@ class NewslettersController extends BaseController
 				if (empty($input['messageContent']))
 				{
 					throw new ValidationErrorException(['Message content is required']);
+				}
+
+				if (empty($input['subject']))
+				{
+					throw new ValidationErrorException(['Subject is required']);
 				}
 
 				$isTest = $input['isTest'] ?? false;
@@ -161,16 +171,17 @@ class NewslettersController extends BaseController
 					}
 				}
 
-				$newsletterDTO = new NewsletterDTO();
-				$newsletterDTO->regDate = new DateTime();
-				$newsletterDTO->template_id = $input['template_id'];
+				$newsletterDTO                     = new NewsletterDTO();
+				$newsletterDTO->regDate            = new DateTime();
+				$newsletterDTO->template_id        = $input['template_id'];
 				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
-				$newsletterDTO->articlesIds = $input['articlesIds'] ?? [];
-				$newsletterDTO->isTest = $isTest;
-				$newsletterDTO->mailingList = $input['mailingList'] ?? [];
-				$newsletterDTO->testEmail = $input['testEmail'] ?? '';
-				$newsletterDTO->messageContent = $input['messageContent'];
-				$newsletterDTO->useWrapper = $input['wrapper'];
+				$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
+				$newsletterDTO->isTest             = $isTest;
+				$newsletterDTO->mailingList        = $input['mailingList'] ?? [];
+				$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
+				$newsletterDTO->subject            = $input['subject'];
+				$newsletterDTO->messageContent     = $input['messageContent'];
+				$newsletterDTO->useWrapper         = $input['useWrapper'];
 
 				$model = $this->getModel('Newsletters');
 				echo new JsonResponse(['id' => $model->upsert($newsletterDTO)]);
@@ -183,7 +194,7 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors = $e->getErrors();
+			$errors  = $e->getErrors();
 			$message = $e->getMessage();
 			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
@@ -206,6 +217,7 @@ class NewslettersController extends BaseController
 			http_response_code(405);
 			echo new JsonResponse('Method Not Allowed', 'error', true);
 			$app->close();
+
 			return;
 		}
 

@@ -26,7 +26,7 @@ export default class DynamicContentBuilder {
     }
 
     buildContent() {
-        console.log('message variables', this.variables);
+        console.log('DynamicBuilder: message variables', this.variables);
         this.variables['articles'] = this.variables['articles'].map(article => ({
             ...article,
             url: this.normalizeUrl(article.url),

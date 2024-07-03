@@ -1,7 +1,6 @@
 export default class UserExperienceHelper {
     static async getSubject(loadingBar) {
         try {
-            loadingBar.start();
             const params = {
                 type: 'random'
             };
@@ -20,8 +19,6 @@ export default class UserExperienceHelper {
         } catch (error) {
             console.log(error);
             throw error;
-        } finally {
-            loadingBar.finish();
         }
     }
 }
