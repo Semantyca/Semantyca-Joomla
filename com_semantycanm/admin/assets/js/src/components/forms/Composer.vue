@@ -30,7 +30,7 @@
         <n-form-item label="Template name" path="templateName">
           <n-select
               v-model:value="modelRef.templateId"
-              :options="messageTemplateStore.templateSelectOptions"
+              :options="templateStore.templateSelectOptions"
               @update:value="handleTemplateChange"
               style="width: 80%; max-width: 600px;"
           />
@@ -77,7 +77,7 @@
           <template v-else>
             <n-select multiple
                       checkable
-                      v-model:value="modelRef.mailingList"
+                      v-model:value="modelRef.mailingListIds"
                       :options="mailingListStore.getMailingListOptions"
                       placeholder="Select mailing list"
                       style="width: 80%; max-width: 600px;"
@@ -111,7 +111,6 @@
 <script>
 import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
-import {debounce} from 'lodash';
 import HtmlWrapper from '../HtmlWrapper.vue';
 import {
   NButton,
@@ -173,21 +172,21 @@ export default {
     const composerRef = ref(null);
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
-    const messageTemplateStore = useMessageTemplateStore();
     const newsLetterStore = useNewsletterStore();
     const mailingListStore = useMailingListStore();
     const templateStore = useMessageTemplateStore();
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar();
-    const customFields = computed(() => messageTemplateStore.availableCustomFields);
+    const currentTemplateId = computed(() => modelRef.value.templateId);
+    const customFields = computed(() => templateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
 
     const modelRef = ref({
       templateId: null,
-      selectedArticles: [],
-      mailingList: [],
+      articleIds: [],
+      mailingListIds: [],
       testEmail: '',
       subject: '',
       content: '',
@@ -197,14 +196,56 @@ export default {
 
     const fetchInitialData = async () => {
       try {
+        if (props.id) {
+          await composerStore.fetchNewsletter(props.id);
+          const newsletter = composerStore.newsletterDoc;
+
+          modelRef.value = {
+            templateId: newsletter.templateId,
+            articleIds: newsletter.articlesIds,
+            mailingListIds: newsletter.mailingListIds,
+            testEmail: newsletter.testEmail,
+            subject: newsletter.subject,
+            content: newsletter.messageContent,
+            useWrapper: newsletter.useWrapper,
+            isTestMessage: newsletter.isTest,
+            customFieldsValues: newsletter.customFieldsValues
+          };
+
+          selectedArticleIds.value = newsletter.articlesIds;
+
+          //     await templateStore.setCurrentTemplateById(newsletter.templateId);
+        }
+
         await Promise.all([
-          messageTemplateStore.fetchFromApi(1, 10),
-          composerStore.fetchArticlesApi(''),
-          composerStore.fetchMailingListsApi(1, 20, true),
-          mailingListStore.fetchMailingList(1, 10, true)
+         // composerStore.fetchTemplate(modelRef.value.templateId),
+          composerStore.searchArticles(''),
+          composerStore.fetchMailingLists(1, 20, true),
         ]);
+
+        /* if (templateStore.currentTemplate) {
+           const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+           dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
+
+           Object.keys(templateStore.availableCustomFields).forEach((key) => {
+             const field = templateStore.availableCustomFields[key];
+             const fieldValue = field.defaultValue;
+             dynamicBuilder.addVariable(key, fieldValue);
+           });
+
+           try {
+             modelRef.value.content = dynamicBuilder.buildContent();
+           } catch (e) {
+             console.log(e.message);
+             msgPopup.error(e.message, {
+               closable: true,
+               duration: 10000
+             });
+           }
+         }*/
       } catch (error) {
         console.error("Error fetching initial data:", error);
+        msgPopup.error("Failed to load initial data");
       }
     };
 
@@ -235,7 +276,7 @@ export default {
 
     const handleTemplateChange = (newTemplateId) => {
       modelRef.value.templateId = newTemplateId;
-      messageTemplateStore.setCurrentTemplateById(newTemplateId);
+      templateStore.setCurrentTemplateById(newTemplateId);
     };
 
     const handleColorChange = (fieldName, index, newValue) => {
@@ -244,12 +285,6 @@ export default {
 
     const handleFieldChange = (fieldName, newValue) => {
       customFields.value[fieldName].defaultValue = newValue;
-    };
-
-    const fetchArticlesDebounced = debounce(composerStore.fetchArticlesApi, 300);
-
-    const debouncedFetchArticles = (val) => {
-      fetchArticlesDebounced(val);
     };
 
     const composerMsg = new MessagingHandler(newsLetterStore);
@@ -264,12 +299,12 @@ export default {
           const useWrapper = modelRef.value.useWrapper;
           const templateId = modelRef.value.templateId;
           const customFieldsValues = modelRef.value.customFieldsValues;
-          const selectedArticleIds = modelRef.value.selectedArticles.map(article => article.value);
+          const selectedArticleIds = modelRef.value.articleIds.map(article => article.value);
           const isTestMessage = modelRef.value.isTestMessage;
-          const mailingList = modelRef.value.mailingList;
+          const mailingList = modelRef.value.mailingListIds;
           const testEmail = modelRef.value.testEmail;
 
-          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave)
+          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave, props.id)
               .then(() => {
                 if (onlySave) {
                   msgPopup.success('Newsletter saved successfully', {
@@ -335,7 +370,7 @@ export default {
     };
 
     const updateSelectedArticles = (selectedIds) => {
-      modelRef.value.selectedArticles = selectedIds.map(id => {
+      modelRef.value.articleIds = selectedIds.map(id => {
         return composerStore.articleOptions.find(article => article.value === id);
       });
     };
@@ -372,7 +407,7 @@ export default {
             }
             return new Error('Please enter a valid email address for test user');
           } else {
-            if (modelRef.value.mailingList && Array.isArray(modelRef.value.mailingList) && modelRef.value.mailingList.length > 0) {
+            if (modelRef.value.mailingListIds && Array.isArray(modelRef.value.mailingListIds) && modelRef.value.mailingListIds.length > 0) {
               return true;
             }
             return new Error('Please select at least one mailing list');
@@ -390,42 +425,48 @@ export default {
       });
     });
 
+    watch(currentTemplateId, async (newTemplateId) => {
+      if (newTemplateId) {
+        await composerStore.fetchTemplate(newTemplateId);
+        // Additional logic after fetching template, if needed
+      }
+    }, { immediate: true });
+
     watch(
         [
-          () => messageTemplateStore.currentTemplate,
-          () => messageTemplateStore.availableCustomFields,
-          () => modelRef.value.selectedArticles
+          () => templateStore.currentTemplate,
+          () => templateStore.availableCustomFields,
+          () => modelRef.value.articleIds
         ],
         () => {
-          modelRef.value.templateId = templateStore.currentTemplate.key;
-          const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-          dynamicBuilder.addVariable("articles", modelRef.value.selectedArticles);
+          /*  modelRef.value.templateId = templateStore.currentTemplate.id;
+            const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
+            dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
 
-          Object.keys(templateStore.availableCustomFields).forEach((key) => {
-            const field = templateStore.availableCustomFields[key];
-            const fieldValue = field.defaultValue;
-            dynamicBuilder.addVariable(key, fieldValue);
-          });
-
-          try {
-            modelRef.value.content = dynamicBuilder.buildContent();
-          } catch (e) {
-            console.log(e.message);
-            msgPopup.error(e.message, {
-              closable: true,
-              duration: 10000
+            Object.keys(templateStore.availableCustomFields).forEach((key) => {
+              const field = templateStore.availableCustomFields[key];
+              const fieldValue = field.defaultValue;
+              dynamicBuilder.addVariable(key, fieldValue);
             });
-          }
-        },
-        { deep: true }
-    );
 
+            try {
+              modelRef.value.content = dynamicBuilder.buildContent();
+            } catch (e) {
+              console.log(e.message);
+              msgPopup.error(e.message, {
+                closable: true,
+                duration: 10000
+              });
+            }*/
+        },
+        {deep: true}
+    );
 
 
     return {
       composerStore,
+      templateStore,
       globalStore,
-      messageTemplateStore,
       mailingListStore,
       customFields,
       composerRef,
@@ -433,7 +474,6 @@ export default {
       formRef,
       selectedArticleIds,
       rules,
-      debouncedFetchArticles,
       copyContentToClipboard,
       preview,
       handleSendNewsletter,

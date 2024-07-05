@@ -2,6 +2,7 @@
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
+use Exception;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Joomla\Database\DatabaseDriver;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\NewsletterDTO;
@@ -18,7 +19,7 @@ class NewslettersModel extends BaseDatabaseModel
 
 		$query
 			->select([
-				$db->quoteName('n.id', 'key'),
+				$db->quoteName('n.id'),
 				$db->quoteName('n.reg_date'),
 				$db->quoteName('n.subject'),
 				$db->quoteName('n.message_content'),
@@ -50,20 +51,55 @@ class NewslettersModel extends BaseDatabaseModel
 		];
 	}
 
-
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
 	public function find($id)
 	{
-		$db    = $this->getDatabase();
+		$db = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query
-			->select($db->quoteName(array('id', 'subject', 'message_content')))
+			->select($db->quoteName([
+				'id',
+				'reg_date',
+				'subject',
+				'use_wrapper',
+				'template_id',
+				'custom_fields_values',
+				'articles_ids',
+				'is_test',
+				'mailing_list_ids',
+				'test_email',
+				'message_content',
+			]))
 			->from($db->quoteName('#__semantyca_nm_newsletters'))
-			->where('id = ' . $db->quote($id));
+			->where($db->quoteName('id') . ' = ' . $db->quote($id));
 
 		$db->setQuery($query);
 
-		return $db->loadObjectList();
+		$result = $db->loadObject();
+
+		if ($result) {
+			$dto = new NewsletterDTO();
+			$dto->id = $result->id;
+			$dto->regDate = new \DateTime($result->reg_date);
+			$dto->subject = $result->subject;
+			$dto->useWrapper = (bool)$result->use_wrapper;
+			$dto->templateId = $result->template_id;
+			$dto->customFieldsValues = $result->custom_fields_values;
+			$dto->articlesIds = json_decode($result->articles_ids) ?? [];
+			$dto->isTest = (bool)$result->is_test;
+			$dto->mailingListIds = json_decode($result->mailing_list_ids) ?? [];
+			$dto->testEmail = $result->test_email;
+			$dto->messageContent = $result->message_content;
+
+			return $dto;
+		}
+
+		return null;
 	}
+
 
 	public function findUnprocessedEvent($id, $event_type, $subscriber = null): array
 	{
@@ -151,46 +187,29 @@ class NewslettersModel extends BaseDatabaseModel
 		return $db->loadObject();
 	}
 
-	public function upsert(NewsletterDTO $newsletter): int
+	public function upsert(?int $id, NewsletterDTO $newsletter): int
 	{
-		$db    = $this->getDatabase();
+		$db = $this->getDatabase();
 		$query = $db->getQuery(true);
 
-		$hashComponents = [
-			$newsletter->subject,
-			$newsletter->useWrapper ? '1' : '0',
-			$newsletter->template_id,
-			json_encode($newsletter->customFieldsValues),
-			json_encode($newsletter->articlesIds),
-			$newsletter->isTest ? '1' : '0',
-			json_encode($newsletter->mailingList),
-			$newsletter->isTest ? '1' : '0',
-			$newsletter->testEmail,
-			$newsletter->messageContent
-		];
-
-		$hash = hash('sha256', implode('', $hashComponents));
-		$existingNewsletter = $this->findByHash($hash);
-
-		if ($existingNewsletter === null)
-		{
+		if ($id === null) {
+			// Insert new newsletter
 			$columns = [
 				'reg_date', 'subject', 'use_wrapper', 'template_id', 'custom_fields_values',
-				'articles_ids', 'is_test', 'mailing_list_ids', 'test_email', 'message_content', 'hash'
+				'articles_ids', 'is_test', 'mailing_list_ids', 'test_email', 'message_content'
 			];
 
 			$values = [
 				$db->quote($newsletter->regDate->format('Y-m-d H:i:s')),
 				$db->quote($newsletter->subject),
 				$newsletter->useWrapper ? '1' : '0',
-				$db->quote($newsletter->template_id),
+				$db->quote($newsletter->templateId),
 				$db->quote(json_encode($newsletter->customFieldsValues)),
 				$db->quote(json_encode($newsletter->articlesIds)),
 				$newsletter->isTest ? '1' : '0',
-				$db->quote(json_encode($newsletter->mailingList)),
+				$db->quote(json_encode($newsletter->mailingListIds)),
 				$db->quote($newsletter->testEmail),
-				$db->quote($newsletter->messageContent),
-				$db->quote($hash)
+				$db->quote($newsletter->messageContent)
 			];
 
 			$query
@@ -202,18 +221,17 @@ class NewslettersModel extends BaseDatabaseModel
 			$db->execute();
 
 			return $db->insertid();
-		}
-		else
-		{
+		} else {
+			// Update existing newsletter
 			$fields = [
 				$db->quoteName('modified_date') . ' = NOW()',
 				$db->quoteName('subject') . ' = ' . $db->quote($newsletter->subject),
 				$db->quoteName('use_wrapper') . ' = ' . ($newsletter->useWrapper ? '1' : '0'),
-				$db->quoteName('template_id') . ' = ' . $db->quote($newsletter->template_id),
+				$db->quoteName('template_id') . ' = ' . $db->quote($newsletter->templateId),
 				$db->quoteName('custom_fields_values') . ' = ' . $db->quote(json_encode($newsletter->customFieldsValues)),
 				$db->quoteName('articles_ids') . ' = ' . $db->quote(json_encode($newsletter->articlesIds)),
 				$db->quoteName('is_test') . ' = ' . ($newsletter->isTest ? '1' : '0'),
-				$db->quoteName('mailing_list_ids') . ' = ' . $db->quote(json_encode($newsletter->mailingList)),
+				$db->quoteName('mailing_list_ids') . ' = ' . $db->quote(json_encode($newsletter->mailingListIds)),
 				$db->quoteName('test_email') . ' = ' . $db->quote($newsletter->testEmail),
 				$db->quoteName('message_content') . ' = ' . $db->quote($newsletter->messageContent)
 			];
@@ -221,12 +239,12 @@ class NewslettersModel extends BaseDatabaseModel
 			$query
 				->update($db->quoteName('#__semantyca_nm_newsletters'))
 				->set($fields)
-				->where($db->quoteName('id') . ' = ' . $db->quote($existingNewsletter->id));
+				->where($db->quoteName('id') . ' = ' . $db->quote($id));
 
 			$db->setQuery($query);
 			$db->execute();
 
-			return $existingNewsletter->id;
+			return $id;
 		}
 	}
 

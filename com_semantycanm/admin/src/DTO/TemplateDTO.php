@@ -20,7 +20,7 @@ class TemplateDTO implements JsonSerializable
 	public function toArray(): array
 	{
 		return [
-			'key'          => $this->id,
+			'id'           => $this->id,
 			'regDate'      => $this->regDate->format('Y-m-d H:i:s'),
 			'name'         => $this->name,
 			'type'         => $this->type,

@@ -78,9 +78,6 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_newsletters`
     mailing_list_ids     JSON       DEFAULT (JSON_ARRAY()),
     test_email           VARCHAR(255),
     message_content      MEDIUMTEXT DEFAULT '',
-    hash                 CHAR(64) AS (SHA2(CONCAT(subject, use_wrapper, template_id,
-                                                  custom_fields_values, articles_ids, is_test, mailing_list_ids,
-                                                  is_test, test_email, message_content), 256)) STORED,
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 

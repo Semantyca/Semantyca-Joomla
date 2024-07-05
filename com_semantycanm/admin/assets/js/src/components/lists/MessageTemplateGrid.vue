@@ -3,10 +3,10 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button  type="primary" @click="createNew">
+        <n-button type="primary" @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
-        <n-button type="error" disabled>
+        <n-button type="error" :disabled="!hasCheckedRows" @click="deleteCheckedRows">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -17,16 +17,17 @@
           size="large"
           :row-key="rowKey"
           :columns="columns"
-          :data=" messageTemplateStore.getCurrentPage"
+          :data="messageTemplateStore.getCurrentPage"
           :pagination="messageTemplateStore.getPagination"
           :row-props="getRowProps"
+          @update:checked-row-keys="handleCheckedRowKeysChange"
       />
     </n-gi>
   </n-grid>
 </template>
 
 <script>
-import { defineComponent, getCurrentInstance } from 'vue';
+import { defineComponent, getCurrentInstance, ref, computed } from 'vue';
 import { useGlobalStore } from "../../stores/globalStore";
 import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
 import { NDataTable, NButton, NH3, NGi, NGrid, NSpace } from "naive-ui";
@@ -46,9 +47,10 @@ export default defineComponent({
     const globalStore = useGlobalStore();
     const messageTemplateStore = useMessageTemplateStore();
     const { emit } = getCurrentInstance();
+    const checkedRowKeys = ref([]);
 
     const fetchInitialData = async () => {
-      await messageTemplateStore.fetchFromApi(1, 10);
+      await messageTemplateStore.fetchApi(1, 10);
     };
 
     fetchInitialData();
@@ -72,9 +74,6 @@ export default defineComponent({
       return [
         {
           type: "selection",
-          disabled(row) {
-            return row.name === "Edward King 3";
-          }
         },
         {
           title: 'Name',
@@ -87,18 +86,35 @@ export default defineComponent({
       ];
     };
 
+    const handleCheckedRowKeysChange = (keys) => {
+      checkedRowKeys.value = keys;
+    };
+
+    const hasCheckedRows = computed(() => checkedRowKeys.value.length > 0);
+
+    const deleteCheckedRows = async () => {
+      if (confirm('Are you sure you want to delete the selected templates?')) {
+        try {
+          await messageTemplateStore.deleteApi(checkedRowKeys.value);
+          checkedRowKeys.value = [];
+          await fetchInitialData();
+        } catch (error) {
+          console.error('Error deleting templates:', error);
+        }
+      }
+    };
+
     return {
       globalStore,
       messageTemplateStore,
       getRowProps,
       createNew,
       columns: createColumns(),
-      rowKey: (row) => row.key,
+      rowKey: (row) => row.id,
+      handleCheckedRowKeysChange,
+      hasCheckedRows,
+      deleteCheckedRows
     };
   },
 });
-
 </script>
-
-<style>
-</style>

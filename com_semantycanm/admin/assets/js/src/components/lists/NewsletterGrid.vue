@@ -63,7 +63,7 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            emit('row-click', row.key);
+            emit('row-click', row.id);
           }
         }
       };
@@ -98,7 +98,7 @@ export default defineComponent({
       getRowProps,
       createNew,
       columns: createColumns(),
-      rowKey: (row) => row.key,
+      rowKey: (row) => row.id,
     };
   },
 });

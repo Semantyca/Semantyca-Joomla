@@ -188,7 +188,7 @@ class TemplateController extends BaseController
 	}
 
 	/**
-	 * Deletes a template.
+	 * Deletes one or more templates.
 	 *
 	 * @since 1.0.0
 	 */
@@ -198,23 +198,24 @@ class TemplateController extends BaseController
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$id = $this->input->getInt('id');
+			$ids = $this->input->get('ids', [], 'ARRAY');
 
-			if (empty($id))
+			if (empty($ids))
 			{
-				throw new ValidationErrorException(['id is required for deletion']);
+				throw new ValidationErrorException(['At least one id is required for deletion']);
 			}
 
 			$model  = $this->getModel('Template');
-			$result = $model->deleteTemplate($id);
+			$result = $model->delete($ids);
 
 			if ($result)
 			{
-				echo new JsonResponse(['success' => true, 'message' => 'Template deleted successfully.']);
+				$message = count($ids) > 1 ? 'Templates deleted successfully.' : 'Template deleted successfully.';
+				echo new JsonResponse(['success' => true, 'message' => $message]);
 			}
 			else
 			{
-				throw new Exception('Failed to delete the template.');
+				throw new Exception('Failed to delete the template(s).');
 			}
 		}
 		catch (ValidationErrorException $e)

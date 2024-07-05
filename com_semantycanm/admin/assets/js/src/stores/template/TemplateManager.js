@@ -91,7 +91,7 @@ class TemplateManager extends BaseObject {
 
     async deleteCurrentTemplate() {
         this.startBusyMessage(`Deleting "${this.templateStore.currentTemplate.name}" template ...`);
-        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&id=${encodeURIComponent(this.templateStore.currentTemplate.id)}`;
+        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&ids=${[this.templateStore.currentTemplate.id]}`;
         try {
             const response = await fetch(endpoint, {
                 method: 'DELETE'
@@ -108,7 +108,7 @@ class TemplateManager extends BaseObject {
 
             const newTemplateId = this.selectNewTemplateId(deletedId);
             console.log('new', newTemplateId);
-            this.handleTemplateChange(newTemplateId);
+            await this.handleTemplateChange(newTemplateId);
 
             this.msgPopup.success('Template successfully deleted');
         } catch (error) {
@@ -212,6 +212,43 @@ class TemplateManager extends BaseObject {
             return maxKey.toString();
         }
         return minKey.toString();
+    }
+
+    async deleteTemplates(templateIds) {
+        this.startBusyMessage(`Deleting ${templateIds.length} template(s) ...`);
+        const endpoint = `index.php?option=com_semantycanm&task=Template.delete`;
+        try {
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: templateIds })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Failed to delete templates, HTTP status = ${response.status}`);
+            }
+            const result = await response.json();
+
+            await this.getTemplates();
+
+            if (templateIds.includes(this.templateStore.currentTemplate.id)) {
+                const newTemplateId = this.selectNewTemplateId();
+                if (newTemplateId) {
+                    await this.handleTemplateChange(newTemplateId);
+                } else {
+                    this.templateStore.setCurrentTemplate(null);
+                }
+            }
+
+            this.msgPopup.success(result.message || 'Templates successfully deleted');
+        } catch (error) {
+            this.msgPopup.error(error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
+        } finally {
+            this.stopBusyMessage();
+        }
     }
 }
 

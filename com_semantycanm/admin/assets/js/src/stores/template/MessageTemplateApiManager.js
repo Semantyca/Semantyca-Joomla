@@ -30,4 +30,25 @@ export default class MessageTemplateApiManager extends BaseObject {
             this.loadingBar.finish();
         }
     }
+
+    async fetchTemplate(id) {
+        this.loadingBar.start();
+        const url = `${MessageTemplateApiManager.BASE_URL}find&id=${id}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'GET',
+            });
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+            return await response.json();
+        } catch (error) {
+            this.loadingBar.error();
+            this.msgPopup.error(error.message);
+            throw error;
+        } finally {
+            this.loadingBar.finish();
+        }
+    }
 }

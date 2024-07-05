@@ -51,9 +51,28 @@ class NewslettersController extends BaseController
 		$app = Factory::getApplication();
 		try
 		{
-			$id    = $this->input->getString('id');
+			$id = $this->input->getInt('id');
+			if (!$id)
+			{
+				throw new InvalidArgumentException('Invalid or missing ID');
+			}
 			$model = $this->getModel('Newsletters');
-			echo new JsonResponse($model->find($id));
+			$newsletter = $model->find($id);
+
+			if (!$newsletter)
+			{
+				http_response_code(404);
+				echo new JsonResponse('Newsletter not found', 'error', true);
+			}
+			else
+			{
+				echo new JsonResponse($newsletter);
+			}
+		}
+		catch (InvalidArgumentException $e)
+		{
+			http_response_code(400);
+			echo new JsonResponse($e->getMessage(), 'error', true);
 		}
 		catch (Throwable $e)
 		{
@@ -129,7 +148,7 @@ class NewslettersController extends BaseController
 	 * @throws Exception
 	 * @since 1.0
 	 */
-	public function upsert()
+	public function upsert(): void
 	{
 		header(Constants::JSON_CONTENT_TYPE);
 		$app = Factory::getApplication();
@@ -171,20 +190,21 @@ class NewslettersController extends BaseController
 					}
 				}
 
-				$newsletterDTO                     = new NewsletterDTO();
-				$newsletterDTO->regDate            = new DateTime();
-				$newsletterDTO->template_id        = $input['template_id'];
+				$newsletterDTO = new NewsletterDTO();
+				$newsletterDTO->regDate = new DateTime();
+				$newsletterDTO->templateId = $input['template_id'];
 				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
-				$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
-				$newsletterDTO->isTest             = $isTest;
-				$newsletterDTO->mailingList        = $input['mailingList'] ?? [];
-				$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
-				$newsletterDTO->subject            = $input['subject'];
-				$newsletterDTO->messageContent     = $input['messageContent'];
-				$newsletterDTO->useWrapper         = $input['useWrapper'];
+				$newsletterDTO->articlesIds = $input['articlesIds'] ?? [];
+				$newsletterDTO->isTest = $isTest;
+				$newsletterDTO->mailingListIds = $input['mailingList'] ?? [];
+				$newsletterDTO->testEmail = $input['testEmail'] ?? '';
+				$newsletterDTO->subject = $input['subject'];
+				$newsletterDTO->messageContent = $input['messageContent'];
+				$newsletterDTO->useWrapper = $input['useWrapper'];
 
 				$model = $this->getModel('Newsletters');
-				echo new JsonResponse(['id' => $model->upsert($newsletterDTO)]);
+				$id = $input['id'] ?? null;
+				echo new JsonResponse(['id' => $model->upsert($id, $newsletterDTO)]);
 			}
 			else
 			{
@@ -194,7 +214,7 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors  = $e->getErrors();
+			$errors = $e->getErrors();
 			$message = $e->getMessage();
 			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
@@ -207,7 +227,7 @@ class NewslettersController extends BaseController
 		$app->close();
 	}
 
-	public function delete()
+	public function delete(): void
 	{
 		header(Constants::JSON_CONTENT_TYPE);
 		$app = Factory::getApplication();

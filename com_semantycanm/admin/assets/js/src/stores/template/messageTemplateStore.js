@@ -2,6 +2,7 @@ import {defineStore} from 'pinia';
 import {ref, computed} from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
 import {useLoadingBar, useMessage} from "naive-ui";
+import TemplateManager from "./TemplateManager";
 
 export const useMessageTemplateStore = defineStore('templates', () => {
     const msgPopup = useMessage();
@@ -14,7 +15,7 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         pages: new Map()
     });
     const currentTemplate = ref({
-        key: 0,
+        id: 0,
         name: '',
         type: '',
         description: '',
@@ -44,7 +45,7 @@ export const useMessageTemplateStore = defineStore('templates', () => {
             pageData.docs.forEach(template => {
                 options.push({
                     label: template.name,
-                    value: template.key
+                    value: template.id
                 });
             });
         });
@@ -68,12 +69,12 @@ export const useMessageTemplateStore = defineStore('templates', () => {
     const setCurrentTemplateById = (id) => {
         const pageNum = 1;
         const onePage = templatesPage.value.pages.get(pageNum);
-        const selectedTemplate = onePage.docs.find(document => document.key === id);
+        const selectedTemplate = onePage.docs.find(document => document.id === id);
         setCurrentTemplate(selectedTemplate);
     }
 
     const setCurrentTemplate = (templateDoc) => {
-        currentTemplate.value.key = templateDoc.key;
+        currentTemplate.value.id = templateDoc.id;
         currentTemplate.value.name = templateDoc.name;
         currentTemplate.value.type = templateDoc.type;
         currentTemplate.value.description = templateDoc.description;
@@ -83,7 +84,6 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         currentTemplate.value.customFields = templateDoc.customFields;
 
         const customFields =  currentTemplate.value.customFields.filter(field => field.isAvailable === 1);
-        //console.log('customFields', customFields);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
     };
 
@@ -116,7 +116,7 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         }
     };
 
-    const fetchFromApi = async (page, size) => {
+    const fetchTemplates = async (page, size) => {
         try {
             const manager = new MessageTemplateApiManager(msgPopup, loadingBar);
             const respData = await manager.fetch(page, size);
@@ -137,6 +137,15 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         }
     };
 
+    const deleteApi = async (ids) => {
+        try {
+            const manager = new TemplateManager(this, msgPopup, loadingBar);
+            const respData = await manager.deleteTemplates(ids);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     function adaptField(field) {
         switch (field.type) {
@@ -170,7 +179,8 @@ export const useMessageTemplateStore = defineStore('templates', () => {
 
 
     return {
-        fetchFromApi,
+        fetchTemplates,
+        deleteApi,
         templatesPage,
         getCurrentPage,
         getPagination,

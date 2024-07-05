@@ -97,7 +97,7 @@ class TemplateModel extends BaseDatabaseModel
 		}
 
 		$template              = new TemplateDTO();
-		$template->id         = $row->id;
+		$template->id          = $row->id;
 		$template->regDate     = new \DateTime($row->reg_date);
 		$template->isDefault   = $row->is_default;
 		$template->content     = $row->content;
@@ -295,17 +295,16 @@ class TemplateModel extends BaseDatabaseModel
 		return true;
 	}
 
-
-	public function deleteTemplate($id): bool
+	public function delete(array $ids): bool
 	{
-		$db         = $this->getDatabase();
-		$query      = $db->getQuery(true);
-		$conditions = array(
-			$db->quoteName('id') . ' = ' . (int) $id
-		);
-		$query
-			->delete($db->quoteName('#__semantyca_nm_templates'))
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true);
+
+		$conditions = $db->quoteName('id') . ' IN (' . implode(',', array_map('intval', $ids)) . ')';
+
+		$query->delete($db->quoteName('#__semantyca_nm_templates'))
 			->where($conditions);
+
 		$db->setQuery($query);
 
 		return $db->execute();

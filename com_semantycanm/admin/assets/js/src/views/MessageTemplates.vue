@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref } from 'vue';
 import MessageTemplateGrid from "../components/lists/MessageTemplateGrid.vue";
 import MessageTemplateEditor from "../components/forms/MessageTemplateEditor.vue";
 
@@ -23,7 +23,7 @@ export default defineComponent({
 
 
     const handleRowClick = (row) => {
-      selectedId.value = row.key;
+      selectedId.value = row.id;
       currentComponent.value = 'MessageTemplateEditor';
     };
 

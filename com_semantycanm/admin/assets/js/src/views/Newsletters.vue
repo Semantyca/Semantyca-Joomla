@@ -23,7 +23,7 @@ export default defineComponent({
 
 
     const handleRowClick = (row) => {
-      selectedId.value = row.key;
+      selectedId.value = row;
       currentComponent.value = 'Composer';
     };
 

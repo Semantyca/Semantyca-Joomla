@@ -8,11 +8,11 @@ export class MessagingHandler {
         this.isTestMessage = ref(false);
     }
 
-    async send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave = false) {
+    async send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave = false, id = null) {
         const newsletterApiManager = new NewsletterApiManager();
 
         if (onlySave) {
-            await this.saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail);
+            await this.saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, id);
         } else {
             let listItems;
             if (isTestMessage) {
@@ -32,10 +32,10 @@ export class MessagingHandler {
         }
     }
 
-    async saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, articlesIds, isTest, mailingList, testEmail) {
+    async saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, articlesIds, isTest, mailingList, testEmail, id = null) {
         try {
             const newsletterApiManager = new NewsletterApiManager();
-            const result = await newsletterApiManager.upsert({
+            return await newsletterApiManager.upsert({
                 template_id: templateId,
                 customFieldsValues: customFieldsValues,
                 articlesIds: articlesIds,
@@ -45,7 +45,7 @@ export class MessagingHandler {
                 testEmail: testEmail,
                 messageContent: msgContent,
                 useWrapper: useWrapper
-            });
+            }, id);
         } catch (error) {
             throw error;
         }
