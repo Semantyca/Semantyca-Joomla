@@ -3,10 +3,10 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button  type="primary"  @click="createNew">
+        <n-button type="primary" @click="createNew">
           {{ globalStore.translations.CREATE }}
         </n-button>
-        <n-button  type="error" disabled>
+        <n-button type="error" @click="handleDeleteSelected" :disabled="!hasSelectedRows">
           {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
@@ -20,13 +20,16 @@
           :data="newsLetterStore.getCurrentPage"
           :pagination="newsLetterStore.getPagination"
           :row-props="getRowProps"
+          @update:checked-row-keys="handleSelectionChange"
+          @update:page="handlePageChange"
+          @update:page-size="handlePageSizeChange"
       />
     </n-gi>
   </n-grid>
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance, onMounted} from 'vue';
+import { defineComponent, getCurrentInstance, onMounted, ref, computed } from 'vue';
 import { useGlobalStore } from "../../stores/globalStore";
 import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
 import {
@@ -36,6 +39,7 @@ import {
   NGi,
   NGrid,
   NSpace,
+  useMessage
 } from "naive-ui";
 
 export default defineComponent({
@@ -52,7 +56,9 @@ export default defineComponent({
   setup() {
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
-    const { emit } = getCurrentInstance();
+    const {emit} = getCurrentInstance();
+    const selectedRowKeys = ref([]);
+    const message = useMessage();
 
     onMounted(() => {
       newsLetterStore.fetchNewsLetters(1, 100);
@@ -71,6 +77,31 @@ export default defineComponent({
 
     const createNew = () => {
       emit('create-new');
+    };
+
+    const handleDeleteSelected = async () => {
+      try {
+        await newsLetterStore.deleteNewsletters(selectedRowKeys.value);
+        message.success('Newsletters deleted successfully');
+        selectedRowKeys.value = [];
+      } catch (error) {
+        console.error(error);
+        message.error('An error occurred while deleting newsletters.');
+      }
+    };
+
+    const handleSelectionChange = (keys) => {
+      selectedRowKeys.value = keys;
+    };
+
+    const hasSelectedRows = computed(() => selectedRowKeys.value.length > 0);
+
+    const handlePageChange = (page) => {
+      newsLetterStore.fetchNewsLetters(page, newsLetterStore.getPagination.pageSize);
+    };
+
+    const handlePageSizeChange = (pageSize) => {
+      newsLetterStore.fetchNewsLetters(newsLetterStore.getPagination.page, pageSize);
     };
 
     const createColumns = () => {
@@ -97,8 +128,13 @@ export default defineComponent({
       newsLetterStore,
       getRowProps,
       createNew,
+      handleDeleteSelected,
+      handleSelectionChange,
+      hasSelectedRows,
       columns: createColumns(),
       rowKey: (row) => row.id,
+      handlePageChange,
+      handlePageSizeChange
     };
   },
 });

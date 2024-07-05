@@ -53,6 +53,30 @@ class TemplateController extends BaseController
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
+			$id    = $this->input->getInt('id');
+			$model = $this->getModel('Template');
+			echo new JsonResponse($model->getTemplateById($id)->toArray());
+		}
+		catch (RecordNotFoundException $e)
+		{
+			http_response_code(404);
+			echo new JsonResponse($e->getErrors(), 'applicationError', true);
+		}
+		catch (\Throwable $e)
+		{
+			http_response_code(500);
+			echo new JsonResponse($e->getMessage(), 'error', true);
+		} finally
+		{
+			Factory::getApplication()->close();
+		}
+	}
+/*
+	public function find()
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		try
+		{
 			$name  = $this->input->getString('name');
 			$model = $this->getModel('Template');
 			echo new JsonResponse($model->getTemplateByName($name)->toArray());
@@ -70,7 +94,7 @@ class TemplateController extends BaseController
 		{
 			Factory::getApplication()->close();
 		}
-	}
+	}*/
 
 	/**
 	 * @throws Exception
@@ -106,7 +130,7 @@ class TemplateController extends BaseController
 			}
 
 			$model  = $this->getModel('Template');
-			$result = $model->update($id, $doc);
+			$result = $model->upsert($id, $doc);
 			if ($result)
 			{
 				echo new JsonResponse(['success' => true, 'message' => 'Template saved successfully.']);
@@ -234,48 +258,4 @@ class TemplateController extends BaseController
 		}
 	}
 
-	/**
-	 * Sets a template as default.
-	 *
-	 * @since 1.0.0
-	 */
-	public function setDefault()
-	{
-		$app = Factory::getApplication();
-		header(Constants::JSON_CONTENT_TYPE);
-		try
-		{
-			$id = $this->input->getInt('id');
-			if (empty($id))
-			{
-				throw new ValidationErrorException(['id is required to set a template as default']);
-			}
-
-			$model  = $this->getModel('Template');
-			$result = $model->setDefaultTemplate($id);
-
-			if ($result)
-			{
-				echo new JsonResponse(['success' => true, 'message' => 'Template set as default successfully.']);
-			}
-			else
-			{
-				throw new Exception('Failed to set the template as default.');
-			}
-		}
-		catch (ValidationErrorException $e)
-		{
-			http_response_code(400);
-			echo new JsonResponse($e->getErrors(), 'validationError', true);
-		}
-		catch (Throwable $e)
-		{
-			http_response_code(500);
-			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			$app->close();
-		}
-	}
 }

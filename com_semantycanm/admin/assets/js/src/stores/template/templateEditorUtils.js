@@ -4,6 +4,10 @@ export const rules = {
         required: true,
         message: 'Template name cannot be empty',
     },
+    templateType: {
+        required: true,
+        message: 'Template type cannot be empty',
+    },
     defaultValue: [
         {required: true, message: 'Default value cannot be empty'},
         {validator: (rule, value) => isValidJson(value), message: 'Please enter a valid JSON string'},

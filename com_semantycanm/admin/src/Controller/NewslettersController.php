@@ -56,7 +56,7 @@ class NewslettersController extends BaseController
 			{
 				throw new InvalidArgumentException('Invalid or missing ID');
 			}
-			$model = $this->getModel('Newsletters');
+			$model      = $this->getModel('Newsletters');
 			$newsletter = $model->find($id);
 
 			if (!$newsletter)
@@ -190,20 +190,20 @@ class NewslettersController extends BaseController
 					}
 				}
 
-				$newsletterDTO = new NewsletterDTO();
-				$newsletterDTO->regDate = new DateTime();
-				$newsletterDTO->templateId = $input['template_id'];
+				$newsletterDTO                     = new NewsletterDTO();
+				$newsletterDTO->regDate            = new DateTime();
+				$newsletterDTO->templateId         = $input['template_id'];
 				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
-				$newsletterDTO->articlesIds = $input['articlesIds'] ?? [];
-				$newsletterDTO->isTest = $isTest;
-				$newsletterDTO->mailingListIds = $input['mailingList'] ?? [];
-				$newsletterDTO->testEmail = $input['testEmail'] ?? '';
-				$newsletterDTO->subject = $input['subject'];
-				$newsletterDTO->messageContent = $input['messageContent'];
-				$newsletterDTO->useWrapper = $input['useWrapper'];
+				$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
+				$newsletterDTO->isTest             = $isTest;
+				$newsletterDTO->mailingListIds     = $input['mailingList'] ?? [];
+				$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
+				$newsletterDTO->subject            = $input['subject'];
+				$newsletterDTO->messageContent     = $input['messageContent'];
+				$newsletterDTO->useWrapper         = $input['useWrapper'];
 
 				$model = $this->getModel('Newsletters');
-				$id = $input['id'] ?? null;
+				$id    = $input['id'] ?? null;
 				echo new JsonResponse(['id' => $model->upsert($id, $newsletterDTO)]);
 			}
 			else
@@ -214,7 +214,7 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors = $e->getErrors();
+			$errors  = $e->getErrors();
 			$message = $e->getMessage();
 			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
 		}
@@ -251,8 +251,8 @@ class NewslettersController extends BaseController
 				throw new InvalidArgumentException('No IDs provided');
 			}
 
-			$model = $this->getModel('Stat');
-			$model->deleteNewsletters($ids);
+			$model = $this->getModel('Newsletters');
+			$model->delete($ids);
 
 			echo new JsonResponse(['success' => true, 'message' => 'Newsletters deleted successfully']);
 		}

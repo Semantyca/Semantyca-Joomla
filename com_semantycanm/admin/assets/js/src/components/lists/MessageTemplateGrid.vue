@@ -50,7 +50,7 @@ export default defineComponent({
     const checkedRowKeys = ref([]);
 
     const fetchInitialData = async () => {
-      await messageTemplateStore.fetchApi(1, 10);
+      await messageTemplateStore.fetchTemplates(1, 10);
     };
 
     fetchInitialData();

@@ -191,22 +191,4 @@ class StatModel extends BaseDatabaseModel
 		return true;
 	}
 
-	public function deleteNewsletters(array $ids): bool
-	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-
-		$query->delete($db->quoteName('#__semantyca_nm_newsletters'))
-			->where($db->quoteName('id') . ' IN (' . implode(',', array_map('intval', $ids)) . ')');
-
-		$db->setQuery($query);
-
-		try {
-			$db->execute();
-			return true;
-		} catch (RuntimeException $e) {
-			throw new RuntimeException('Failed to delete newsletters: ' . $e->getMessage());
-		}
-	}
-
 }

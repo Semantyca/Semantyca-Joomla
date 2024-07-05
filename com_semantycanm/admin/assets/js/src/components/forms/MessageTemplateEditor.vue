@@ -1,5 +1,9 @@
 <template>
-  <n-h3>Template editor</n-h3>
+  <n-page-header :subtitle="modelRef.templateName" class="mb-3">
+    <template #title>
+      Template
+    </template>
+  </n-page-header>
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
@@ -35,9 +39,6 @@
                 placeholder="Enter template name"
             />
           </n-form-item>
-          <n-form-item label="Default template" label-placement="left" path="defaultTemplate">
-            <n-checkbox size="large" v-model:value="modelRef.isDefault"></n-checkbox>
-          </n-form-item>
           <n-form-item label="Description" label-placement="left" path="description">
             <n-input
                 v-model:value="modelRef.description"
@@ -45,6 +46,13 @@
                 placeholder="Enter template description"
                 style="width: 100%; max-width: 600px; min-width: 500px; height: 50px;"
                 autosize
+            />
+          </n-form-item>
+          <n-form-item label="Template Type" label-placement="left" path="templateType">
+            <n-select
+                v-model:value="modelRef.templateType"
+                :options="[{ label: 'It will allow to choose Articles', value: 'list_of_articles' }]"
+                style="width: 100%; max-width: 600px; min-width: 500px;"
             />
           </n-form-item>
           <n-form-item label="Custom fields" label-placement="left" path="templateName">
@@ -134,13 +142,30 @@
     </n-gi>
   </n-grid>
 </template>
+
 <script>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { useGlobalStore } from "../../stores/globalStore";
 import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
 import {
-  NButton, NCheckbox, NDivider, NDynamicInput, NForm, NFormItem, NInput, NSelect, NSpace, NTabPane,
-  NTabs, useMessage, useLoadingBar, NGrid, NGi, NH3, NIcon
+  NButton,
+  NCheckbox,
+  NDivider,
+  NDynamicInput,
+  NForm,
+  NFormItem,
+  NGi,
+  NGrid,
+  NH3,
+  NIcon,
+  NInput,
+  NSelect,
+  NSpace,
+  NTabPane,
+  NTabs,
+  NPageHeader,
+  useLoadingBar,
+  useMessage
 } from "naive-ui";
 import { ArrowBigLeft } from '@vicons/tabler';
 import CodeMirror from 'vue-codemirror6';
@@ -154,7 +179,7 @@ export default {
   name: 'MessageTemplateEditor',
   components: {
     ArrowBigLeft, NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
-    NTabPane, NTabs, NGrid, NGi, NH3, NIcon
+    NTabPane, NTabs, NGrid, NGi, NH3, NIcon, NPageHeader
   },
   props: {
     id: {
@@ -173,8 +198,8 @@ export default {
 
     const modelRef = ref({
       templateName: '',
-      isDefault: false,
       description: '',
+      templateType: '',
       customFields: [],
       content: '',
       wrapper: ''
@@ -190,13 +215,7 @@ export default {
 
     onMounted(async () => {
       if (props.id != null) {
-        await templateManager.getTemplates();
-        modelRef.value.templateName = templateStore.currentTemplate.name;
-        modelRef.value.isDefault = templateStore.currentTemplate.isDefault;
-        modelRef.value.description = templateStore.currentTemplate.description;
-        modelRef.value.customFields = templateStore.currentTemplate.customFields.map(field => ({...field}));
-        modelRef.value.content = templateStore.currentTemplate.content;
-        modelRef.value.wrapper = templateStore.currentTemplate.wrapper;
+        await templateStore.fetchTemplate(props.id);
       }
     });
 
@@ -236,6 +255,29 @@ export default {
       templateManager.saveTemplate(updatedTemplate, false);
     };
 
+    const fetchInitialData = async () => {
+      if (props.id != null) {
+        await templateStore.fetchTemplate(props.id);
+      }
+    }
+
+    fetchInitialData();
+
+    watch(
+        () => templateStore.templateDoc,
+        (newValue) => {
+          modelRef.value = {
+            templateName: newValue.name,
+            description: newValue.description,
+            templateType: newValue.type,
+            customFields: newValue.customFields,
+            content: newValue.content,
+            wrapper: newValue.wrapper
+          };
+        },
+        { deep: true, immediate: true }
+    );
+
     return {
       globalStore,
       modelRef,
@@ -263,6 +305,7 @@ export default {
   }
 };
 </script>
+
 <style>
 /* ... */
 </style>

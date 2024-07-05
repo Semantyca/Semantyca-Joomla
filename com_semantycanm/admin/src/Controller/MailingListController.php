@@ -86,7 +86,7 @@ class MailingListController extends BaseController
 			$mailing_list_model = $this->getModel('MailingList');
 
 			if ($id) {
-				$results = $mailing_list_model->update($id, $mailing_lst_name, $mailing_lists);
+				$results = $mailing_list_model->upsert($id, $mailing_lst_name, $mailing_lists);
 			} else {
 				$results = $mailing_list_model->add($mailing_lst_name, $mailing_lists);
 			}
@@ -129,7 +129,7 @@ class MailingListController extends BaseController
 			}
 
 			$mailing_list_model = $this->getModel('MailingList');
-			$results = $mailing_list_model->remove($ids);
+			$results = $mailing_list_model->delete($ids);
 			echo new JsonResponse($results);
 		}
 		catch (ValidationErrorException $e)

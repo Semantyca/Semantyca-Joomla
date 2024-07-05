@@ -299,13 +299,13 @@ class NewslettersModel extends BaseDatabaseModel
 	 * @throws UpdateRecordException
 	 * @since 1.0
 	 */
-	public function remove($ids): int
+	public function delete($ids): int
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
 		$conditions = array(
-			$db->quoteName('id') . ' IN (' . $ids . ')'
+			$db->quoteName('id') . ' IN ('  . implode(',', array_map('intval', $ids)) . ')'
 		);
 
 		$query->delete($db->quoteName('#__semantyca_nm_newsletters'));

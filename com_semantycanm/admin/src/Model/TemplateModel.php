@@ -21,7 +21,7 @@ class TemplateModel extends BaseDatabaseModel
 		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 		$query
-			->select('id, reg_date, name, type, description, content, wrapper, is_default')
+			->select('id, reg_date, name, type, description, content, wrapper')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->order(array('reg_date DESC'))
 			->setLimit($itemsPerPage, $offset);
@@ -35,7 +35,6 @@ class TemplateModel extends BaseDatabaseModel
 			$template->regDate     = new \DateTime($row->reg_date);
 			$template->name        = $row->name;
 			$template->type        = $row->type;
-			$template->isDefault   = $row->is_default;
 			$template->description = $row->description;
 			$template->content     = $row->content;
 			$template->wrapper     = $row->wrapper;
@@ -80,11 +79,66 @@ class TemplateModel extends BaseDatabaseModel
 	 * @throws Exception
 	 * @since 1.0.0
 	 */
+	public function getTemplateById($id): TemplateDTO
+	{
+		$db    = $this->getDatabase();
+		$query = $db->getQuery(true)
+			->select('id, reg_date, name, type, description, content, wrapper')
+			->from($db->quoteName('#__semantyca_nm_templates'))
+			->where('id = ' . (int) $id);
+
+		$db->setQuery($query);
+		$row = $db->loadObject();
+
+		if (empty($row))
+		{
+			throw new RecordNotFoundException(["The template has not been found"]);
+		}
+
+		$template              = new TemplateDTO();
+		$template->id          = $row->id;
+		$template->regDate     = new \DateTime($row->reg_date);
+		$template->content     = $row->content;
+		$template->name        = $row->name;
+		$template->type        = $row->type;
+		$template->description = $row->description;
+		$template->wrapper     = $row->wrapper;
+
+		$customFieldsQuery = $db->getQuery(true)
+			->select('id, template_id, name, type, caption, default_value, is_available')
+			->from($db->quoteName('#__semantyca_nm_custom_fields'))
+			->where('template_id = ' . (int) $row->id);
+		$db->setQuery($customFieldsQuery);
+		$customFieldsRows = $db->loadObjectList();
+
+		foreach ($customFieldsRows as $customFieldRow)
+		{
+			$decodedDefaultValue      = $customFieldRow->default_value;
+			$template->customFields[] = [
+				'id'           => $customFieldRow->id,
+				'name'         => $customFieldRow->name,
+				'type'         => $customFieldRow->type,
+				'caption'      => $customFieldRow->caption,
+				'defaultValue' => $decodedDefaultValue,
+				'isAvailable'  => $customFieldRow->is_available,
+			];
+		}
+
+		return $template;
+	}
+
+	/**
+	 * @throws RecordNotFoundException
+	 * @throws Exception
+	 * @since 1.0.0
+	 * @deprecated
+	 */
+
 	public function getTemplateByName($name): TemplateDTO
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true)
-			->select('id, reg_date, name, type, description, content, wrapper, is_default')
+			->select('id, reg_date, name, type, description, content, wrapper')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->where('name = ' . $db->quote($name));
 
@@ -99,7 +153,6 @@ class TemplateModel extends BaseDatabaseModel
 		$template              = new TemplateDTO();
 		$template->id          = $row->id;
 		$template->regDate     = new \DateTime($row->reg_date);
-		$template->isDefault   = $row->is_default;
 		$template->content     = $row->content;
 		$template->name        = $row->name;
 		$template->type        = $row->type;
@@ -146,7 +199,7 @@ class TemplateModel extends BaseDatabaseModel
 	}
 
 
-	public function update($id, $messageContent): bool
+	public function upsert($id, $messageContent): bool
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -184,14 +237,13 @@ class TemplateModel extends BaseDatabaseModel
 		}
 		else
 		{
-			$columns = ['content', 'name', 'type', 'wrapper', 'description', 'is_default'];
+			$columns = ['content', 'name', 'type', 'wrapper', 'description'];
 			$values  = [
 				$db->quote($messageContent['content']),
 				$db->quote($messageContent['name']),
 				$db->quote($messageContent['type']),
 				$db->quote($messageContent['wrapper']),
-				$db->quote($messageContent['description']),
-				$db->quote(1)
+				$db->quote($messageContent['description'])
 			];
 			$query->clear()
 				->insert($db->quoteName('#__semantyca_nm_templates'))
@@ -231,29 +283,6 @@ class TemplateModel extends BaseDatabaseModel
 
 		return true;
 	}
-
-	public function setDefaultTemplate($id): bool
-	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-
-		$query->clear()
-			->update($db->quoteName('#__semantyca_nm_templates'))
-			->set($db->quoteName('is_default') . ' = 1')
-			->where($db->quoteName('id') . ' = ' . (int) $id);
-		$db->setQuery($query);
-		$db->execute();
-
-		$query->clear()
-			->update($db->quoteName('#__semantyca_nm_templates'))
-			->set($db->quoteName('is_default') . ' = 0')
-			->where($db->quoteName('id') . ' != ' . (int) $id);
-		$db->setQuery($query);
-		$db->execute();
-
-		return true;
-	}
-
 
 	public function autoSaveTemplate($id, $data): bool
 	{

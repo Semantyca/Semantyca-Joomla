@@ -1,13 +1,11 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import MailingListApiManager from "../mailinglist/MailingListApiManager";
-import { useLoadingBar, useMessage } from "naive-ui";
 import PaginatedData from '../PaginatedData';
 
 export const useNewsletterStore = defineStore('newsletters', () => {
     const newslettersListPage = new PaginatedData();
     const mailingListPage = new PaginatedData();
-
     const currentNewsletterId = ref(0);
     const progress = ref({
         dispatched: 0,
@@ -17,9 +15,7 @@ export const useNewsletterStore = defineStore('newsletters', () => {
     const currentInterval = ref(1000);
     const maxInterval = ref(30000);
 
-    const msgPopup = useMessage();
-    const loadingBar = useLoadingBar();
-    const mailingListApiManager = new MailingListApiManager(msgPopup, loadingBar);
+    const mailingListApiManager = new MailingListApiManager();
 
     const getMailingListPage = computed(() => mailingListPage.getCurrentPageData());
 
@@ -90,6 +86,31 @@ export const useNewsletterStore = defineStore('newsletters', () => {
         return newslettersListPage.getCurrentPageData().find(doc => doc.key === key);
     };
 
+    const deleteNewsletters = async (ids) => {
+        try {
+            const response = await fetch('index.php?option=com_semantycanm&task=newsletters.delete', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ ids }),
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error, status = ${response.status}`);
+            }
+
+            const respData = await response.json();
+
+            if (respData.success) {
+                await fetchNewsLetters(newslettersListPage.page.value, newslettersListPage.pageSize.value);
+            }
+        } catch (error) {
+            console.error(error);
+            throw new Error('An error occurred while deleting newsletters.');
+        }
+    };
+
     return {
         getCurrentPage,
         getPagination,
@@ -104,6 +125,7 @@ export const useNewsletterStore = defineStore('newsletters', () => {
         getMailingLists,
         fetchNewsLetters,
         fetchCurrentNewsLetterEvents,
-        getRowByKey
+        getRowByKey,
+        deleteNewsletters
     };
 });

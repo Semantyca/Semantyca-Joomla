@@ -1,5 +1,9 @@
 <template>
-  <n-h3>Newsletter</n-h3>
+  <n-page-header :subtitle="templateStore.appliedTemplateDoc.name" class="mb-3">
+    <template #title>
+      Newsletter
+    </template>
+  </n-page-header>
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
@@ -17,6 +21,14 @@
         <n-button type="primary" @click="handleSendNewsletter(true)">
           {{ globalStore.translations.SAVE }}
         </n-button>
+        <n-dropdown trigger="click"
+                    ref="templateDropdownRef"
+                    :options="templateStore.templateSelectOptions"
+                    @select="handleTemplateChange">
+          <n-button type="primary">
+              Apply template
+          </n-button>
+        </n-dropdown>
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
@@ -27,14 +39,6 @@
               label-width="auto"
               require-mark-placement="right-hanging"
       >
-        <n-form-item label="Template name" path="templateName">
-          <n-select
-              v-model:value="modelRef.templateId"
-              :options="templateStore.templateSelectOptions"
-              @update:value="handleTemplateChange"
-              style="width: 80%; max-width: 600px;"
-          />
-        </n-form-item>
         <n-form-item
             v-for="(field, fieldName) in customFields"
             :key="field.id"
@@ -45,7 +49,7 @@
               @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
           />
         </n-form-item>
-        <n-form-item label="Articles" path="selectedArticles">
+<!--        <n-form-item label="Articles" path="selectedArticles">
           <n-select
               v-model:value="selectedArticleIds"
               multiple
@@ -58,7 +62,7 @@
               style="width: 80%; max-width: 600px;"
               @update:value="updateSelectedArticles"
           />
-        </n-form-item>
+        </n-form-item>-->
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="recipientField" :show-feedback="false">
           <n-checkbox v-model:checked="modelRef.isTestMessage"/>
@@ -117,6 +121,8 @@ import {
   NButtonGroup,
   NCheckbox,
   NColorPicker,
+  NDropdown,
+  NSpin,
   NForm,
   NFormItem,
   NGi,
@@ -127,6 +133,7 @@ import {
   NIcon,
   NInput,
   NInputNumber,
+  NPageHeader,
   NSelect,
   NSkeleton,
   NSpace,
@@ -147,14 +154,13 @@ import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
-import DynamicBuilder from "../../utils/DynamicBuilder";
 import {isEmail} from "validator";
 
 export default {
   name: 'Composer',
   components: {
-    FormattingButtons, DynamicFormField,
-    NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber,
+    FormattingButtons, DynamicFormField, NDropdown, NSpin,
+    NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber, NPageHeader,
     NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NH6, NTransfer,
     Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft,
   },
@@ -170,6 +176,8 @@ export default {
     const formRef = ref(null);
     const selectedArticleIds = ref([]);
     const composerRef = ref(null);
+    const showTemplateDropdown = ref(false);
+    const templateDropdownRef = ref(null);
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
     const newsLetterStore = useNewsletterStore();
@@ -178,11 +186,10 @@ export default {
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar();
-    const currentTemplateId = computed(() => modelRef.value.templateId);
     const customFields = computed(() => templateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
-
+    const isFetchingTemplateOptions = ref(false);
     const modelRef = ref({
       templateId: null,
       articleIds: [],
@@ -193,7 +200,6 @@ export default {
       useWrapper: true,
       isTestMessage: false
     });
-
     const fetchInitialData = async () => {
       try {
         if (props.id) {
@@ -218,9 +224,9 @@ export default {
         }
 
         await Promise.all([
-         // composerStore.fetchTemplate(modelRef.value.templateId),
           composerStore.searchArticles(''),
-          composerStore.fetchMailingLists(1, 20, true),
+          templateStore.fetchTemplates(1, 100),
+          mailingListStore.fetchMailingList(1, 100, true)
         ]);
 
         /* if (templateStore.currentTemplate) {
@@ -249,19 +255,6 @@ export default {
       }
     };
 
-    const copyContentToClipboard = () => {
-      const tempTextArea = document.createElement('textarea');
-      tempTextArea.value = modelRef.value.content;
-      document.body.appendChild(tempTextArea);
-      tempTextArea.select();
-      const successful = document.execCommand('copy');
-      if (successful) {
-        msgPopup.info('HTML code copied to clipboard!');
-      } else {
-        msgPopup.warning('Failed to copy. Please try again.');
-      }
-      document.body.removeChild(tempTextArea);
-    };
 
     const preview = () => {
       dialog.create({
@@ -274,9 +267,10 @@ export default {
       });
     };
 
-    const handleTemplateChange = (newTemplateId) => {
-      modelRef.value.templateId = newTemplateId;
-      templateStore.setCurrentTemplateById(newTemplateId);
+    const handleTemplateChange = (appliedTemplateId) => {
+      console.log(appliedTemplateId);
+      modelRef.value.templateId = appliedTemplateId;
+      templateStore.setCurrentTemplateById(appliedTemplateId);
     };
 
     const handleColorChange = (fieldName, index, newValue) => {
@@ -425,13 +419,6 @@ export default {
       });
     });
 
-    watch(currentTemplateId, async (newTemplateId) => {
-      if (newTemplateId) {
-        await composerStore.fetchTemplate(newTemplateId);
-        // Additional logic after fetching template, if needed
-      }
-    }, { immediate: true });
-
     watch(
         [
           () => templateStore.currentTemplate,
@@ -464,6 +451,8 @@ export default {
 
 
     return {
+      showTemplateDropdown,
+      templateDropdownRef,
       composerStore,
       templateStore,
       globalStore,
@@ -473,8 +462,8 @@ export default {
       modelRef,
       formRef,
       selectedArticleIds,
+      isFetchingTemplateOptions,
       rules,
-      copyContentToClipboard,
       preview,
       handleSendNewsletter,
       handleTemplateChange,

@@ -4,12 +4,13 @@ CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
     modified_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     type          VARCHAR(20),
+    version       INT      DEFAULT 1,
     name          VARCHAR(255) UNIQUE,
     is_available  BOOL     DEFAULT false,
-    is_default    BOOL     DEFAULT false,
     description   MEDIUMTEXT,
     content       MEDIUMTEXT,
     wrapper       MEDIUMTEXT,
+    hash          VARCHAR(255),
     PRIMARY KEY (id)
 ) ENGINE = InnoDB;
 

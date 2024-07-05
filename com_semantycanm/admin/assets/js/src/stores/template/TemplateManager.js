@@ -121,30 +121,6 @@ class TemplateManager extends BaseObject {
         }
     }
 
-    async setDefaultTemplate(templateId) {
-        const endpoint = `index.php?option=com_semantycanm&task=Template.setDefault&id=${encodeURIComponent(templateId)}`;
-        const method = 'POST';
-
-        try {
-            const response = await fetch(endpoint, {
-                method,
-                headers: { 'Content-Type': 'application/json' }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to set default template, HTTP status = ${response.status}`);
-            }
-            const result = await response.json();
-            if (!result.success) {
-                throw new Error(result.message || 'Failed to set default template.');
-            }
-        } catch (error) {
-            this.msgPopup.error('Error setting default template: ' + error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-        }
-    }
 
     importTemplate() {
         const fileInput = document.createElement('input');
@@ -191,11 +167,6 @@ class TemplateManager extends BaseObject {
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-    }
-
-    async handleTemplateChange(newTemplateId) {
-        this.templateStore.setCurrentTemplate(this.templateStore.templateMap[newTemplateId]);
-        this.setDefaultTemplate(newTemplateId);
     }
 
     selectNewTemplateId() {
