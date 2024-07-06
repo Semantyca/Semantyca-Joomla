@@ -100,7 +100,7 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         }
     }
 
-    const setCurrentTemplateById = (id) => {
+    const applyTemplateById = (id) => {
         const pageNum = 1;
         const onePage = templatesPage.value.pages.get(pageNum);
         const templateDoc = onePage.docs.find(document => document.id === id);
@@ -116,6 +116,20 @@ export const useMessageTemplateStore = defineStore('templates', () => {
             .filter(field => field.isAvailable === 1);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
     }
+
+    const resetAppliedTemplate = () => {
+        appliedTemplateDoc.value = {
+            id: 0,
+            name: 'no template',
+            type: '',
+            description: '',
+            content: '',
+            wrapper: '',
+            isDefault: false,
+            customFields: []
+        };
+        availableCustomFields.value = {};
+    };
 
     function processFormCustomFields(availableFields, adaptField) {
 
@@ -217,7 +231,8 @@ export const useMessageTemplateStore = defineStore('templates', () => {
         pagination,
         cache,
         templateSelectOptions,
-        setCurrentTemplateById,
+        applyTemplateById,
+        resetAppliedTemplate,
         addCustomField,
         removeCustomField
     };

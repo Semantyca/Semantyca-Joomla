@@ -36,7 +36,7 @@ export class MessagingHandler {
         try {
             const newsletterApiManager = new NewsletterApiManager();
             return await newsletterApiManager.upsert({
-                template_id: templateId,
+                templateId: templateId,
                 customFieldsValues: customFieldsValues,
                 articlesIds: articlesIds,
                 subject: subj,

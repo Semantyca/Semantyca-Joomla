@@ -49,7 +49,7 @@
               @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
           />
         </n-form-item>
-<!--        <n-form-item label="Articles" path="selectedArticles">
+        <n-form-item label="Articles" path="selectedArticles">
           <n-select
               v-model:value="selectedArticleIds"
               multiple
@@ -62,7 +62,7 @@
               style="width: 80%; max-width: 600px;"
               @update:value="updateSelectedArticles"
           />
-        </n-form-item>-->
+        </n-form-item>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="recipientField" :show-feedback="false">
           <n-checkbox v-model:checked="modelRef.isTestMessage"/>
@@ -255,7 +255,6 @@ export default {
       }
     };
 
-
     const preview = () => {
       dialog.create({
         title: 'Preview',
@@ -270,7 +269,7 @@ export default {
     const handleTemplateChange = (appliedTemplateId) => {
       console.log(appliedTemplateId);
       modelRef.value.templateId = appliedTemplateId;
-      templateStore.setCurrentTemplateById(appliedTemplateId);
+      templateStore.applyTemplateById(appliedTemplateId);
     };
 
     const handleColorChange = (fieldName, index, newValue) => {
@@ -288,10 +287,10 @@ export default {
         if (!errors) {
           loadingBar.start();
 
+          const templateId = modelRef.value.templateId;
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
           const useWrapper = modelRef.value.useWrapper;
-          const templateId = modelRef.value.templateId;
           const customFieldsValues = modelRef.value.customFieldsValues;
           const selectedArticleIds = modelRef.value.articleIds.map(article => article.value);
           const isTestMessage = modelRef.value.isTestMessage;
@@ -386,7 +385,7 @@ export default {
       selectedArticles: {
         required: true,
         validator(rule, value) {
-          if (value.length > 0) {
+          if (modelRef.value.articleIds.length > 0) {
             return true;
           }
           return new Error('Please select at least one article');

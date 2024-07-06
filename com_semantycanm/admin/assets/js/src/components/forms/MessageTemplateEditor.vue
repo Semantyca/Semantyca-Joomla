@@ -35,7 +35,7 @@
           <n-form-item label="Template name" label-placement="left" path="templateName" size="large">
             <n-input
                 v-model:value="modelRef.templateName"
-                style="width: 100%; max-width: 600px; min-width: 500px;"
+                style="width: 100%; max-width: 372px; min-width: 372px;"
                 placeholder="Enter template name"
             />
           </n-form-item>
@@ -44,15 +44,15 @@
                 v-model:value="modelRef.description"
                 type="textarea"
                 placeholder="Enter template description"
-                style="width: 100%; max-width: 600px; min-width: 500px; height: 50px;"
+                style="width: 100%; max-width: 372px; min-width: 372px; height: 50px;"
                 autosize
             />
           </n-form-item>
           <n-form-item label="Template Type" label-placement="left" path="templateType">
             <n-select
                 v-model:value="modelRef.templateType"
-                :options="[{ label: 'It will allow to choose Articles', value: 'list_of_articles' }]"
-                style="width: 100%; max-width: 600px; min-width: 500px;"
+                :options="[{ label: 'Articles', value: 'list_of_articles' }]"
+                style="width: 100%; max-width: 372px; min-width: 372px;"
             />
           </n-form-item>
           <n-form-item label="Custom fields" label-placement="left" path="templateName">
