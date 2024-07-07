@@ -1,11 +1,19 @@
 <?php
+/**
+ * @package     SemantycaNM
+ * @subpackage  Administrator
+ *
+ * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Exception;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
 use Semantyca\Component\SemantycaNM\Administrator\DTO\TemplateDTO;
-use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\DuplicatedEntityModelException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundModelException;
 
 
 class TemplateModel extends BaseDatabaseModel
@@ -75,7 +83,7 @@ class TemplateModel extends BaseDatabaseModel
 	}
 
 	/**
-	 * @throws RecordNotFoundException
+	 * @throws RecordNotFoundModelException
 	 * @throws Exception
 	 * @since 1.0.0
 	 */
@@ -92,7 +100,7 @@ class TemplateModel extends BaseDatabaseModel
 
 		if (empty($row))
 		{
-			throw new RecordNotFoundException(["The template has not been found"]);
+			throw new RecordNotFoundModelException(["The template has not been found"]);
 		}
 
 		$template              = new TemplateDTO();
@@ -128,7 +136,7 @@ class TemplateModel extends BaseDatabaseModel
 	}
 
 	/**
-	 * @throws RecordNotFoundException
+	 * @throws RecordNotFoundModelException
 	 * @throws Exception
 	 * @since 1.0.0
 	 * @deprecated
@@ -147,7 +155,7 @@ class TemplateModel extends BaseDatabaseModel
 
 		if (empty($row))
 		{
-			throw new RecordNotFoundException(["The template has not been found"]);
+			throw new RecordNotFoundModelException(["The template has not been found"]);
 		}
 
 		$template              = new TemplateDTO();
@@ -249,8 +257,22 @@ class TemplateModel extends BaseDatabaseModel
 				->insert($db->quoteName('#__semantyca_nm_templates'))
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
-			$db->setQuery($query);
-			$db->execute();
+			try
+			{
+				$db->setQuery($query);
+				$db->execute();
+			}
+			catch (Exception $e)
+			{
+				if (stripos($e->getMessage(), 'duplicate entry') !== false)
+				{
+					throw new DuplicatedEntityModelException(['A template with ' . $messageContent['name'] . ' name already exists.']);
+				}
+				else
+				{
+					throw $e;
+				}
+			}
 			$parent_template_id = $db->insertid();
 		}
 
@@ -278,6 +300,7 @@ class TemplateModel extends BaseDatabaseModel
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
 			$db->setQuery($query);
+			error_log(str_replace('#_', 'smtc', ((string)$query)));
 			$db->execute();
 		}
 
@@ -296,7 +319,7 @@ class TemplateModel extends BaseDatabaseModel
 
 		if (!$exists)
 		{
-			throw new RecordNotFoundException(["The template with ID $id has not been found."]);
+			throw new RecordNotFoundModelException(["The template with ID $id has not been found."]);
 		}
 
 		$query->clear();

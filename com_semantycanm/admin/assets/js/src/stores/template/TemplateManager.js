@@ -67,7 +67,7 @@ class TemplateManager extends BaseObject {
         try {
             const response = await fetch(endpoint, {
                 method,
-                headers: { 'Content-Type': 'application/json' },
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify(doc)
             });
 
@@ -88,39 +88,6 @@ class TemplateManager extends BaseObject {
             this.stopBusyMessage();
         }
     }
-
-    async deleteCurrentTemplate() {
-        this.startBusyMessage(`Deleting "${this.templateStore.currentTemplate.name}" template ...`);
-        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&ids=${[this.templateStore.currentTemplate.id]}`;
-        try {
-            const response = await fetch(endpoint, {
-                method: 'DELETE'
-            });
-
-            if (!response.ok) {
-                throw new Error(`Failed to delete template, HTTP status = ${response.status}`);
-            }
-            await response.json();
-            const deletedId = this.templateStore.currentTemplate.id;
-            console.log('deletedId', deletedId);
-
-            await this.getTemplates();
-
-            const newTemplateId = this.selectNewTemplateId(deletedId);
-            console.log('new', newTemplateId);
-            await this.handleTemplateChange(newTemplateId);
-
-            this.msgPopup.success('Template successfully deleted');
-        } catch (error) {
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-        } finally {
-            this.stopBusyMessage();
-        }
-    }
-
 
     importTemplate() {
         const fileInput = document.createElement('input');
@@ -158,7 +125,7 @@ class TemplateManager extends BaseObject {
             if (key === "id" || key === "availableCustomFields" || key === "regDate") return undefined;
             return value;
         }, 2);
-        const blob = new Blob([jsonStr], { type: "application/json" });
+        const blob = new Blob([jsonStr], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
@@ -185,14 +152,13 @@ class TemplateManager extends BaseObject {
         return minKey.toString();
     }
 
-    async deleteTemplates(templateIds) {
-        this.startBusyMessage(`Deleting ${templateIds.length} template(s) ...`);
-        const endpoint = `index.php?option=com_semantycanm&task=Template.delete`;
+    async deleteTemplates(ids) {
+        this.startBusyMessage(`Deleting template(s) ...`);
+        const idsParam = ids.join(',');
+        const endpoint = `index.php?option=com_semantycanm&task=Template.delete&ids=${encodeURIComponent(idsParam)}`;
         try {
             const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ids: templateIds })
+                method: 'DELETE',
             });
 
             if (!response.ok) {
@@ -201,15 +167,6 @@ class TemplateManager extends BaseObject {
             const result = await response.json();
 
             await this.getTemplates();
-
-            if (templateIds.includes(this.templateStore.currentTemplate.id)) {
-                const newTemplateId = this.selectNewTemplateId();
-                if (newTemplateId) {
-                    await this.handleTemplateChange(newTemplateId);
-                } else {
-                    this.templateStore.setCurrentTemplate(null);
-                }
-            }
 
             this.msgPopup.success(result.message || 'Templates successfully deleted');
         } catch (error) {

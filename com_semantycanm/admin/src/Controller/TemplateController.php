@@ -15,10 +15,12 @@ use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\DuplicatedEntityModelException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundModelException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
 use Throwable;
 
 class TemplateController extends BaseController
@@ -57,7 +59,7 @@ class TemplateController extends BaseController
 			$model = $this->getModel('Template');
 			echo new JsonResponse($model->getTemplateById($id)->toArray());
 		}
-		catch (RecordNotFoundException $e)
+		catch (RecordNotFoundModelException $e)
 		{
 			http_response_code(404);
 			echo new JsonResponse($e->getErrors(), 'applicationError', true);
@@ -71,35 +73,7 @@ class TemplateController extends BaseController
 			Factory::getApplication()->close();
 		}
 	}
-/*
-	public function find()
-	{
-		header(Constants::JSON_CONTENT_TYPE);
-		try
-		{
-			$name  = $this->input->getString('name');
-			$model = $this->getModel('Template');
-			echo new JsonResponse($model->getTemplateByName($name)->toArray());
-		}
-		catch (RecordNotFoundException $e)
-		{
-			http_response_code(404);
-			echo new JsonResponse($e->getErrors(), 'applicationError', true);
-		}
-		catch (\Throwable $e)
-		{
-			http_response_code(500);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
-		{
-			Factory::getApplication()->close();
-		}
-	}*/
 
-	/**
-	 * @throws Exception
-	 * @since 1.0.0
-	 */
 	public function update()
 	{
 		$app = Factory::getApplication();
@@ -141,9 +115,14 @@ class TemplateController extends BaseController
 			}
 
 		}
-		catch (ValidationErrorException $e)
+		catch (DuplicatedEntityModelException $e)
 		{
 			http_response_code(400);
+			echo ResponseHelper::error('duplicateError', $e->getCode());
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(422);
 			echo new JsonResponse($e->getMessage(), 'validationError', true);
 		}
 		catch (Throwable $e)
@@ -222,11 +201,16 @@ class TemplateController extends BaseController
 		header(Constants::JSON_CONTENT_TYPE);
 		try
 		{
-			$ids = $this->input->get('ids', [], 'ARRAY');
+			$ids = $this->input->getString('ids');
 
-			if (empty($ids))
+			if (empty($ids) || $ids === 'null')
 			{
-				throw new ValidationErrorException(['At least one id is required for deletion']);
+				throw new ValidationErrorException([], 'id cannot be null');
+			}
+
+			if (!is_array($ids))
+			{
+				$ids = explode(',', $ids);
 			}
 
 			$model  = $this->getModel('Template');

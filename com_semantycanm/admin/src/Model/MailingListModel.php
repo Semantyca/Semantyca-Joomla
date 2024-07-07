@@ -11,7 +11,7 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Model;
 
 use Exception;
 use Joomla\CMS\MVC\Model\BaseDatabaseModel;
-use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundException;
+use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundModelException;
 
 class MailingListModel extends BaseDatabaseModel
 {
@@ -46,7 +46,7 @@ class MailingListModel extends BaseDatabaseModel
 	}
 
 	/**
-	 * @throws RecordNotFoundException
+	 * @throws RecordNotFoundModelException
 	 * @since 1.0
 	 */
 	public function find($id, $detailed)
@@ -67,7 +67,7 @@ class MailingListModel extends BaseDatabaseModel
 
 		if (!$mailingList)
 		{
-			throw new RecordNotFoundException("Record not found for ID: $id");
+			throw new RecordNotFoundModelException("Record not found for ID: $id");
 		}
 
 		if ($detailed)
@@ -122,7 +122,7 @@ class MailingListModel extends BaseDatabaseModel
 
 
 	/**
-	 * @throws RecordNotFoundException
+	 * @throws RecordNotFoundModelException
 	 * @since 1.0
 	 */
 	public function add($mailing_list_name, $mailing_list_ids): object

@@ -24,9 +24,6 @@
         <n-button type="primary" @click="importTemplate">
           Import
         </n-button>
-        <n-button type="error" @click="deleteTemplate">
-          {{ globalStore.translations.DELETE }}
-        </n-button>
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
@@ -48,14 +45,7 @@
                 autosize
             />
           </n-form-item>
-          <n-form-item label="Template Type" label-placement="left" path="templateType">
-            <n-select
-                v-model:value="modelRef.templateType"
-                :options="[{ label: 'Articles', value: 'list_of_articles' }]"
-                style="width: 100%; max-width: 372px; min-width: 372px;"
-            />
-          </n-form-item>
-          <n-form-item label="Custom fields" label-placement="left" path="templateName">
+          <n-form-item label="Dynamic fields" label-placement="left" path="templateName">
             <n-dynamic-input
                 v-model:value="modelRef.customFields"
                 :on-create="addCustomField"
@@ -197,6 +187,7 @@ export default {
     const loadingBar = useLoadingBar();
 
     const modelRef = ref({
+      id: 0,
       templateName: '',
       description: '',
       templateType: '',
@@ -282,7 +273,6 @@ export default {
       globalStore,
       modelRef,
       saveTemplate,
-      deleteTemplate: () => templateManager.deleteCurrentTemplate(),
       exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),
       addCustomField: () => addCustomField(modelRef),

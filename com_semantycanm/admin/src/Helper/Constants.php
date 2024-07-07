@@ -22,6 +22,7 @@ class Constants
 	const FILED_TYPE_STRING = 502;
 	const FIELD_TYPE_STRING_LIST = 503;
 	const FIELD_TYPE_URL = 504;
+	const FIELD_TYPE_ARTICLE_LIST = 520;
 
 
 }

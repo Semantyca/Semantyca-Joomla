@@ -39,30 +39,19 @@
               label-width="auto"
               require-mark-placement="right-hanging"
       >
-        <n-form-item
-            v-for="(field, fieldName) in customFields"
-            :key="field.id"
-            :label="field.caption"
-        >
-          <dynamic-form-field
-              :field="field"
-              @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
-          />
-        </n-form-item>
-        <n-form-item label="Articles" path="selectedArticles">
-          <n-select
-              v-model:value="selectedArticleIds"
-              multiple
-              filterable
-              placeholder="Search articles"
-              :options="composerStore.articleOptions"
-              :render-label="renderArticleOption"
-              :render-tag="renderSelectedArticle"
-              :clear-filter-after-select="true"
-              style="width: 80%; max-width: 600px;"
-              @update:value="updateSelectedArticles"
-          />
-        </n-form-item>
+        <n-collapse-transition :show="showCustomFields">
+            <n-form-item
+                v-for="(field, fieldName) in customFields"
+                :key="field.id"
+                :label="field.caption"
+            >
+              <dynamic-form-field
+                  :field="field"
+                  @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
+
+              />
+            </n-form-item>
+        </n-collapse-transition>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="recipientField" :show-feedback="false">
           <n-checkbox v-model:checked="modelRef.isTestMessage"/>
@@ -137,7 +126,7 @@ import {
   NSelect,
   NSkeleton,
   NSpace,
-  NTag,
+  NCollapseTransition,
   NTransfer,
   useDialog,
   useLoadingBar,
@@ -159,7 +148,7 @@ import {isEmail} from "validator";
 export default {
   name: 'Composer',
   components: {
-    FormattingButtons, DynamicFormField, NDropdown, NSpin,
+    FormattingButtons, DynamicFormField, NDropdown, NSpin, NCollapseTransition,
     NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber, NPageHeader,
     NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NH6, NTransfer,
     Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft,
@@ -178,6 +167,7 @@ export default {
     const composerRef = ref(null);
     const showTemplateDropdown = ref(false);
     const templateDropdownRef = ref(null);
+    const showCustomFields = ref(false);
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
     const newsLetterStore = useNewsletterStore();
@@ -228,27 +218,6 @@ export default {
           templateStore.fetchTemplates(1, 100),
           mailingListStore.fetchMailingList(1, 100, true)
         ]);
-
-        /* if (templateStore.currentTemplate) {
-           const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-           dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
-
-           Object.keys(templateStore.availableCustomFields).forEach((key) => {
-             const field = templateStore.availableCustomFields[key];
-             const fieldValue = field.defaultValue;
-             dynamicBuilder.addVariable(key, fieldValue);
-           });
-
-           try {
-             modelRef.value.content = dynamicBuilder.buildContent();
-           } catch (e) {
-             console.log(e.message);
-             msgPopup.error(e.message, {
-               closable: true,
-               duration: 10000
-             });
-           }
-         }*/
       } catch (error) {
         console.error("Error fetching initial data:", error);
         msgPopup.error("Failed to load initial data");
@@ -270,6 +239,7 @@ export default {
       console.log(appliedTemplateId);
       modelRef.value.templateId = appliedTemplateId;
       templateStore.applyTemplateById(appliedTemplateId);
+      showCustomFields.value = true;
     };
 
     const handleColorChange = (fieldName, index, newValue) => {
@@ -286,6 +256,14 @@ export default {
       formRef.value.validate((errors) => {
         if (!errors) {
           loadingBar.start();
+
+          if (modelRef.value.articleIds.length === 0) {
+            msgPopup.error('Please select at least one article.', {
+              closable: true,
+              duration: 10000
+            });
+            return; // Stop the save/send process
+          }
 
           const templateId = modelRef.value.templateId;
           const subj = modelRef.value.subject;
@@ -354,28 +332,6 @@ export default {
         loadingBar.finish();
       }
     }
-
-    const renderArticleOption = (option) => {
-      return h('div', [
-        h('div', {style: 'font-weight: bold;'}, option.category),
-        h('div', option.title)
-      ]);
-    };
-
-    const updateSelectedArticles = (selectedIds) => {
-      modelRef.value.articleIds = selectedIds.map(id => {
-        return composerStore.articleOptions.find(article => article.value === id);
-      });
-    };
-
-    const renderSelectedArticle = ({option, handleClose}) => {
-      return h(NTag, {
-        closable: true,
-        onClose: handleClose,
-      }, {
-        default: () => option.title
-      });
-    };
 
     const rules = {
       subject: {
@@ -452,6 +408,7 @@ export default {
     return {
       showTemplateDropdown,
       templateDropdownRef,
+      showCustomFields,
       composerStore,
       templateStore,
       globalStore,
@@ -469,9 +426,6 @@ export default {
       handleColorChange,
       handleFieldChange,
       handleFetchSubject,
-      renderArticleOption,
-      renderSelectedArticle,
-      updateSelectedArticles
     };
   }
 };
