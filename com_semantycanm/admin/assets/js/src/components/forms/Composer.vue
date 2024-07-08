@@ -44,6 +44,11 @@
                 v-for="(field, fieldName) in customFields"
                 :key="field.id"
                 :label="field.caption"
+                :path="fieldName"
+                :rule="rules[fieldName]"
+                :show-feedback="false"
+                label-placement="left"
+                :style="{ marginBottom: '16px' }"
             >
               <dynamic-form-field
                   :field="field"
@@ -60,6 +65,8 @@
             :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'"
             label-placement="left"
             path="recipientField"
+            :show-feedback="false"
+            :style="{ marginBottom: '16px' }"
         >
           <template v-if="modelRef.isTestMessage">
             <n-input v-model:value="modelRef.testEmail"
@@ -77,7 +84,10 @@
             />
           </template>
         </n-form-item>
-        <n-form-item label="Subject" path="subject">
+        <n-form-item label="Subject"
+                     path="subject"
+                     :show-feedback="false"
+                     :style="{ marginBottom: '16px' }">
           <n-input v-model:value="modelRef.subject"
                    type="text"
                    id="subject"
@@ -328,7 +338,7 @@ export default {
       }
     }
 
-    const rules = {
+    const rules = ref({
       subject: {
         required: true,
         message: 'Subject cannot be empty',
@@ -349,7 +359,32 @@ export default {
           }
         },
       },
+    });
+
+    const updateRules = () => {
+      Object.entries(customFields.value).forEach(([fieldName, field]) => {
+        const fieldRules = [];
+
+        if (field.type === 520) {
+          fieldRules.push({
+            validator(rule, value) {
+              console.log(rule, field);
+              if (!value || value.length === 0) {
+                return new Error('Please select at least one article');
+              }
+              return true;
+            },
+            trigger: ['blur', 'change'],
+          });
+        }
+
+        rules.value[fieldName] = fieldRules;
+      });
     };
+
+    watch(customFields, () => {
+      updateRules();
+    }, { deep: true, immediate: true });
 
     fetchInitialData();
 

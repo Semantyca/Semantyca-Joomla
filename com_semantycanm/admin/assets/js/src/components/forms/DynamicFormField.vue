@@ -19,7 +19,7 @@
   </template>
   <template v-else-if="field.type === 520">
     <n-select
-        v-model:value="modelRef.articleIds"
+        v-model:value="articleIds"
         multiple
         filterable
         placeholder="Search articles"
@@ -28,7 +28,7 @@
         :render-tag="renderSelectedArticle"
         :clear-filter-after-select="true"
         style="width: 80%; max-width: 600px;"
-        @update:value="updateSelectedArticles"
+        @update:value="handleArticleIdsChange"
     />
   </template>
   <template v-else>
@@ -56,11 +56,8 @@ export default defineComponent({
   },
   emits: ['update:field'],
   setup(props, { emit }) {
-    //console.log('field:', props.field)
     const composerStore = useComposerStore();
-    const modelRef = ref({
-      articleIds: [],
-    });
+    const articleIds = ref([]);
 
     const handleColorChange = (index, newValue) => {
       const updatedField = {
@@ -82,10 +79,9 @@ export default defineComponent({
       ]);
     };
 
-    const updateSelectedArticles = (selectedIds) => {
-      modelRef.articleIds = selectedIds.map(id => {
-        return composerStore.articleOptions.find(article => article.value === id);
-      });
+    const handleArticleIdsChange = (selectedIds) => {
+      articleIds.value = selectedIds;
+      emit('update:field', { ...props.field, defaultValue: selectedIds });
     };
 
     const renderSelectedArticle = ({ option, handleClose }) => {
@@ -99,11 +95,11 @@ export default defineComponent({
 
     return {
       composerStore,
-      modelRef,
+      articleIds,
       handleColorChange,
       handleFieldChange,
       renderArticleOption,
-      updateSelectedArticles,
+      handleArticleIdsChange,
       renderSelectedArticle
     };
   }
