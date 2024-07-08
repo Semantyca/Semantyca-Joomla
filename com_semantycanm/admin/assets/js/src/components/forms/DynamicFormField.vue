@@ -19,7 +19,7 @@
   </template>
   <template v-else-if="field.type === 520">
     <n-select
-        v-model:value="articleIds"
+        v-model:value="field.defaultValue"
         multiple
         filterable
         placeholder="Search articles"

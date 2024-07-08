@@ -1,4 +1,3 @@
-import {setCurrentTemplate} from "../storeUtils";
 import BaseObject from "../../utils/BaseObject";
 
 class TemplateManager extends BaseObject {
@@ -90,7 +89,7 @@ class TemplateManager extends BaseObject {
                         const jsonObj = JSON.parse(e.target.result);
                         await this.saveTemplate(jsonObj, true);
                         await this.getTemplates();
-                        this.msgPopup.success('Template imported and saved successfully.');
+                        this.msgPopup.success('Template imported and saved successfully');
                     } catch (err) {
                         this.msgPopup.error('Failed to import template: ' + err, {
                             closable: true,
@@ -123,21 +122,6 @@ class TemplateManager extends BaseObject {
         URL.revokeObjectURL(url);
     }
 
-    selectNewTemplateId() {
-        const keys = Object.keys(this.templateStore.templateMap);
-        if (keys.length === 0) {
-            return null;
-        }
-
-        const numericKeys = keys.map(Number);
-        const minKey = Math.min(...numericKeys);
-
-        if (minKey === Infinity) {
-            const maxKey = Math.max(...numericKeys);
-            return maxKey.toString();
-        }
-        return minKey.toString();
-    }
 
     async deleteTemplates(ids) {
         this.startBusyMessage(`Deleting template(s) ...`);

@@ -26,7 +26,7 @@
                     :options="templateStore.templateSelectOptions"
                     @select="handleTemplateChange">
           <n-button type="primary">
-              Apply template
+            Apply template
           </n-button>
         </n-dropdown>
       </n-space>
@@ -40,22 +40,22 @@
               require-mark-placement="right-hanging"
       >
         <n-collapse-transition :show="showCustomFields">
-            <n-form-item
-                v-for="(field, fieldName) in customFields"
-                :key="field.id"
-                :label="field.caption"
-                :path="fieldName"
-                :rule="rules[fieldName]"
-                :show-feedback="false"
-                label-placement="left"
-                :style="{ marginBottom: '16px' }"
-            >
-              <dynamic-form-field
-                  :field="field"
-                  @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
+          <n-form-item
+              v-for="(field, fieldName) in customFields"
+              :key="field.id"
+              :label="field.caption"
+              :path="fieldName"
+              :rule="rules[fieldName]"
+              :show-feedback="false"
+              label-placement="left"
+              :style="{ marginBottom: '16px' }"
+          >
+            <dynamic-form-field
+                :field="field"
+                @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
 
-              />
-            </n-form-item>
+            />
+          </n-form-item>
         </n-collapse-transition>
         <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
                      path="recipientField" :show-feedback="false">
@@ -153,6 +153,7 @@ import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
+import {DynamicContentBuilder} from "../../utils/DynamicBuilder"
 import {isEmail} from "validator";
 
 export default {
@@ -261,15 +262,6 @@ export default {
       formRef.value.validate((errors) => {
         if (!errors) {
           loadingBar.start();
-
-          if (modelRef.value.articleIds.length === 0) {
-            msgPopup.error('Please select at least one article.', {
-              closable: true,
-              duration: 10000
-            });
-            return;
-          }
-
           const templateId = modelRef.value.templateId;
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
@@ -298,7 +290,7 @@ export default {
                 console.error('Error sending/saving newsletter:', error);
                 msgPopup.error('An error occurred while sending/saving the newsletter', {
                   closable: true,
-                  duration: 10000
+                  duration: 5000
                 });
               })
               .finally(() => {
@@ -318,7 +310,7 @@ export default {
             Object.values(errorMessages).forEach(errorMessage => {
               msgPopup.error(errorMessage, {
                 closable: true,
-                duration: 10000
+                duration: 5000
               });
             });
           }
@@ -368,8 +360,8 @@ export default {
         if (field.type === 520) {
           fieldRules.push({
             validator(rule, value) {
-              console.log(rule, field);
-              if (!value || value.length === 0) {
+              console.log('def', field);
+              if (modelRef.value.articleIds.length < 1) {
                 return new Error('Please select at least one article');
               }
               return true;
@@ -384,7 +376,7 @@ export default {
 
     watch(customFields, () => {
       updateRules();
-    }, { deep: true, immediate: true });
+    }, {deep: true, immediate: true});
 
     fetchInitialData();
 
@@ -397,30 +389,29 @@ export default {
 
     watch(
         [
-          () => templateStore.currentTemplate,
+          () => modelRef.value.templateId,
           () => templateStore.availableCustomFields,
           () => modelRef.value.articleIds
         ],
         () => {
-          /*  modelRef.value.templateId = templateStore.currentTemplate.id;
-            const dynamicBuilder = new DynamicBuilder(templateStore.currentTemplate);
-            dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
+          const dynamicBuilder = new DynamicContentBuilder(templateStore.appliedTemplateDoc);
+          dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
 
-            Object.keys(templateStore.availableCustomFields).forEach((key) => {
-              const field = templateStore.availableCustomFields[key];
-              const fieldValue = field.defaultValue;
-              dynamicBuilder.addVariable(key, fieldValue);
+          Object.keys(templateStore.availableCustomFields).forEach((key) => {
+            const field = templateStore.availableCustomFields[key];
+            const fieldValue = field.defaultValue;
+            dynamicBuilder.addVariable(key, fieldValue);
+          });
+
+          try {
+            modelRef.value.content = dynamicBuilder.buildContent();
+          } catch (e) {
+            console.log(e.message);
+            msgPopup.error(e.message, {
+              closable: true,
+              duration: 10000
             });
-
-            try {
-              modelRef.value.content = dynamicBuilder.buildContent();
-            } catch (e) {
-              console.log(e.message);
-              msgPopup.error(e.message, {
-                closable: true,
-                duration: 10000
-              });
-            }*/
+          }
         },
         {deep: true}
     );
