@@ -56,15 +56,19 @@ export default defineComponent({
   },
   emits: ['update:field'],
   setup(props, { emit }) {
+    //console.log('field:', props.field)
     const composerStore = useComposerStore();
     const modelRef = ref({
       articleIds: [],
     });
 
     const handleColorChange = (index, newValue) => {
-      const updatedColors = [...props.field.defaultValue];
-      updatedColors[index] = newValue;
-      emit('update:field', { ...props.field, defaultValue: updatedColors });
+      const updatedField = {
+        ...props.field,
+        defaultValue: [...props.field.defaultValue],
+      };
+      updatedField.defaultValue[index] = newValue;
+      emit('update:field', updatedField);
     };
 
     const handleFieldChange = (newValue) => {

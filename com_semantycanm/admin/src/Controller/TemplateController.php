@@ -74,7 +74,7 @@ class TemplateController extends BaseController
 		}
 	}
 
-	public function update()
+	public function upsert()
 	{
 		$app = Factory::getApplication();
 		header(Constants::JSON_CONTENT_TYPE);
@@ -107,7 +107,7 @@ class TemplateController extends BaseController
 			$result = $model->upsert($id, $doc);
 			if ($result)
 			{
-				echo new JsonResponse(['success' => true, 'message' => 'Template saved successfully.']);
+				echo ResponseHelper::success([], 'Template saved successfully');
 			}
 			else
 			{
@@ -123,13 +123,13 @@ class TemplateController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(422);
-			echo new JsonResponse($e->getMessage(), 'validationError', true);
+			echo ResponseHelper::error('validationError', $e->getMessage());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			echo ResponseHelper::error('error', $e->getMessage());
 		} finally
 		{
 			$app->close();

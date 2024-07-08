@@ -243,7 +243,7 @@ export default {
         ...templateStore.currentTemplate,
         ...modelRef.value
       };
-      templateManager.saveTemplate(updatedTemplate, false);
+      templateManager.saveTemplate(updatedTemplate, props.id);
     };
 
     const fetchInitialData = async () => {

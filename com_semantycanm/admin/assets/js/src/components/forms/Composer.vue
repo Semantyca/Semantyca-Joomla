@@ -236,18 +236,13 @@ export default {
     };
 
     const handleTemplateChange = (appliedTemplateId) => {
-      console.log(appliedTemplateId);
       modelRef.value.templateId = appliedTemplateId;
       templateStore.applyTemplateById(appliedTemplateId);
       showCustomFields.value = true;
     };
 
-    const handleColorChange = (fieldName, index, newValue) => {
-      customFields.value[fieldName].defaultValue[index] = newValue;
-    };
-
-    const handleFieldChange = (fieldName, newValue) => {
-      customFields.value[fieldName].defaultValue = newValue;
+    const handleFieldChange = (fieldName, updatedField) => {
+      customFields.value[fieldName] = updatedField;
     };
 
     const composerMsg = new MessagingHandler(newsLetterStore);
@@ -262,7 +257,7 @@ export default {
               closable: true,
               duration: 10000
             });
-            return; // Stop the save/send process
+            return;
           }
 
           const templateId = modelRef.value.templateId;
@@ -337,15 +332,6 @@ export default {
       subject: {
         required: true,
         message: 'Subject cannot be empty',
-      },
-      selectedArticles: {
-        required: true,
-        validator(rule, value) {
-          if (modelRef.value.articleIds.length > 0) {
-            return true;
-          }
-          return new Error('Please select at least one article');
-        },
       },
       recipientField: {
         required: true,
@@ -423,7 +409,6 @@ export default {
       preview,
       handleSendNewsletter,
       handleTemplateChange,
-      handleColorChange,
       handleFieldChange,
       handleFetchSubject,
     };

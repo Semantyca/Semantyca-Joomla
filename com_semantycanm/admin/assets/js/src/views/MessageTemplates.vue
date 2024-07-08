@@ -28,6 +28,7 @@ export default defineComponent({
     };
 
     const handleCreateNew = () => {
+      selectedId.value = null;
       currentComponent.value = 'MessageTemplateEditor';
     };
 

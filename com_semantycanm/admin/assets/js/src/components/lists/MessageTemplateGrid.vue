@@ -27,10 +27,10 @@
 </template>
 
 <script>
-import { defineComponent, getCurrentInstance, ref, computed } from 'vue';
-import { useGlobalStore } from "../../stores/globalStore";
-import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
-import { NDataTable, NButton, NH3, NGi, NGrid, NSpace } from "naive-ui";
+import {defineComponent, getCurrentInstance, ref, computed} from 'vue';
+import {useGlobalStore} from "../../stores/globalStore";
+import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
+import {NDataTable, NButton, NH3, NGi, NGrid, NSpace} from "naive-ui";
 
 export default defineComponent({
   name: 'MessageTemplateGrid',
@@ -46,7 +46,7 @@ export default defineComponent({
   setup() {
     const globalStore = useGlobalStore();
     const messageTemplateStore = useMessageTemplateStore();
-    const { emit } = getCurrentInstance();
+    const {emit} = getCurrentInstance();
     const checkedRowKeys = ref([]);
 
     const fetchInitialData = async () => {
@@ -93,14 +93,12 @@ export default defineComponent({
     const hasCheckedRows = computed(() => checkedRowKeys.value.length > 0);
 
     const deleteCheckedRows = async () => {
-      if (confirm('Are you sure you want to delete the selected templates?')) {
-        try {
-          await messageTemplateStore.deleteApi(checkedRowKeys.value);
-          checkedRowKeys.value = [];
-          await fetchInitialData();
-        } catch (error) {
-          console.error('Error deleting templates:', error);
-        }
+      try {
+        await messageTemplateStore.deleteApi(checkedRowKeys.value);
+        checkedRowKeys.value = [];
+        await fetchInitialData();
+      } catch (error) {
+        console.error('Error deleting templates:', error);
       }
     };
 

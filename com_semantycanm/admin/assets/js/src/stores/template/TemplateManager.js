@@ -34,18 +34,6 @@ class TemplateManager extends BaseObject {
                     totalItems: jsonResponse.data.count,
                     totalPages: jsonResponse.data.maxPage
                 };
-                const defaultTemplateId = Object.keys(this.templateStore.templateMap).find(id => this.templateStore.templateMap[id].isDefault);
-                if (defaultTemplateId) {
-                    setCurrentTemplate(this.templateStore, defaultTemplateId);
-                }
-            } else {
-                this.templateStore.templateMap = {}; // Set templateMap to an empty object
-                this.templateStore.pagination = {
-                    currentPage: 1,
-                    itemsPerPage: itemsPerPage,
-                    totalItems: 0,
-                    totalPages: 1
-                };
             }
         } catch (error) {
             this.loadingBar.error();
@@ -58,10 +46,9 @@ class TemplateManager extends BaseObject {
         }
     }
 
-    async saveTemplate(doc, isNew = false) {
+    async saveTemplate(doc, id = null) {
         this.startBusyMessage('Saving template ...');
-        const endpoint = isNew ? `index.php?option=com_semantycanm&task=Template.update&id=` :
-            `index.php?option=com_semantycanm&task=Template.update&id=${encodeURIComponent(doc.id)}`;
+        const endpoint = `index.php?option=com_semantycanm&task=Template.upsert&id=${doc.id}`;
         const method = 'POST';
 
         try {
