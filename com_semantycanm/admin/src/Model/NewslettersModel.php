@@ -200,7 +200,6 @@ class NewslettersModel extends BaseDatabaseModel
 		$query = $db->getQuery(true);
 
 		if ($id === null) {
-			// Insert new newsletter
 			$columns = [
 				'reg_date', 'subject', 'use_wrapper', 'template_id', 'custom_fields_values',
 				'articles_ids', 'is_test', 'mailing_list_ids', 'test_email', 'message_content'
@@ -229,7 +228,6 @@ class NewslettersModel extends BaseDatabaseModel
 
 			return $db->insertid();
 		} else {
-			// Update existing newsletter
 			$fields = [
 				$db->quoteName('modified_date') . ' = NOW()',
 				$db->quoteName('subject') . ' = ' . $db->quote($newsletter->subject),

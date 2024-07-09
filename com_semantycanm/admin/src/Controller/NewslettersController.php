@@ -170,7 +170,7 @@ class NewslettersController extends BaseController
 
 				$isTest = $input['isTest'] ?? false;
 
-				if (empty($input['template_id']))
+				if (empty($input['templateId']))
 				{
 					throw new ValidationErrorException(['Template ID is required']);
 				}
@@ -192,7 +192,7 @@ class NewslettersController extends BaseController
 
 				$newsletterDTO                     = new NewsletterDTO();
 				$newsletterDTO->regDate            = new DateTime();
-				$newsletterDTO->templateId         = $input['template_id'];
+				$newsletterDTO->templateId         = $input['templateId'];
 				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
 				$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
 				$newsletterDTO->isTest             = $isTest;

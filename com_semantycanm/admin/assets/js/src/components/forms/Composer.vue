@@ -119,9 +119,9 @@ import {
   NButton,
   NButtonGroup,
   NCheckbox,
+  NCollapseTransition,
   NColorPicker,
   NDropdown,
-  NSpin,
   NForm,
   NFormItem,
   NGi,
@@ -136,7 +136,7 @@ import {
   NSelect,
   NSkeleton,
   NSpace,
-  NCollapseTransition,
+  NSpin,
   NTransfer,
   useDialog,
   useLoadingBar,
@@ -153,7 +153,7 @@ import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
-import {DynamicContentBuilder} from "../../utils/DynamicBuilder"
+import DynamicBuilder from "../../utils/DynamicBuilder"
 import {isEmail} from "validator";
 
 export default {
@@ -174,7 +174,6 @@ export default {
   setup(props) {
     console.log('Composer component initialized with id:', props.id);
     const formRef = ref(null);
-    const selectedArticleIds = ref([]);
     const composerRef = ref(null);
     const showTemplateDropdown = ref(false);
     const templateDropdownRef = ref(null);
@@ -193,7 +192,6 @@ export default {
     const isFetchingTemplateOptions = ref(false);
     const modelRef = ref({
       templateId: null,
-      articleIds: [],
       mailingListIds: [],
       testEmail: '',
       subject: '',
@@ -216,12 +214,7 @@ export default {
             content: newsletter.messageContent,
             useWrapper: newsletter.useWrapper,
             isTestMessage: newsletter.isTest,
-            customFieldsValues: newsletter.customFieldsValues
           };
-
-          selectedArticleIds.value = newsletter.articlesIds;
-
-          //     await templateStore.setCurrentTemplateById(newsletter.templateId);
         }
 
         await Promise.all([
@@ -266,13 +259,12 @@ export default {
           const subj = modelRef.value.subject;
           const msgContent = modelRef.value.content;
           const useWrapper = modelRef.value.useWrapper;
-          const customFieldsValues = modelRef.value.customFieldsValues;
-          const selectedArticleIds = modelRef.value.articleIds.map(article => article.value);
+          const customFieldsValues = customFields.value;
           const isTestMessage = modelRef.value.isTestMessage;
           const mailingList = modelRef.value.mailingListIds;
           const testEmail = modelRef.value.testEmail;
 
-          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, selectedArticleIds, isTestMessage, mailingList, testEmail, onlySave, props.id)
+          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, isTestMessage, mailingList, testEmail, onlySave, props.id)
               .then(() => {
                 if (onlySave) {
                   msgPopup.success('Newsletter saved successfully', {
@@ -361,7 +353,7 @@ export default {
           fieldRules.push({
             validator(rule, value) {
               console.log('def', field);
-              if (modelRef.value.articleIds.length < 1) {
+              if (Array.isArray(field.defaultValue) && field.defaultValue.length < 1) {
                 return new Error('Please select at least one article');
               }
               return true;
@@ -389,18 +381,15 @@ export default {
 
     watch(
         [
-          () => modelRef.value.templateId,
-          () => templateStore.availableCustomFields,
-          () => modelRef.value.articleIds
+          () => customFields
         ],
         () => {
-          const dynamicBuilder = new DynamicContentBuilder(templateStore.appliedTemplateDoc);
-          dynamicBuilder.addVariable("articles", modelRef.value.articleIds);
+          const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
 
-          Object.keys(templateStore.availableCustomFields).forEach((key) => {
-            const field = templateStore.availableCustomFields[key];
-            const fieldValue = field.defaultValue;
-            dynamicBuilder.addVariable(key, fieldValue);
+          Object.keys(customFields.value).forEach((key) => {
+                const field = customFields.value[key];
+                const fieldValue = field.defaultValue;
+                dynamicBuilder.addVariable(key, fieldValue);
           });
 
           try {
@@ -429,7 +418,6 @@ export default {
       composerRef,
       modelRef,
       formRef,
-      selectedArticleIds,
       isFetchingTemplateOptions,
       rules,
       preview,
@@ -443,7 +431,9 @@ export default {
 </script>
 
 <style scoped>
-
+.n-form-item .n-form-item-feedback {
+  border: none;
+}
 n-layout-footer {
   flex-shrink: 0;
   padding: 12px 20px;

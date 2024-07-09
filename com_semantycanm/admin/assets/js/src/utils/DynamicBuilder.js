@@ -1,6 +1,7 @@
 import ejs from "ejs";
 
-export default class DynamicContentBuilder {
+export default class DynamicBuilder {
+
     constructor(template) {
         this.template = template;
         this.variables = {};

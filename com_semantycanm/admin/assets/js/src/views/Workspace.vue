@@ -58,3 +58,9 @@ export default {
   },
 }
 </script>
+
+<style>
+:deep(.n-form-item.n-form-item--error-status .--n-border-error) {
+  color: orange;
+}
+</style>

@@ -19,7 +19,7 @@
   </template>
   <template v-else-if="field.type === 520">
     <n-select
-        v-model:value="field.defaultValue"
+        :value="selectedArticleIds"
         multiple
         filterable
         placeholder="Search articles"
@@ -41,7 +41,7 @@
 </template>
 
 <script>
-import { defineComponent, ref, h } from 'vue';
+import {defineComponent, h, ref} from 'vue';
 import { NColorPicker, NInputNumber, NInput, NTag, NSelect } from 'naive-ui';
 import { useComposerStore } from "../../stores/composer/composerStore";
 
@@ -57,7 +57,7 @@ export default defineComponent({
   emits: ['update:field'],
   setup(props, { emit }) {
     const composerStore = useComposerStore();
-    const articleIds = ref([]);
+    const selectedArticleIds = ref([]);
 
     const handleColorChange = (index, newValue) => {
       const updatedField = {
@@ -80,8 +80,11 @@ export default defineComponent({
     };
 
     const handleArticleIdsChange = (selectedIds) => {
-      articleIds.value = selectedIds;
-      emit('update:field', { ...props.field, defaultValue: selectedIds });
+      selectedArticleIds.value = selectedIds;
+      const articles = selectedIds.map(id => {
+        return composerStore.articleOptions.find(article => article.value === id);
+      });
+      emit('update:field', { ...props.field, defaultValue: articles });
     };
 
     const renderSelectedArticle = ({ option, handleClose }) => {
@@ -95,7 +98,7 @@ export default defineComponent({
 
     return {
       composerStore,
-      articleIds,
+      selectedArticleIds,
       handleColorChange,
       handleFieldChange,
       renderArticleOption,

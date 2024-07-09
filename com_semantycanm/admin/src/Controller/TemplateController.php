@@ -91,7 +91,7 @@ class TemplateController extends BaseController
 			{
 				foreach ($doc['customFields'] as $customField)
 				{
-					if ($customField['type'] == Constants::FIELD_TYPE_STRING_LIST)
+					if ($customField['type'] == Constants::FIELD_TYPE_STRING_LIST || $customField['type'] == Constants::FIELD_TYPE_ARTICLE_LIST)
 					{
 						$defaultValue = $customField['defaultValue'] ?? '';
 						$decodedValue = json_decode($defaultValue);

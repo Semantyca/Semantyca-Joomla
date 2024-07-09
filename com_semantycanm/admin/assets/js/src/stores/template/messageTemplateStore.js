@@ -211,6 +211,19 @@ export const useMessageTemplateStore = defineStore('templates', () => {
                     ...field,
                     defaultValue: Number(field.defaultValue)
                 };
+            case 520:
+                try {
+                    const parsedValue = JSON.parse(field.defaultValue);
+                    return {
+                        ...field,
+                        defaultValue: Array.isArray(parsedValue) ? parsedValue : []
+                    };
+                } catch (error) {
+                    return {
+                        ...field,
+                        defaultValue: []
+                    };
+                }
             default:
                 return {...field};
         }
