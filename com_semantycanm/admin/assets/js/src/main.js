@@ -30,7 +30,7 @@ const loadComponent = async (menuId) => {
                 router: (await import('./router/statistics')).default,
                 name: 'Statistics'
             };
-        case 'messagetemplates':
+        case 'message_templates':
             return {
                 component: (await import('./views/lists/MessageTemplateGrid.vue')).default,
                 router: (await import('./router/templates')).default,
