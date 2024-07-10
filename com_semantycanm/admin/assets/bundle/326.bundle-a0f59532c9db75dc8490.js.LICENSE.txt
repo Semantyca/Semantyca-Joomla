@@ -1,4 +1,8 @@
-/*! #__NO_SIDE_EFFECTS__ */
+/*!
+  * vue-router v4.4.0
+  * (c) 2024 Eduardo San Martin Morote
+  * @license MIT
+  */
 
 /*! @license DOMPurify 3.1.0 | (c) Cure53 and other contributors | Released under the Apache license 2.0 and Mozilla Public License 2.0 | github.com/cure53/DOMPurify/blob/3.1.0/LICENSE */
 
@@ -8,17 +12,4 @@
  * @author Tiancheng "Timothy" Gu <timothygu99@gmail.com>
  * @project EJS
  * @license {@link http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0}
- */
-
-/**
-* @vue/shared v3.4.15
-* (c) 2018-present Yuxi (Evan) You and Vue contributors
-* @license MIT
-**/
-
-/**!
- * Sortable 1.14.0
- * @author	RubaXa   <trash@rubaxa.org>
- * @author	owenm    <owen23355@gmail.com>
- * @license MIT
  */

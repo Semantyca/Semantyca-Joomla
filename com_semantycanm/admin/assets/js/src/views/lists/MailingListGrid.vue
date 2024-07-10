@@ -1,6 +1,8 @@
 <template>
-  <n-h3>Mailing lists</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
+    <n-gi>
+      <n-h3>Mailing lists</n-h3>
+    </n-gi>
     <n-gi>
       <n-space>
         <n-button type="primary" @click="createNew">
@@ -51,7 +53,7 @@ export default defineComponent({
     const mailingListStore = useMailingListStore();
     const {emit} = getCurrentInstance();
     const checkedRowKeysRef = ref([]);
-
+    const isLoading = ref(true);
     const fetchInitialData = async () => {
       await mailingListStore.fetchMailingList(1, 10, true);
     };
@@ -63,11 +65,13 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
+            isLoading.value = true;
             emit('row-click', row);
           }
         }
       };
     };
+
 
     const createNew = () => {
       emit('create-new');
@@ -112,6 +116,7 @@ export default defineComponent({
       globalStore,
       mailingListStore,
       getRowProps,
+      isLoading,
       createNew,
       columns: createColumns(),
       rowKey: (row) => row.id,

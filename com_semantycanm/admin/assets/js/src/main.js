@@ -1,6 +1,5 @@
-import {createApp} from 'vue';
-import {createPinia} from 'pinia';
-import Workspace from "./views/Workspace.vue";
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import {
     NConfigProvider,
     NDialogProvider,
@@ -9,64 +8,97 @@ import {
     NMessageProvider
 } from "naive-ui";
 import '../../tailwind.css';
-import Newsletters from './views/Newsletters.vue';
-import Lists from './views/Lists.vue';
-import Statistics from './views/Statistics.vue';
-import MessageTemplates from './views/MessageTemplates.vue';
-import {joomlaBootstrapTheme} from "./theme";
+import { joomlaBootstrapTheme } from "./theme";
 
-const loadComponent = (menuId) => {
+const loadComponent = async (menuId) => {
     switch (menuId) {
         case 'newsletters':
-            return {component: Newsletters, name: 'Newsletters'};
+            return {
+                component: (await import('./views/lists/NewsletterGrid.vue')).default,
+                router: (await import('./router/newsletters')).default,
+                name: 'Newsletters'
+            };
         case 'mailing_lists':
-            return {component: Lists, name: 'Lists'};
+            return {
+                component: (await import('./views/lists/MailingListGrid.vue')).default,
+                router: (await import('./router/lists')).default,
+                name: 'Lists'
+            };
         case 'stat':
-            return {component: Statistics, name: 'Statistics'};
+            return {
+                component: (await import('./views/lists/StatsGrid.vue')).default,
+                router: (await import('./router/statistics')).default,
+                name: 'Statistics'
+            };
         case 'messagetemplates':
-            return {component: MessageTemplates, name: 'MessageTemplates'};
+            return {
+                component: (await import('./views/lists/MessageTemplateGrid.vue')).default,
+                router: (await import('./router/templates')).default,
+                name: 'MessageTemplates'
+            };
         default:
-            return {component: Newsletters, name: 'Newsletters'};
+            return {
+                component: (await import('./views/lists/NewsletterGrid.vue')).default,
+                router: (await import('./router/newsletters')).default,
+                name: 'Newsletters'
+            };
     }
-}
+};
 
 const pinia = createPinia();
 const appElement = document.getElementById('app');
-const menuId = appElement.getAttribute('data-menu-id');
-const {component: DynamicComponent, name: appName} = loadComponent(menuId);
+let currentApp = null;
 
-const app = createApp(
-    {
-    name: appName,
-    components: {
-        NLoadingBarProvider,
-        NGlobalStyle,
-        NConfigProvider,
-        Workspace,
-        NMessageProvider,
-        NDialogProvider,
-        DynamicComponent
-    },
-    template: `
-      <div>
-        <n-loading-bar-provider>
-          <n-message-provider>
-            <n-dialog-provider>
-              <n-config-provider :theme-overrides="smtcaTheme">
-                <DynamicComponent/>
-              </n-config-provider>
-            </n-dialog-provider>
-          </n-message-provider>
-        </n-loading-bar-provider>
-      </div>
-    `,
-    setup() {
-        return {
-            smtcaTheme: joomlaBootstrapTheme,
-        };
-    },
-});
+const mountApp = async (menuId) => {
+    console.log('Mounting app for menuId:', menuId);
 
-app.config.globalProperties.$errorTimeout = 10000;
-app.use(pinia);
-app.mount('#app');
+    if (currentApp) {
+        console.log('Unmounting previous app');
+        currentApp.unmount();
+        currentApp = null;
+    }
+
+    const { component: DynamicComponent, router, name: appName } = await loadComponent(menuId);
+
+    const app = createApp({
+        name: appName,
+        components: {
+            NLoadingBarProvider,
+            NGlobalStyle,
+            NConfigProvider,
+            NMessageProvider,
+            NDialogProvider,
+            DynamicComponent
+        },
+        template: `
+          <div>
+            <n-loading-bar-provider>
+              <n-message-provider>
+                <n-dialog-provider>
+                  <n-config-provider :theme-overrides="smtcaTheme">
+                    <router-view/>
+                  </n-config-provider>
+                </n-dialog-provider>
+              </n-message-provider>
+            </n-loading-bar-provider>
+          </div>
+        `,
+        setup() {
+            return {
+                smtcaTheme: joomlaBootstrapTheme,
+            };
+        },
+    });
+
+    app.config.globalProperties.$errorTimeout = 10000;
+    app.use(pinia);
+    app.use(router);
+
+    app.mount('#app');
+    currentApp = app;
+  //  await router.push('/');
+};
+
+const initialMenuId = appElement.getAttribute('data-menu-id');
+mountApp(initialMenuId);
+

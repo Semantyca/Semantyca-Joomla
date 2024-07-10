@@ -1,6 +1,12 @@
 <template>
-  <n-h3>Mailing list editor</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
+    <n-gi>
+      <n-page-header :subtitle="formValue.groupName" class="mb-3">
+        <template #title>
+          Mailing list
+        </template>
+      </n-page-header>
+    </n-gi>
     <n-gi>
       <n-space>
         <n-button type="info" @click="$emit('back')">
@@ -52,7 +58,7 @@ import {
 } from "naive-ui";
 import { ArrowBigLeft } from '@vicons/tabler'
 import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
-import ProgressSvg from "../ui/ProgressSvg.vue";
+import ProgressSvg from "../../components/ui/ProgressSvg.vue";
 
 const props = defineProps({
   id: {

@@ -18,7 +18,7 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, outputDir),
         filename: 'bundle-[fullhash].js',
-        publicPath: '/administrator/components/com_semantycanm/assets/bundle/',
+        publicPath: '/joomla/administrator/components/com_semantycanm/assets/bundle/',
     },
     watch: process.env.NODE_ENV === 'development',
     watchOptions: {

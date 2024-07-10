@@ -94,7 +94,7 @@ class NewslettersModel extends BaseDatabaseModel
 			$dto->subject = $result->subject;
 			$dto->useWrapper = (bool)$result->use_wrapper;
 			$dto->templateId = $result->template_id;
-			$dto->customFieldsValues = $result->custom_fields_values;
+			$dto->customFieldsValues = json_decode($result->custom_fields_values);
 			$dto->articlesIds = json_decode($result->articles_ids) ?? [];
 			$dto->isTest = (bool)$result->is_test;
 			$dto->mailingListIds = json_decode($result->mailing_list_ids) ?? [];

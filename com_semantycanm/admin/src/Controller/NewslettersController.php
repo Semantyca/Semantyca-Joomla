@@ -144,10 +144,6 @@ class NewslettersController extends BaseController
 		$app->close();
 	}
 
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
 	public function upsert(): void
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -203,7 +199,7 @@ class NewslettersController extends BaseController
 				$newsletterDTO->useWrapper         = $input['useWrapper'];
 
 				$model = $this->getModel('Newsletters');
-				$id    = $input['id'] ?? null;
+				$id    = $app->input->getInt('id', null);
 				echo new JsonResponse(['id' => $model->upsert($id, $newsletterDTO)]);
 			}
 			else
@@ -226,6 +222,7 @@ class NewslettersController extends BaseController
 		}
 		$app->close();
 	}
+
 
 	public function delete(): void
 	{

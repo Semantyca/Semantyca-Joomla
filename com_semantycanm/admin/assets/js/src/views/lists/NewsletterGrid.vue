@@ -29,7 +29,8 @@
 </template>
 
 <script>
-import { defineComponent, getCurrentInstance, onMounted, ref, computed } from 'vue';
+import { defineComponent, onMounted, ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useGlobalStore } from "../../stores/globalStore";
 import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
 import {
@@ -41,6 +42,7 @@ import {
   NSpace,
   useMessage
 } from "naive-ui";
+import { useComposerStore } from "../../stores/composer/composerStore";
 
 export default defineComponent({
   name: 'NewsletterGrid',
@@ -52,11 +54,11 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click', 'create-new'],
   setup() {
+    const router = useRouter();
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
-    const {emit} = getCurrentInstance();
+    const composerStore = useComposerStore();
     const selectedRowKeys = ref([]);
     const message = useMessage();
 
@@ -69,14 +71,14 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            emit('row-click', row.id);
+            router.push(`/form/${row.id}`);
           }
         }
       };
     };
 
     const createNew = () => {
-      emit('create-new');
+      router.push('/form');
     };
 
     const handleDeleteSelected = async () => {

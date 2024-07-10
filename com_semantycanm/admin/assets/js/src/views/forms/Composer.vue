@@ -1,13 +1,15 @@
 <template>
-  <n-page-header :subtitle="templateStore.appliedTemplateDoc.name" class="mb-3">
-    <template #title>
-      Newsletter
-    </template>
-  </n-page-header>
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
+      <n-page-header :subtitle="modelRef.subject" class="mb-3">
+        <template #title>
+          Newsletter
+        </template>
+      </n-page-header>
+    </n-gi>
+    <n-gi>
       <n-space>
-        <n-button type="info" @click="$emit('back')">
+        <n-button type="info" @click="handleBack">
           <template #icon>
             <n-icon>
               <ArrowBigLeft/>
@@ -15,17 +17,17 @@
           </template>
           &nbsp;Back
         </n-button>
-        <n-button type="success" @click="handleSendNewsletter(false)">
+        <n-button type="success" @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, false, newsletterId.value)">
           {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary" @click="handleSendNewsletter(true)">
+        <n-button type="primary" @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, true, newsletterId.value)">
           {{ globalStore.translations.SAVE }}
         </n-button>
         <n-dropdown trigger="click"
                     ref="templateDropdownRef"
                     :options="templateStore.templateSelectOptions"
                     @select="handleTemplateChange">
-          <n-button type="primary">
+          <n-button type="primary" :disabled="isTemplateButtonDisabled">
             Apply template
           </n-button>
         </n-dropdown>
@@ -41,7 +43,7 @@
       >
         <n-collapse-transition :show="showCustomFields">
           <n-form-item
-              v-for="(field, fieldName) in customFields"
+              v-for="(field, fieldName) in modelRef.customFields"
               :key="field.id"
               :label="field.caption"
               :path="fieldName"
@@ -50,10 +52,10 @@
               label-placement="left"
               :style="{ marginBottom: '16px' }"
           >
+
             <dynamic-form-field
                 :field="field"
                 @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
-
             />
           </n-form-item>
         </n-collapse-transition>
@@ -112,9 +114,10 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
-import {useGlobalStore} from "../../stores/globalStore";
-import HtmlWrapper from '../HtmlWrapper.vue';
+import { computed, h, nextTick, onMounted, provide, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useGlobalStore } from "../../stores/globalStore";
+import HtmlWrapper from '../../components/HtmlWrapper.vue';
 import {
   NButton,
   NButtonGroup,
@@ -142,37 +145,30 @@ import {
   useLoadingBar,
   useMessage
 } from "naive-ui";
-import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
-import draggable from 'vuedraggable';
-import {useComposerStore} from "../../stores/composer/composerStore";
+import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
+import { useComposerStore } from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
-import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline} from '@vicons/tabler';
-import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
+import { ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline } from '@vicons/tabler';
+import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
 import DynamicFormField from "./DynamicFormField.vue";
-import FormattingButtons from "../buttons/FormattingButtons.vue";
-import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
-import {MessagingHandler} from "../../utils/MessagingHandler";
+import FormattingButtons from "../../components/buttons/FormattingButtons.vue";
+import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
+import { MessagingHandler } from "../../utils/MessagingHandler";
 import DynamicBuilder from "../../utils/DynamicBuilder"
-import {isEmail} from "validator";
+import { isEmail } from "validator";
 
 export default {
   name: 'Composer',
   components: {
     FormattingButtons, DynamicFormField, NDropdown, NSpin, NCollapseTransition,
     NSkeleton, NButtonGroup, NButton, NSpace, NForm, NFormItem, NInput, NInputNumber, NPageHeader,
-    NColorPicker, NIcon, NGrid, NGi, NSelect, draggable, NCheckbox, NH3, NH4, NH6, NTransfer,
+    NColorPicker, NIcon, NGrid, NGi, NSelect, NCheckbox, NH3, NH4, NH6, NTransfer,
     Bold, Italic, Underline, Strikethrough, Code, Photo, ClearFormatting, ArrowBigLeft,
   },
-  props: {
-    id: {
-      type: Number,
-      required: false,
-    },
-  },
-  emits: ['back'],
-  setup(props) {
-    console.log('Composer component initialized with id:', props.id);
+  setup() {
+    const route = useRoute();
+    const router = useRouter();
     const formRef = ref(null);
     const composerRef = ref(null);
     const showTemplateDropdown = ref(false);
@@ -186,12 +182,13 @@ export default {
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar();
-    const customFields = computed(() => templateStore.availableCustomFields);
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
     const isFetchingTemplateOptions = ref(false);
+    const newsletterId = computed(() => route.params.id ? parseInt(route.params.id) : null);
     const modelRef = ref({
       templateId: null,
+      customFields: {},
       mailingListIds: [],
       testEmail: '',
       subject: '',
@@ -199,34 +196,45 @@ export default {
       useWrapper: true,
       isTestMessage: false
     });
+
+    const isTemplateButtonDisabled = computed(() => newsletterId.value !== null);
+
     const fetchInitialData = async () => {
-      try {
-        if (props.id) {
-          await composerStore.fetchNewsletter(props.id);
-          const newsletter = composerStore.newsletterDoc;
+          try {
+            if (newsletterId.value) {
+              console.log(newsletterId.value);
+              await composerStore.fetchNewsletter(newsletterId.value);
+              const newsletter = composerStore.newsletterDoc;
+              modelRef.value = {
+                templateId: newsletter.templateId,
+                customFields: JSON.parse(newsletter.customFieldsValues),
+                articleIds: newsletter.articlesIds,
+                mailingListIds: newsletter.mailingListIds,
+                testEmail: newsletter.testEmail,
+                subject: newsletter.subject,
+                content: newsletter.messageContent,
+                useWrapper: newsletter.useWrapper,
+                isTestMessage: newsletter.isTest,
+              };
+              showCustomFields.value = true;
+              if (squireEditor.value) {
+                squireEditor.value.setHTML(modelRef.value.content);
+              }
+            } else {
+              showCustomFields.value = false;
+              modelRef.value.customFields = {};
+            }
 
-          modelRef.value = {
-            templateId: newsletter.templateId,
-            articleIds: newsletter.articlesIds,
-            mailingListIds: newsletter.mailingListIds,
-            testEmail: newsletter.testEmail,
-            subject: newsletter.subject,
-            content: newsletter.messageContent,
-            useWrapper: newsletter.useWrapper,
-            isTestMessage: newsletter.isTest,
-          };
+            await Promise.all([
+              composerStore.searchArticles(''),
+              templateStore.fetchTemplates(1, 100),
+              mailingListStore.fetchMailingList(1, 100, true)
+            ]);
+          } catch(error) {
+            console.error("Error fetching initial data:", error);
+            msgPopup.error("Failed to load initial data");
+          }
         }
-
-        await Promise.all([
-          composerStore.searchArticles(''),
-          templateStore.fetchTemplates(1, 100),
-          mailingListStore.fetchMailingList(1, 100, true)
-        ]);
-      } catch (error) {
-        console.error("Error fetching initial data:", error);
-        msgPopup.error("Failed to load initial data");
-      }
-    };
 
     const preview = () => {
       dialog.create({
@@ -242,78 +250,19 @@ export default {
     const handleTemplateChange = (appliedTemplateId) => {
       modelRef.value.templateId = appliedTemplateId;
       templateStore.applyTemplateById(appliedTemplateId);
+      modelRef.value.customFields = templateStore.availableCustomFields;
       showCustomFields.value = true;
     };
 
     const handleFieldChange = (fieldName, updatedField) => {
-      customFields.value[fieldName] = updatedField;
-    };
-
-    const composerMsg = new MessagingHandler(newsLetterStore);
-
-    const handleSendNewsletter = (onlySave) => {
-      formRef.value.validate((errors) => {
-        if (!errors) {
-          loadingBar.start();
-          const templateId = modelRef.value.templateId;
-          const subj = modelRef.value.subject;
-          const msgContent = modelRef.value.content;
-          const useWrapper = modelRef.value.useWrapper;
-          const customFieldsValues = customFields.value;
-          const isTestMessage = modelRef.value.isTestMessage;
-          const mailingList = modelRef.value.mailingListIds;
-          const testEmail = modelRef.value.testEmail;
-
-          composerMsg.send(subj, msgContent, useWrapper, templateId, customFieldsValues, isTestMessage, mailingList, testEmail, onlySave, props.id)
-              .then(() => {
-                if (onlySave) {
-                  msgPopup.success('Newsletter saved successfully', {
-                    closable: true,
-                    duration: 5000
-                  });
-                } else {
-                  msgPopup.success('Newsletter sent successfully', {
-                    closable: true,
-                    duration: 5000
-                  });
-                }
-              })
-              .catch(error => {
-                console.error('Error sending/saving newsletter:', error);
-                msgPopup.error('An error occurred while sending/saving the newsletter', {
-                  closable: true,
-                  duration: 5000
-                });
-              })
-              .finally(() => {
-                loadingBar.finish();
-              });
-        } else {
-          if (errors && typeof errors === 'object') {
-            const errorMessages = {};
-
-            Object.keys(errors).forEach(fieldName => {
-              const fieldError = errors[fieldName];
-              if (fieldError && fieldError.length > 0) {
-                errorMessages[fieldName] = fieldError[0].message + ` [${fieldName}]`;
-              }
-            });
-
-            Object.values(errorMessages).forEach(errorMessage => {
-              msgPopup.error(errorMessage, {
-                closable: true,
-                duration: 5000
-              });
-            });
-          }
-        }
-      });
+      modelRef.value.customFields[fieldName] = updatedField;
     };
 
     const handleFetchSubject = async () => {
+      const messagingHandler = new MessagingHandler(newsLetterStore);
       loadingBar.start();
       try {
-        modelRef.value.subject = await composerMsg.fetchSubject();
+        modelRef.value.subject = await messagingHandler.fetchSubject();
       } catch (error) {
         loadingBar.error();
         msgPopup.error(error.message)
@@ -321,6 +270,10 @@ export default {
         loadingBar.finish();
       }
     }
+
+    const handleBack = () => {
+      router.push('/list');
+    };
 
     const rules = ref({
       subject: {
@@ -346,7 +299,7 @@ export default {
     });
 
     const updateRules = () => {
-      Object.entries(customFields.value).forEach(([fieldName, field]) => {
+      Object.entries(modelRef.value.customFields).forEach(([fieldName, field]) => {
         const fieldRules = [];
 
         if (field.type === 520) {
@@ -366,7 +319,7 @@ export default {
       });
     };
 
-    watch(customFields, () => {
+    watch(modelRef.value.customFields, () => {
       updateRules();
     }, {deep: true, immediate: true});
 
@@ -381,15 +334,15 @@ export default {
 
     watch(
         [
-          () => customFields
+          () => modelRef.value.customFields
         ],
         () => {
           const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
 
-          Object.keys(customFields.value).forEach((key) => {
-                const field = customFields.value[key];
-                const fieldValue = field.defaultValue;
-                dynamicBuilder.addVariable(key, fieldValue);
+          Object.keys(modelRef.value.customFields).forEach((key) => {
+            const field = modelRef.value.customFields[key];
+            const fieldValue = field.defaultValue;
+            dynamicBuilder.addVariable(key, fieldValue);
           });
 
           try {
@@ -405,7 +358,6 @@ export default {
         {deep: true}
     );
 
-
     return {
       showTemplateDropdown,
       templateDropdownRef,
@@ -414,17 +366,17 @@ export default {
       templateStore,
       globalStore,
       mailingListStore,
-      customFields,
       composerRef,
       modelRef,
       formRef,
       isFetchingTemplateOptions,
+      isTemplateButtonDisabled,
       rules,
       preview,
-      handleSendNewsletter,
       handleTemplateChange,
       handleFieldChange,
       handleFetchSubject,
+      handleBack,
     };
   }
 };
@@ -434,6 +386,7 @@ export default {
 .n-form-item .n-form-item-feedback {
   border: none;
 }
+
 n-layout-footer {
   flex-shrink: 0;
   padding: 12px 20px;
