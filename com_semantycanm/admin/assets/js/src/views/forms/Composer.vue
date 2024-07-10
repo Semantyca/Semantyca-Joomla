@@ -145,7 +145,7 @@ import {
   useLoadingBar,
   useMessage
 } from "naive-ui";
-import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
+import { useTemplateStore } from "../../stores/template/templateStore";
 import { useComposerStore } from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
@@ -178,7 +178,7 @@ export default {
     const composerStore = useComposerStore();
     const newsLetterStore = useNewsletterStore();
     const mailingListStore = useMailingListStore();
-    const templateStore = useMessageTemplateStore();
+    const templateStore = useTemplateStore();
     const msgPopup = useMessage();
     const dialog = useDialog();
     const loadingBar = useLoadingBar();
@@ -202,7 +202,6 @@ export default {
     const fetchInitialData = async () => {
           try {
             if (newsletterId.value) {
-              console.log(newsletterId.value);
               await composerStore.fetchNewsletter(newsletterId.value);
               const newsletter = composerStore.newsletterDoc;
               modelRef.value = {

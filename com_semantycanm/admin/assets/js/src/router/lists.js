@@ -1,12 +1,22 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import MailingListGrid from "../views/lists/MailingListGrid.vue";
-import MailingListEditor from "../views/forms/MailingListEditor.vue";
 
 const routes = [
-    { path: '/', component: MailingListGrid },
-    { path: '/list', component: MailingListGrid },
-    { path: '/form', component: MailingListEditor },
-    { path: '/form/:id', component: MailingListEditor},
+    {
+        path: '/',
+        component: () => import("../views/lists/MailingListGrid.vue")
+    },
+    {
+        path: '/list',
+        component: () => import("../views/lists/MailingListGrid.vue")
+    },
+    {
+        path: '/form',
+        component: () => import("../views/forms/MailingListEditor.vue")
+    },
+    {
+        path: '/form/:id',
+        component: () => import("../views/forms/MailingListEditor.vue")
+    },
 ];
 
 const router = createRouter({

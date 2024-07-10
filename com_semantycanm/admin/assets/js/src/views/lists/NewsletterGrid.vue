@@ -42,7 +42,6 @@ import {
   NSpace,
   useMessage
 } from "naive-ui";
-import { useComposerStore } from "../../stores/composer/composerStore";
 
 export default defineComponent({
   name: 'NewsletterGrid',
@@ -58,7 +57,6 @@ export default defineComponent({
     const router = useRouter();
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
-    const composerStore = useComposerStore();
     const selectedRowKeys = ref([]);
     const message = useMessage();
 

@@ -1,12 +1,22 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import StatsGrid from "../views/lists/StatsGrid.vue";
-import StatsDetails from "../views/forms/StatsDetails.vue";
 
 const routes = [
-    { path: '/', component: StatsGrid },
-    { path: '/list', component: StatsGrid },
-    { path: '/form', component: StatsDetails },
-    { path: '/form/:id', component: StatsDetails},
+    {
+        path: '/',
+        component: () => import("../views/lists/StatsGrid.vue")
+    },
+    {
+        path: '/list',
+        component: () => import("../views/lists/StatsGrid.vue")
+    },
+    {
+        path: '/form',
+        component: () => import("../views/forms/StatsDetails.vue")
+    },
+    {
+        path: '/form/:id',
+        component: () => import("../views/forms/StatsDetails.vue")
+    },
 ];
 
 const router = createRouter({

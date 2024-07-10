@@ -1,6 +1,12 @@
 <template>
-  <n-h3>Statistics</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
+    <n-gi>
+      <n-page-header class="mb-3">
+        <template #title>
+          Statistics
+        </template>
+      </n-page-header>
+    </n-gi>
     <n-gi>
       <n-space>
         <n-button type="error" disabled>
@@ -29,13 +35,14 @@
 <script>
 import {defineComponent, getCurrentInstance, h, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
-import {NButton, NDataTable, NGi, NGrid, NH3, NSpace} from "naive-ui";
+import {NButton, NDataTable, NGi, NGrid, NH3, NPageHeader, NSpace} from "naive-ui";
 import {useStatStore} from "../../stores/statistics/statStore";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 
 export default defineComponent({
   name: 'StatsGrid',
   components: {
+    NPageHeader,
     NDataTable,
     NButton,
     NSpace,
@@ -43,7 +50,6 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click', 'create-new'],
   setup() {
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();

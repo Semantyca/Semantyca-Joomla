@@ -4,7 +4,7 @@ import MessageTemplateApiManager from "./MessageTemplateApiManager";
 import {useLoadingBar, useMessage} from "naive-ui";
 import TemplateManager from "./TemplateManager";
 
-export const useMessageTemplateStore = defineStore('templates', () => {
+export const useTemplateStore = defineStore('templates', () => {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const templatesPage = ref({

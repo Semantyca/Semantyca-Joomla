@@ -1,12 +1,22 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import NewsletterGrid from "../views/lists/NewsletterGrid.vue";
-import Composer from "../views/forms/Composer.vue";
 
 const routes = [
-    { path: '/', component: NewsletterGrid },
-    { path: '/list', component: NewsletterGrid },
-    { path: '/form', component: Composer },
-    { path: '/form/:id', component: Composer},
+    {
+        path: '/',
+        component: () => import("../views/lists/NewsletterGrid.vue")
+    },
+    {
+        path: '/list',
+        component: () => import("../views/lists/NewsletterGrid.vue")
+    },
+    {
+        path: '/form',
+        component: () => import("../views/forms/Composer.vue")
+    },
+    {
+        path: '/form/:id',
+        component: () => import("../views/forms/Composer.vue")
+    },
 ];
 
 const router = createRouter({

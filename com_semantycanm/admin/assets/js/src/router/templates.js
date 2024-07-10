@@ -1,12 +1,10 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
-import MessageTemplateGrid from "../views/lists/MessageTemplateGrid.vue";
-import MessageTemplateEditor from "../views/forms/MessageTemplateEditor.vue";
 
 const routes = [
-    { path: '/', component: MessageTemplateGrid },
-    { path: '/list', component: MessageTemplateGrid },
-    { path: '/form', component: MessageTemplateEditor },
-    { path: '/form/:id', component: MessageTemplateEditor},
+    { path: '/', component: () => import("../views/lists/TemplateGrid.vue") },
+    { path: '/list', component: () => import("../views/lists/TemplateGrid.vue") },
+    { path: '/form', component: () => import("../views/forms/MessageTemplateEditor.vue") },
+    { path: '/form/:id', component: () => import("../views/forms/MessageTemplateEditor.vue") },
 ];
 
 const router = createRouter({

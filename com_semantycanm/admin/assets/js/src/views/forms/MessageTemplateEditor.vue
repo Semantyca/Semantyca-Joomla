@@ -7,7 +7,7 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button type="info" @click="$emit('back')">
+        <n-button type="info" @click="router.push('/list');">
           <template #icon>
             <n-icon>
               <arrow-big-left/>
@@ -134,9 +134,9 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from 'vue';
-import { useGlobalStore } from "../../stores/globalStore";
-import { useMessageTemplateStore } from "../../stores/template/messageTemplateStore";
+import {onMounted, ref, watch} from 'vue';
+import {useGlobalStore} from "../../stores/globalStore";
+import {useTemplateStore} from "../../stores/template/templateStore";
 import {
   NButton,
   NCheckbox,
@@ -157,13 +157,14 @@ import {
   useLoadingBar,
   useMessage
 } from "naive-ui";
-import { ArrowBigLeft } from '@vicons/tabler';
+import {ArrowBigLeft} from '@vicons/tabler';
 import CodeMirror from 'vue-codemirror6';
-import { html } from '@codemirror/lang-html';
-import { ejs } from 'codemirror-lang-ejs';
-import { rules, typeOptions } from '../../stores/template/templateEditorUtils';
-import { addCustomField, handleTypeChange, removeCustomField } from '../../stores/template/templateEditorHandlers';
+import {html} from '@codemirror/lang-html';
+import {ejs} from 'codemirror-lang-ejs';
+import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
+import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
+import {useRoute, useRouter} from "vue-router";
 
 export default {
   name: 'MessageTemplateEditor',
@@ -171,18 +172,12 @@ export default {
     ArrowBigLeft, NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
     NTabPane, NTabs, NGrid, NGi, NH3, NIcon, NPageHeader
   },
-  props: {
-    id: {
-      type: Number,
-      required: false,
-    },
-  },
-  emits: ['back'],
   setup(props) {
-    console.log('Template initialized with id:', props.id);
     const formRef = ref(null);
     const globalStore = useGlobalStore();
-    const templateStore = useMessageTemplateStore();
+    const templateStore = useTemplateStore();
+    const route = useRoute();
+    const router = useRouter();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
@@ -205,8 +200,8 @@ export default {
     };
 
     onMounted(async () => {
-      if (props.id != null) {
-        await templateStore.fetchTemplate(props.id);
+      if (route.params.id != null) {
+        await templateStore.fetchTemplate(route.params.id);
       }
     });
 
@@ -220,8 +215,8 @@ export default {
 
     const selectedMode = ref('ejs');
     const modeOptions = [
-      { label: 'HTML', value: 'html' },
-      { label: 'EJS', value: 'ejs' }
+      {label: 'HTML', value: 'html'},
+      {label: 'EJS', value: 'ejs'}
     ];
 
     const lang = ref(ejs());
@@ -266,12 +261,13 @@ export default {
             wrapper: newValue.wrapper
           };
         },
-        { deep: true, immediate: true }
+        {deep: true, immediate: true}
     );
 
     return {
       globalStore,
       modelRef,
+      router,
       saveTemplate,
       exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),

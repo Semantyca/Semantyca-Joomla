@@ -28,19 +28,19 @@ const loadComponent = async (menuId) => {
             return {
                 component: (await import('./views/lists/StatsGrid.vue')).default,
                 router: (await import('./router/statistics')).default,
-                name: 'Statistics'
+                name: 'StatsGrid'
             };
         case 'message_templates':
             return {
-                component: (await import('./views/lists/MessageTemplateGrid.vue')).default,
+                component: (await import('./views/lists/TemplateGrid.vue')).default,
                 router: (await import('./router/templates')).default,
-                name: 'MessageTemplates'
+                name: 'TemplateGrid'
             };
         default:
             return {
                 component: (await import('./views/lists/NewsletterGrid.vue')).default,
                 router: (await import('./router/newsletters')).default,
-                name: 'Newsletters'
+                name: 'NewsletterGrid'
             };
     }
 };
@@ -93,7 +93,6 @@ const mountApp = async (menuId) => {
     app.config.globalProperties.$errorTimeout = 10000;
     app.use(pinia);
     app.use(router);
-
     app.mount('#app');
     currentApp = app;
   //  await router.push('/');

@@ -1,6 +1,12 @@
 <template>
-  <n-h3>All Templates</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
+    <n-gi>
+      <n-page-header class="mb-3">
+        <template #title>
+          All Templates
+        </template>
+      </n-page-header>
+    </n-gi>
     <n-gi>
       <n-space>
         <n-button type="primary" @click="createNew">
@@ -27,14 +33,16 @@
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance, ref, computed} from 'vue';
+import {defineComponent, ref, computed} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
-import {useMessageTemplateStore} from "../../stores/template/messageTemplateStore";
-import {NDataTable, NButton, NH3, NGi, NGrid, NSpace} from "naive-ui";
+import {useTemplateStore} from "../../stores/template/templateStore";
+import {NDataTable, NButton, NH3, NGi, NGrid, NSpace, NPageHeader} from "naive-ui";
+import {useRouter} from "vue-router";
 
 export default defineComponent({
-  name: 'MessageTemplateGrid',
+  name: 'TemplateGrid',
   components: {
+    NPageHeader,
     NDataTable,
     NButton,
     NSpace,
@@ -42,15 +50,14 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click', 'create-new'],
   setup() {
     const globalStore = useGlobalStore();
-    const messageTemplateStore = useMessageTemplateStore();
-    const {emit} = getCurrentInstance();
+    const templateStore = useTemplateStore();
     const checkedRowKeys = ref([]);
+    const router = useRouter();
 
     const fetchInitialData = async () => {
-      await messageTemplateStore.fetchTemplates(1, 10);
+      await templateStore.fetchTemplates(1, 10);
     };
 
     fetchInitialData();
@@ -60,14 +67,14 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            emit('row-click', row);
+            router.push(`/form/${row.id}`);
           }
         }
       };
     };
 
     const createNew = () => {
-      emit('create-new');
+      router.push('/form');
     };
 
     const createColumns = () => {
@@ -94,7 +101,7 @@ export default defineComponent({
 
     const deleteCheckedRows = async () => {
       try {
-        await messageTemplateStore.deleteApi(checkedRowKeys.value);
+        await templateStore.deleteApi(checkedRowKeys.value);
         checkedRowKeys.value = [];
         await fetchInitialData();
       } catch (error) {
@@ -104,7 +111,7 @@ export default defineComponent({
 
     return {
       globalStore,
-      messageTemplateStore,
+      messageTemplateStore: templateStore,
       getRowProps,
       createNew,
       columns: createColumns(),
