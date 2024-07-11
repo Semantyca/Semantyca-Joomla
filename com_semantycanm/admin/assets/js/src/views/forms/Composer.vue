@@ -54,9 +54,9 @@
               label-placement="left"
               :style="{ marginBottom: '16px' }"
           >
-
             <dynamic-form-field
                 :field="field"
+                :articleOptions="composerStore.articleOptions"
                 @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
             />
           </n-form-item>
@@ -159,7 +159,6 @@ import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
 import DynamicBuilder from "../../utils/DynamicBuilder"
 import {isEmail} from "validator";
-import SourceEntity from "../../utils/SourceEntity";
 
 export default {
   name: 'Composer',

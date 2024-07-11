@@ -41,9 +41,8 @@
 </template>
 
 <script>
-import {computed, defineComponent, h, ref} from 'vue';
+import {computed, defineComponent, h} from 'vue';
 import {NColorPicker, NInputNumber, NInput, NTag, NSelect} from 'naive-ui';
-import {useComposerStore} from "../../stores/composer/composerStore";
 
 export default defineComponent({
   name: 'DynamicFormField',
@@ -52,18 +51,30 @@ export default defineComponent({
     field: {
       type: Object,
       required: true
+    },
+    articleOptions: {
+      type: Array,
+      required: true
     }
   },
   emits: ['update:field'],
   setup(props, {emit}) {
-    const composerStore = useComposerStore();
-    const selectedArticleIds = ref([]);
-    const articleOptions = computed(() =>
-        composerStore.articleOptions.map(article => ({
+    const computedArticleOptions = computed(() => {
+      if (props.field.type === 520) {
+        return props.articleOptions.map(article => ({
           ...article,
           value: article.id
-        }))
-    )
+        }));
+      }
+      return [];
+    });
+
+    const selectedArticleIds = computed(() => {
+      if (props.field.type === 520) {
+        return props.field.defaultValue.map(article => article.value);
+      }
+      return [];
+    })
 
     const handleColorChange = (index, newValue) => {
       const updatedField = {
@@ -86,10 +97,9 @@ export default defineComponent({
     };
 
     const handleArticleIdsChange = (selectedIds) => {
-      selectedArticleIds.value = selectedIds;
-      const articles = selectedIds.map(id => {
-        return composerStore.articleOptions.find(article => article.id === id);
-      });
+      const articles = selectedIds.map(id =>
+          props.articleOptions.find(article => article.id === id)
+      ).filter(article => article !== undefined);
       emit('update:field', {...props.field, defaultValue: articles});
     };
 
@@ -103,8 +113,7 @@ export default defineComponent({
     };
 
     return {
-      composerStore,
-      articleOptions,
+      articleOptions: computedArticleOptions,
       selectedArticleIds,
       handleColorChange,
       handleFieldChange,
