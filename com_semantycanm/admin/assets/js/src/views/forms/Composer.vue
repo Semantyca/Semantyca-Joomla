@@ -17,10 +17,12 @@
           </template>
           &nbsp;Back
         </n-button>
-        <n-button type="success" @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, false, newsletterId.value)">
+        <n-button type="success"
+                  @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, false, newsletterId.value)">
           {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary" @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, true, newsletterId.value)">
+        <n-button type="primary"
+                  @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, true, newsletterId.value)">
           {{ globalStore.translations.SAVE }}
         </n-button>
         <n-dropdown trigger="click"
@@ -114,9 +116,9 @@
 </template>
 
 <script>
-import { computed, h, nextTick, onMounted, provide, ref, watch } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useGlobalStore } from "../../stores/globalStore";
+import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useGlobalStore} from "../../stores/globalStore";
 import HtmlWrapper from '../../components/HtmlWrapper.vue';
 import {
   NButton,
@@ -145,18 +147,19 @@ import {
   useLoadingBar,
   useMessage
 } from "naive-ui";
-import { useTemplateStore } from "../../stores/template/templateStore";
-import { useComposerStore } from "../../stores/composer/composerStore";
+import {useTemplateStore} from "../../stores/template/templateStore";
+import {useComposerStore} from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
-import { ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline } from '@vicons/tabler';
-import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
+import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline} from '@vicons/tabler';
+import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../../components/buttons/FormattingButtons.vue";
-import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
-import { MessagingHandler } from "../../utils/MessagingHandler";
+import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
+import {MessagingHandler} from "../../utils/MessagingHandler";
 import DynamicBuilder from "../../utils/DynamicBuilder"
-import { isEmail } from "validator";
+import {isEmail} from "validator";
+import SourceEntity from "../../utils/SourceEntity";
 
 export default {
   name: 'Composer',
@@ -200,40 +203,40 @@ export default {
     const isTemplateButtonDisabled = computed(() => newsletterId.value !== null);
 
     const fetchInitialData = async () => {
-          try {
-            if (newsletterId.value) {
-              await composerStore.fetchNewsletter(newsletterId.value);
-              const newsletter = composerStore.newsletterDoc;
-              modelRef.value = {
-                templateId: newsletter.templateId,
-                customFields: JSON.parse(newsletter.customFieldsValues),
-                articleIds: newsletter.articlesIds,
-                mailingListIds: newsletter.mailingListIds,
-                testEmail: newsletter.testEmail,
-                subject: newsletter.subject,
-                content: newsletter.messageContent,
-                useWrapper: newsletter.useWrapper,
-                isTestMessage: newsletter.isTest,
-              };
-              showCustomFields.value = true;
-              if (squireEditor.value) {
-                squireEditor.value.setHTML(modelRef.value.content);
-              }
-            } else {
-              showCustomFields.value = false;
-              modelRef.value.customFields = {};
-            }
-
-            await Promise.all([
-              composerStore.searchArticles(''),
-              templateStore.fetchTemplates(1, 100),
-              mailingListStore.fetchMailingList(1, 100, true)
-            ]);
-          } catch(error) {
-            console.error("Error fetching initial data:", error);
-            msgPopup.error("Failed to load initial data");
+      try {
+        if (newsletterId.value) {
+          await composerStore.fetchNewsletter(newsletterId.value);
+          const newsletter = composerStore.newsletterDoc;
+          modelRef.value = {
+            templateId: newsletter.templateId,
+            customFields: JSON.parse(newsletter.customFieldsValues),
+            articleIds: newsletter.articlesIds,
+            mailingListIds: newsletter.mailingListIds,
+            testEmail: newsletter.testEmail,
+            subject: newsletter.subject,
+            content: newsletter.messageContent,
+            useWrapper: newsletter.useWrapper,
+            isTestMessage: newsletter.isTest,
+          };
+          showCustomFields.value = true;
+          if (squireEditor.value) {
+            squireEditor.value.setHTML(modelRef.value.content);
           }
+        } else {
+          showCustomFields.value = false;
+          modelRef.value.customFields = {};
         }
+
+        await Promise.all([
+          composerStore.searchArticles(''),
+          templateStore.fetchTemplates(1, 100),
+          mailingListStore.fetchMailingList(1, 100, true)
+        ]);
+      } catch (error) {
+        console.error("Error fetching initial data:", error);
+        msgPopup.error("Failed to load initial data");
+      }
+    }
 
     const preview = () => {
       dialog.create({
@@ -340,9 +343,9 @@ export default {
 
           Object.keys(modelRef.value.customFields).forEach((key) => {
             const field = modelRef.value.customFields[key];
-            const fieldValue = field.defaultValue;
-            dynamicBuilder.addVariable(key, fieldValue);
+            dynamicBuilder.addVariable(field.name, field.defaultValue);
           });
+
 
           try {
             modelRef.value.content = dynamicBuilder.buildContent();

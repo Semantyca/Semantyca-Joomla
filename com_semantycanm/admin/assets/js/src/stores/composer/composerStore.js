@@ -1,7 +1,8 @@
-import {defineStore} from 'pinia';
-import {computed, ref} from 'vue';
-import {useLoadingBar, useMessage} from "naive-ui";
+import { defineStore } from 'pinia';
+import { computed, ref } from 'vue';
+import { useLoadingBar, useMessage } from "naive-ui";
 import NewsletterApiManager from "../newsletter/NewsletterApiManager";
+import SourceEntity from "../../utils/SourceEntity"
 
 export const useComposerStore = defineStore('composer', () => {
     const newsletterDoc = ref({
@@ -18,19 +19,13 @@ export const useComposerStore = defineStore('composer', () => {
         messageContent: '',
         modifiedDate: null
     });
-    const articlesPage = ref({docs: []});
+    const articlesPage = ref({ docs: [] });
     const isLoading = ref(false);
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
     const articleOptions = computed(() => {
-        return articlesPage.value.docs.map(doc => ({
-            value: doc.id,
-            category: doc.category,
-            title: doc.title,
-            url: doc.url,
-            intro: doc.intro
-        }));
+        return articlesPage.value.docs.map(doc => new SourceEntity(doc.id, doc.title, doc.category, doc.url, doc.intro));
     });
 
     async function fetchNewsletter(id) {
@@ -89,7 +84,6 @@ export const useComposerStore = defineStore('composer', () => {
             });
         }
     }
-
 
     return {
         newsletterDoc,

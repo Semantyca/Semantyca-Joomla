@@ -23,7 +23,7 @@
         multiple
         filterable
         placeholder="Search articles"
-        :options="composerStore.articleOptions"
+        :options="articleOptions"
         :render-label="renderArticleOption"
         :render-tag="renderSelectedArticle"
         :clear-filter-after-select="true"
@@ -41,13 +41,13 @@
 </template>
 
 <script>
-import {defineComponent, h, ref} from 'vue';
-import { NColorPicker, NInputNumber, NInput, NTag, NSelect } from 'naive-ui';
-import { useComposerStore } from "../../stores/composer/composerStore";
+import {computed, defineComponent, h, ref} from 'vue';
+import {NColorPicker, NInputNumber, NInput, NTag, NSelect} from 'naive-ui';
+import {useComposerStore} from "../../stores/composer/composerStore";
 
 export default defineComponent({
   name: 'DynamicFormField',
-  components: { NColorPicker, NInputNumber, NInput, NSelect },
+  components: {NColorPicker, NInputNumber, NInput, NSelect},
   props: {
     field: {
       type: Object,
@@ -55,9 +55,15 @@ export default defineComponent({
     }
   },
   emits: ['update:field'],
-  setup(props, { emit }) {
+  setup(props, {emit}) {
     const composerStore = useComposerStore();
     const selectedArticleIds = ref([]);
+    const articleOptions = computed(() =>
+        composerStore.articleOptions.map(article => ({
+          ...article,
+          value: article.id
+        }))
+    )
 
     const handleColorChange = (index, newValue) => {
       const updatedField = {
@@ -69,12 +75,12 @@ export default defineComponent({
     };
 
     const handleFieldChange = (newValue) => {
-      emit('update:field', { ...props.field, defaultValue: newValue });
+      emit('update:field', {...props.field, defaultValue: newValue});
     };
 
     const renderArticleOption = (option) => {
       return h('div', [
-        h('div', { style: 'font-weight: bold;' }, option.category),
+        h('div', {style: 'font-weight: bold;'}, option.category),
         h('div', option.title)
       ]);
     };
@@ -82,12 +88,12 @@ export default defineComponent({
     const handleArticleIdsChange = (selectedIds) => {
       selectedArticleIds.value = selectedIds;
       const articles = selectedIds.map(id => {
-        return composerStore.articleOptions.find(article => article.value === id);
+        return composerStore.articleOptions.find(article => article.id === id);
       });
-      emit('update:field', { ...props.field, defaultValue: articles });
+      emit('update:field', {...props.field, defaultValue: articles});
     };
 
-    const renderSelectedArticle = ({ option, handleClose }) => {
+    const renderSelectedArticle = ({option, handleClose}) => {
       return h(NTag, {
         closable: true,
         onClose: handleClose,
@@ -98,6 +104,7 @@ export default defineComponent({
 
     return {
       composerStore,
+      articleOptions,
       selectedArticleIds,
       handleColorChange,
       handleFieldChange,
