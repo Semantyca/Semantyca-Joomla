@@ -1,12 +1,14 @@
-import {defineStore} from 'pinia';
-import {ref, computed} from 'vue';
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
-import {useLoadingBar, useMessage} from "naive-ui";
+import { useLoadingBar, useMessage } from "naive-ui";
 import TemplateManager from "./TemplateManager";
+import {createCache} from "../../utils/cacheUtil";
 
 export const useTemplateStore = defineStore('templates', () => {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
+    const cache = createCache();
     const templatesPage = ref({
         page: 1,
         pageSize: 10,
@@ -22,7 +24,8 @@ export const useTemplateStore = defineStore('templates', () => {
         content: '',
         wrapper: '',
         isDefault: false,
-        customFields: []
+        customFields: [],
+        cacheTime: null
     });
     const appliedTemplateDoc = ref({
         id: 0,
@@ -34,18 +37,13 @@ export const useTemplateStore = defineStore('templates', () => {
         isDefault: false,
         customFields: []
     });
-    const templateMap = ref({});
+    const templateMap = ref(new Map());
     const availableCustomFields = ref({});
     const pagination = ref({
         currentPage: 1,
         itemsPerPage: 10,
         totalItems: 0,
         totalPages: 0
-    });
-
-    const cache = ref({
-        templateMap: null,
-        expiration: 0
     });
 
     const templateSelectOptions = computed(() => {
@@ -76,25 +74,35 @@ export const useTemplateStore = defineStore('templates', () => {
     });
 
     async function fetchTemplate(id) {
+        const cachedTemplate = cache.get(id);
+        if (cachedTemplate) {
+            templateDoc.value = cachedTemplate;
+            return;
+        }
+
         try {
-            const manager = new MessageTemplateApiManager(msgPopup, loadingBar);
-            const response = await manager.fetchTemplate(id);
-            console.log(response);
-            const respData = response.data;
-            if (respData) {
-                templateDoc.value = {
-                    id: respData.id,
-                    regDate: respData.regDate,
-                    name: respData.name,
-                    type: respData.type,
-                    description: respData.description,
-                    content: respData.content,
-                    wrapper: respData.wrapper,
-                    customFields: respData.customFields,
-                };
+            loadingBar.start();
+            const response = await new MessageTemplateApiManager(msgPopup, loadingBar).fetchTemplate(id);
+            const data = response.data;
+            if (data) {
+                templateDoc.value = data;
+                cache.set(id, data);
             } else {
-                throw new Error('Newsletter not found');
+                throw new Error('Template not found');
             }
+        } catch (error) {
+            msgPopup.error('Failed to fetch template: ' + error.message);
+        } finally {
+            loadingBar.finish();
+        }
+    }
+
+
+    async function saveTemplate(template, id) {
+        try {
+            const manager = new TemplateManager(this, msgPopup, loadingBar);
+            await manager.saveTemplate(template, id);
+            cache.delete(id);
         } catch (error) {
             console.error(error);
         }
@@ -104,18 +112,10 @@ export const useTemplateStore = defineStore('templates', () => {
         const pageNum = 1;
         const onePage = templatesPage.value.pages.get(pageNum);
         const templateDoc = onePage.docs.find(document => document.id === id);
-        appliedTemplateDoc.value.id = templateDoc.id;
-        appliedTemplateDoc.value.name = templateDoc.name;
-        appliedTemplateDoc.value.type = templateDoc.type;
-        appliedTemplateDoc.value.description = templateDoc.description;
-        appliedTemplateDoc.value.content = templateDoc.content;
-        appliedTemplateDoc.value.wrapper = templateDoc.wrapper;
-        appliedTemplateDoc.value.isDefault = templateDoc.isDefault;
-        appliedTemplateDoc.value.customFields = templateDoc.customFields;
-        const customFields =  appliedTemplateDoc.value.customFields
-            .filter(field => field.isAvailable === 1);
+        appliedTemplateDoc.value = { ...templateDoc };
+        const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
-    }
+    };
 
     const resetAppliedTemplate = () => {
         appliedTemplateDoc.value = {
@@ -132,7 +132,6 @@ export const useTemplateStore = defineStore('templates', () => {
     };
 
     function processFormCustomFields(availableFields, adaptField) {
-
         return availableFields.reduce((acc, field) => {
             if (field.isAvailable === 1) {
                 const key = field.name;
@@ -150,7 +149,7 @@ export const useTemplateStore = defineStore('templates', () => {
             defaultValue: '',
             isAvailable: 0,
         };
-        templateDoc.value.customFields.push({...defaultFieldStructure, ...newField});
+        templateDoc.value.customFields.push({ ...defaultFieldStructure, ...newField });
     };
 
     const removeCustomField = (index) => {
@@ -164,12 +163,12 @@ export const useTemplateStore = defineStore('templates', () => {
             const manager = new MessageTemplateApiManager(msgPopup, loadingBar);
             const respData = await manager.fetch(page, size);
             if (respData.success && respData.data) {
-                const {docs, count, maxPage, current} = respData.data;
+                const { docs, count, maxPage, current } = respData.data;
                 templatesPage.value.pageSize = size;
                 templatesPage.value.itemCount = count;
                 templatesPage.value.pageCount = maxPage;
                 templatesPage.value.pageNum = current;
-                templatesPage.value.pages.set(page, {docs});
+                templatesPage.value.pages.set(page, { docs });
             }
         } catch (error) {
             console.error(error);
@@ -179,12 +178,11 @@ export const useTemplateStore = defineStore('templates', () => {
     const deleteApi = async (ids) => {
         try {
             const manager = new TemplateManager(this, msgPopup, loadingBar);
-            const respData = await manager.deleteTemplates(ids);
-
+            await manager.deleteTemplates(ids);
         } catch (error) {
             console.error(error);
         }
-    }
+    };
 
     function adaptField(field) {
         switch (field.type) {
@@ -225,14 +223,14 @@ export const useTemplateStore = defineStore('templates', () => {
                     };
                 }
             default:
-                return {...field};
+                return { ...field };
         }
     }
-
 
     return {
         fetchTemplates,
         fetchTemplate,
+        saveTemplate,
         deleteApi,
         templatesPage,
         templateDoc,

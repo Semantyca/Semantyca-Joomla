@@ -42,6 +42,7 @@ import {
   NSpace,
   useMessage
 } from "naive-ui";
+import {useComposerStore} from "../../stores/composer/composerStore";
 
 export default defineComponent({
   name: 'NewsletterGrid',
@@ -57,6 +58,7 @@ export default defineComponent({
     const router = useRouter();
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
+    const composerStore = useComposerStore();
     const selectedRowKeys = ref([]);
     const message = useMessage();
 
@@ -69,6 +71,7 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
+            composerStore.fetchNewsletter(row.id);
             router.push(`/form/${row.id}`);
           }
         }

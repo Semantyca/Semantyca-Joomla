@@ -67,6 +67,7 @@ export default defineComponent({
         style: 'cursor: pointer;',
         onClick: (event) => {
           if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
+            templateStore.fetchTemplate(row.id);
             router.push(`/form/${row.id}`);
           }
         }

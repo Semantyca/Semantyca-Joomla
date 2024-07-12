@@ -167,12 +167,12 @@ import TemplateManager from "../../stores/template/TemplateManager";
 import {useRoute, useRouter} from "vue-router";
 
 export default {
-  name: 'MessageTemplateEditor',
+  name: 'TemplateEditor',
   components: {
     ArrowBigLeft, NButton, NSpace, NInput, NSelect, NCheckbox, NForm, NFormItem, CodeMirror, NDivider, NDynamicInput,
     NTabPane, NTabs, NGrid, NGi, NH3, NIcon, NPageHeader
   },
-  setup(props) {
+  setup() {
     const formRef = ref(null);
     const globalStore = useGlobalStore();
     const templateStore = useTemplateStore();
@@ -238,16 +238,8 @@ export default {
         ...templateStore.currentTemplate,
         ...modelRef.value
       };
-      templateManager.saveTemplate(updatedTemplate, props.id);
+      templateManager.saveTemplate(updatedTemplate, route.params.id);
     };
-
-    const fetchInitialData = async () => {
-      if (props.id != null) {
-        await templateStore.fetchTemplate(props.id);
-      }
-    }
-
-    fetchInitialData();
 
     watch(
         () => templateStore.templateDoc,

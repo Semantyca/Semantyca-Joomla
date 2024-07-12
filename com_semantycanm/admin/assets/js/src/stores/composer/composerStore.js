@@ -3,6 +3,7 @@ import { computed, ref } from 'vue';
 import { useLoadingBar, useMessage } from "naive-ui";
 import NewsletterApiManager from "../newsletter/NewsletterApiManager";
 import SourceEntity from "../../utils/SourceEntity"
+import {createCache} from "../../utils/cacheUtil";
 
 export const useComposerStore = defineStore('composer', () => {
     const newsletterDoc = ref({
@@ -19,23 +20,28 @@ export const useComposerStore = defineStore('composer', () => {
         messageContent: '',
         modifiedDate: null
     });
+    const cache = createCache();
     const articlesPage = ref({ docs: [] });
     const isLoading = ref(false);
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
-
     const articleOptions = computed(() => {
         return articlesPage.value.docs.map(doc => new SourceEntity(doc.id, doc.title, doc.category, doc.url, doc.intro));
     });
 
     async function fetchNewsletter(id) {
+        const cachedNewsletter = cache.get(id);
+        if (cachedNewsletter) {
+            newsletterDoc.value = cachedNewsletter;
+            return;
+        }
         const manager = new NewsletterApiManager(msgPopup, loadingBar);
         try {
             loadingBar.start();
             const resp = await manager.fetch(id);
             const respData = resp.data;
             if (respData) {
-                newsletterDoc.value = {
+                const newsletterData = {
                     id: respData.id,
                     regDate: respData.regDate,
                     templateId: respData.templateId,
@@ -46,8 +52,10 @@ export const useComposerStore = defineStore('composer', () => {
                     testEmail: respData.testEmail,
                     messageContent: respData.content,
                     subject: respData.subject,
-                    useWrapper: respData.useWrapper
+                    useWrapper: respData.useWrapper,
                 };
+                newsletterDoc.value = newsletterData;
+                cache.set(id, newsletterData);
             } else {
                 throw new Error('Newsletter not found');
             }
@@ -56,6 +64,17 @@ export const useComposerStore = defineStore('composer', () => {
             msgPopup.error('Failed to fetch newsletter: ' + error.message);
         } finally {
             loadingBar.finish();
+        }
+    }
+
+    async function saveNewsletter(newsletter, id) {
+        try {
+            const manager = new NewsletterApiManager(msgPopup, loadingBar);
+            await manager.save(newsletter, id);
+            cache.value.newsletterMap.delete(id);
+        } catch (error) {
+            console.error('Error saving newsletter:', error);
+            msgPopup.error('Failed to save newsletter: ' + error.message);
         }
     }
 
@@ -91,6 +110,7 @@ export const useComposerStore = defineStore('composer', () => {
         articleOptions,
         isLoading,
         fetchNewsletter,
+        saveNewsletter,
         searchArticles,
     };
 });

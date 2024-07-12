@@ -1,14 +1,16 @@
 import { defineStore } from 'pinia';
-import MailingListApiManager from './MailingListApiManager';
 import { computed } from 'vue';
 import { useLoadingBar, useMessage } from "naive-ui";
+import MailingListApiManager from './MailingListApiManager';
 import PaginatedData from '../PaginatedData';
+import {createCache} from "../../utils/cacheUtil";
 
 export const useMailingListStore = defineStore('mailingList', () => {
     const mailingListPage = new PaginatedData();
     const userGroupsPage = new PaginatedData();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
+    const cache = createCache();
 
     const getPagination = computed(() => ({
         page: mailingListPage.page.value,
@@ -48,8 +50,19 @@ export const useMailingListStore = defineStore('mailingList', () => {
     }
 
     async function getDetails(id, detailed = false) {
+        const cachedDoc = cache.get(id);
+        if (cachedDoc) {
+            return cachedDoc;
+        }
+
         const manager = new MailingListApiManager(msgPopup, loadingBar);
-        return await manager.fetchDetails(id, detailed);
+        const details = await manager.fetchDetails(id, detailed);
+
+        if (details) {
+            cache.set(id, details);
+        }
+
+        return details;
     }
 
     async function saveList(model) {
@@ -61,6 +74,7 @@ export const useMailingListStore = defineStore('mailingList', () => {
             const result = await manager.upsert(mailingListName, listItems, model.id);
             if (result.success) {
                 msgPopup.success('Mailing list saved successfully');
+                cache.delete(model.id);
                 return true;
             } else {
                 throw new Error(result.message || 'Failed to save mailing list');
