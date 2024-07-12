@@ -67,7 +67,7 @@
                 <n-input
                     v-model:value="modelRef.customFields[index].name"
                     placeholder="Variable name"
-                    style="margin-right: 12px; min-width: 200px;"
+                    style="margin-right: 12px; width: 180px; min-width: 200px;"
                 />
               </n-form-item>
               <n-form-item :show-label="false" path="caption">

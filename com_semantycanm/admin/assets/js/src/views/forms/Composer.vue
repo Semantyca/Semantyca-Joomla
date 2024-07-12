@@ -18,11 +18,10 @@
           &nbsp;Back
         </n-button>
         <n-button type="success"
-                  @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, false, newsletterId.value)">
+                  @click="handleSendAndSave">
           {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary"
-                  @click="() => messagingHandler.handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, true, newsletterId.value)">
+        <n-button type="primary" @click="handleSave">
           {{ globalStore.translations.SAVE }}
         </n-button>
         <n-dropdown trigger="click"
@@ -157,6 +156,7 @@ import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../../components/buttons/FormattingButtons.vue";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
+import NewsletterParams from '../../utils/NewsletterParams';
 import DynamicBuilder from "../../utils/DynamicBuilder"
 import {isEmail} from "validator";
 
@@ -188,6 +188,7 @@ export default {
     provide('squireEditor', squireEditor)
     const isFetchingTemplateOptions = ref(false);
     const newsletterId = computed(() => route.params.id ? parseInt(route.params.id) : null);
+    const messagingHandler = new MessagingHandler(newsLetterStore);
     const modelRef = ref({
       templateId: null,
       customFields: {},
@@ -213,13 +214,12 @@ export default {
             mailingListIds: newsletter.mailingListIds,
             testEmail: newsletter.testEmail,
             subject: newsletter.subject,
-            content: newsletter.messageContent,
             useWrapper: newsletter.useWrapper,
             isTestMessage: newsletter.isTest,
           };
           showCustomFields.value = true;
           if (squireEditor.value) {
-            squireEditor.value.setHTML(modelRef.value.content);
+            squireEditor.value.setHTML(newsletter.messageContent);
           }
         } else {
           showCustomFields.value = false;
@@ -259,8 +259,17 @@ export default {
       modelRef.value.customFields[fieldName] = updatedField;
     };
 
+    const handleSendAndSave = () => {
+      const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), false, newsletterId.value);
+      messagingHandler.send(newsletterParams);
+    }
+
+    const handleSave = () => {
+      const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), true, newsletterId.value);
+      messagingHandler.send(newsletterParams);
+    }
+
     const handleFetchSubject = async () => {
-      const messagingHandler = new MessagingHandler(newsLetterStore);
       loadingBar.start();
       try {
         modelRef.value.subject = await messagingHandler.fetchSubject();
@@ -335,7 +344,7 @@ export default {
 
     watch(
         [
-          () => modelRef.value.customFields
+          () => modelRef.value.customFields,
         ],
         () => {
           const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
@@ -373,6 +382,8 @@ export default {
       isFetchingTemplateOptions,
       isTemplateButtonDisabled,
       rules,
+      handleSave,
+      handleSendAndSave,
       preview,
       handleTemplateChange,
       handleFieldChange,

@@ -8,20 +8,26 @@ export class MessagingHandler {
         this.isTestMessage = ref(false);
     }
 
-    async send(subj, msgContent, useWrapper, templateId, customFieldsValues, isTestMessage, mailingList, testEmail, onlySave = false, id = null) {
+    async send(params) {
         const newsletterApiManager = new NewsletterApiManager();
 
-        if (onlySave) {
-            await this.saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, isTestMessage, mailingList, testEmail, id);
+        if (params.onlySave) {
+            try {
+                const newsletterApiManager = new NewsletterApiManager();
+                console.log(params);
+                return await newsletterApiManager.upsert(params, params.id);
+            } catch (error) {
+                throw error;
+            }
         } else {
             let listItems;
-            if (isTestMessage) {
-                listItems = [testEmail.trim()];
+            if (params.isTestMessage) {
+                listItems = [params.testEmail.trim()];
             } else {
-                listItems = mailingList.map(item => item.value);
+                listItems = params.mailingList.map(item => item.value);
             }
 
-            newsletterApiManager.sendEmail(subj, msgContent, listItems)
+            newsletterApiManager.sendEmail(params.subject, params.messageContent, params.mailingList)
                 .then((response) => {
                     console.log('response data:', response.data);
                     this.newsLetterStore.currentNewsletterId = response.data;
@@ -29,24 +35,6 @@ export class MessagingHandler {
                 .catch(error => {
                     throw error;
                 });
-        }
-    }
-
-    async saveNewsletter(subj, msgContent, useWrapper, templateId, customFieldsValues, isTest, mailingList, testEmail, id = null) {
-        try {
-            const newsletterApiManager = new NewsletterApiManager();
-            return await newsletterApiManager.upsert({
-                templateId: templateId,
-                customFieldsValues: customFieldsValues,
-                subject: subj,
-                isTest: isTest,
-                mailingList: mailingList,
-                testEmail: testEmail,
-                messageContent: msgContent,
-                useWrapper: useWrapper
-            }, id);
-        } catch (error) {
-            throw error;
         }
     }
 
@@ -58,6 +46,7 @@ export class MessagingHandler {
         }
     }
 
+    //deprected ?
     async handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, onlySave, newsletterId) {
         formRef.value.validate((errors) => {
             if (!errors) {
