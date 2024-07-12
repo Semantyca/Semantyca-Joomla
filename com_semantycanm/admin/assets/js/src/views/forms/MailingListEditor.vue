@@ -9,7 +9,7 @@
     </n-gi>
     <n-gi>
       <n-space>
-        <n-button type="info" @click="$emit('back')">
+        <n-button type="info" @click="$router.push('/list')">
           <template #icon>
             <n-icon>
               <arrow-big-left/>
@@ -52,26 +52,20 @@
 
 <script setup>
 import { ref, reactive } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useGlobalStore } from "../../stores/globalStore";
 import {
-  NButton, NForm, NFormItem, NGi, NGrid, NH3, NIcon, NInput, NSpace, NSelect
+  NButton, NForm, NFormItem, NGi, NGrid, NIcon, NInput, NSpace, NSelect, NPageHeader
 } from "naive-ui";
 import { ArrowBigLeft } from '@vicons/tabler'
 import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
 import ProgressSvg from "../../components/ui/ProgressSvg.vue";
 
-const props = defineProps({
-  id: {
-    type: Number,
-    required: false,
-  },
-});
-
-const emit = defineEmits(['back', 'saved', 'deleted']);
-
+const route = useRoute();
+const router = useRouter();
 const formRef = ref(null);
 const formValue = reactive({
-  id: props.id,
+  id: route.params.id,
   groupName: '',
   selectedGroups: []
 });
@@ -82,7 +76,7 @@ const isLoading = ref(true);
 const fetchInitialData = async () => {
   try {
     const [details, _] = await Promise.all([
-      props.id ? mailingListStore.getDetails(props.id, true) : Promise.resolve(null),
+      formValue.id ? mailingListStore.getDetails(formValue.id, true) : Promise.resolve(null),
       mailingListStore.fetchUserGroupsList()
     ]);
 
@@ -104,8 +98,7 @@ const handleSave = () => {
     if (!errors) {
       const success = await mailingListStore.saveList(formValue);
       if (success) {
-        emit('saved');
-        emit('back');
+        router.push('/list');
       }
     }
   });
@@ -120,7 +113,3 @@ const rules = {
   ]
 };
 </script>
-
-<style scoped>
-
-</style>

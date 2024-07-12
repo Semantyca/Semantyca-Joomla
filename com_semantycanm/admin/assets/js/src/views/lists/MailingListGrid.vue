@@ -5,7 +5,7 @@
     </n-gi>
     <n-gi>
       <n-space>
-        <n-button type="primary" @click="createNew">
+        <n-button type="primary" @click="$router.push('/form')">
           {{ globalStore.translations.CREATE }}
         </n-button>
         <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length">
@@ -32,10 +32,11 @@
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance, ref} from 'vue';
+import {defineComponent, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
 import {NButton, NDataTable, NGi, NGrid, NH3, NSpace} from "naive-ui";
 import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
+import {useRouter} from "vue-router";
 
 export default defineComponent({
   name: 'MailingListGrid',
@@ -47,13 +48,13 @@ export default defineComponent({
     NGrid,
     NGi,
   },
-  emits: ['row-click', 'create-new', 'edit'],
   setup() {
+    const router = useRouter();
     const globalStore = useGlobalStore();
     const mailingListStore = useMailingListStore();
-    const {emit} = getCurrentInstance();
     const checkedRowKeysRef = ref([]);
     const isLoading = ref(true);
+
     const fetchInitialData = async () => {
       await mailingListStore.fetchMailingList(1, 10, true);
     };
@@ -63,18 +64,10 @@ export default defineComponent({
     const getRowProps = (row) => {
       return {
         style: 'cursor: pointer;',
-        onClick: (event) => {
-          if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            isLoading.value = true;
-            emit('row-click', row);
-          }
+        onClick: () => {
+          router.push(`/form/${row.id}`);
         }
       };
-    };
-
-
-    const createNew = () => {
-      emit('create-new');
     };
 
     function handlePageChange(page) {
@@ -117,7 +110,6 @@ export default defineComponent({
       mailingListStore,
       getRowProps,
       isLoading,
-      createNew,
       columns: createColumns(),
       rowKey: (row) => row.id,
       handlePageChange,

@@ -3,7 +3,7 @@
   <n-grid :cols="1" x-gap="5" y-gap="10">
     <n-gi>
       <n-space>
-        <n-button type="info" @click="$emit('back')">
+        <n-button type="info" @click="$router.push('/list')">
           <template #icon>
             <n-icon>
               <arrow-big-left/>
@@ -19,18 +19,17 @@
     <n-gi>
       <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
         <n-grid :cols="8">
-
-
+          <!-- Add your form fields here -->
         </n-grid>
       </n-form>
     </n-gi>
-
   </n-grid>
 </template>
 
 <script>
-import { onMounted, ref} from 'vue';
-import {useGlobalStore} from "../../stores/globalStore";
+import { onMounted, ref } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useGlobalStore } from "../../stores/globalStore";
 import {
   NButton,
   NCheckbox,
@@ -43,34 +42,37 @@ import {
   NInput,
   NSpace,
 } from "naive-ui";
-import {ArrowBigLeft} from '@vicons/tabler'
-import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
+import { ArrowBigLeft } from '@vicons/tabler';
+import { rules, typeOptions } from '../../stores/template/templateEditorUtils';
 
 export default {
   name: 'StatsDetails',
   components: {
     NButton, NSpace, NInput, NCheckbox, NForm, NFormItem, NGrid, NGi, NH3, NIcon, ArrowBigLeft
   },
-  props: {
-    id: {
-      type: Number,
-      required: false,
-    },
-  },
-  emits: ['back'],
   setup() {
+    const route = useRoute();
+    const router = useRouter();
     const formRef = ref(null);
     const globalStore = useGlobalStore();
 
-
     onMounted(async () => {
+      const id = route.params.id;
+      // Fetch the stats details using the id
+      // ...
     });
 
     const handleSave = () => {
-    }
+      // Handle saving the stats details
+      // ...
+    };
 
-    const handleDelete = () => {
-    }
+    const handleDelete = async () => {
+      // Handle deleting the stats details
+      // ...
+      await deleteStats(route.params.id);
+      router.push('/stats');
+    };
 
     return {
       globalStore,
@@ -85,5 +87,5 @@ export default {
 </script>
 
 <style>
-
+/* Add any additional styles here */
 </style>

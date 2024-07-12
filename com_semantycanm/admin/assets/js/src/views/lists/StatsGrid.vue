@@ -9,6 +9,9 @@
     </n-gi>
     <n-gi>
       <n-space>
+        <n-button type="primary" @click="exportLog">
+          Export CSV
+        </n-button>
         <n-button type="error" disabled>
           {{ globalStore.translations.ARCHIVE }}
         </n-button>
@@ -23,6 +26,7 @@
           allow-checking-not-loaded
           :bordered="false"
           :pagination="newsLetterStore.getPagination"
+          :row-key="rowKey"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
           :row-props="getRowProps"
@@ -33,11 +37,12 @@
 </template>
 
 <script>
-import {defineComponent, getCurrentInstance, h, ref} from 'vue';
+import {defineComponent, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
-import {NButton, NDataTable, NGi, NGrid, NH3, NPageHeader, NSpace} from "naive-ui";
+import {NButton, NDataTable, NGi, NGrid, NPageHeader, NSpace} from "naive-ui";
 import {useStatStore} from "../../stores/statistics/statStore";
 import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
+import {useRouter} from "vue-router";
 
 export default defineComponent({
   name: 'StatsGrid',
@@ -46,7 +51,6 @@ export default defineComponent({
     NDataTable,
     NButton,
     NSpace,
-    NH3,
     NGrid,
     NGi,
   },
@@ -54,9 +58,8 @@ export default defineComponent({
     const globalStore = useGlobalStore();
     const newsLetterStore = useNewsletterStore();
     const statStore = useStatStore();
-    const {emit} = getCurrentInstance();
     const checkedRowKeysRef = ref([]);
-    const statsTabRef = ref(null);
+    const router = useRouter();
 
     const fetchInitialData = async () => {
       await newsLetterStore.fetchNewsLetters(1, 10);
@@ -67,14 +70,11 @@ export default defineComponent({
     const getRowProps = (row) => {
       return {
         style: 'cursor: pointer;',
-        onClick: (event) => {
-          if (event.target.type !== 'checkbox' && !event.target.closest('.n-checkbox')) {
-            emit('row-click', row);
-          }
+        onClick: () => {
+          router.push(`/form/${row.id}`);
         }
       };
     };
-
 
     function handlePageChange(page) {
       newsLetterStore.fetchNewsLetters(page, newsLetterStore.getPagination.pageSize);
@@ -83,10 +83,6 @@ export default defineComponent({
     function handlePageSizeChange(pageSize) {
       newsLetterStore.fetchNewsLetters(1, pageSize);
     }
-
-    const handleDeleteSelected = async () => {
-
-    };
 
     const createColumns = () => {
       return [
@@ -101,18 +97,6 @@ export default defineComponent({
           key: 'reg_date',
           width: 120,
         },
-     /*   {
-          type: 'expand',
-          width: 50,
-          renderExpand: (rowData) => {
-            if (!statStore.eventListPage.docs[rowData.key]) {
-              statStore.fetchEvents(rowData.key, msgPopup, loadingBar);
-            }
-            return h(EventTable, {
-              data: statStore.eventListPage.docs[rowData.key],
-            });
-          },
-        },*/
         {
           title: 'Subject',
           key: 'subject',
@@ -125,7 +109,7 @@ export default defineComponent({
           width: 500,
           ellipsis: true
         }
-      ]
+      ];
     };
 
     const jsonToCsv = (json) => {
@@ -169,21 +153,16 @@ export default defineComponent({
 
     return {
       globalStore,
-      statsTabRef,
       columns: createColumns(),
       getRowProps,
       newsLetterStore,
       statStore,
       handlePageSizeChange,
       handlePageChange,
-      handleDeleteSelected,
+      rowKey: (row) => row.id,
       checkedRowKeysRef,
       exportLog: downloadCsv
     };
   },
 });
-
 </script>
-
-<style>
-</style>
