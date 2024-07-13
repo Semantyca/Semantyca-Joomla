@@ -12,8 +12,8 @@
         <n-button type="primary" @click="exportLog">
           Export CSV
         </n-button>
-        <n-button type="error" disabled>
-          {{ globalStore.translations.ARCHIVE }}
+        <n-button type="error" @click="handleDeleteSelected" :disabled="!checkedRowKeysRef.length">
+          {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
     </n-gi>
@@ -151,9 +151,17 @@ export default defineComponent({
       downloadCsvFile(csvContent, 'newsletter_data.csv');
     };
 
+    const handleDeleteSelected = async () => {
+      if (checkedRowKeysRef.value.length > 0) {
+        await statStore.deleteDocs(checkedRowKeysRef.value);
+        await newsLetterStore.fetchNewsLetters(1, 10);
+        checkedRowKeysRef.value = [];
+      }
+    };
     return {
       globalStore,
       columns: createColumns(),
+      handleDeleteSelected,
       getRowProps,
       newsLetterStore,
       statStore,

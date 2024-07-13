@@ -30,4 +30,36 @@ export default class StatApiManager extends BaseObject {
             this.loadingBar.finish();
         }
     }
+
+    async delete(ids) {
+        this.loadingBar.start();
+        const idsParam = ids.join(',');
+        const url = `${StatApiManager.BASE_URL}delete&ids=${encodeURIComponent(idsParam)}`;
+
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error('Network response was not ok: ' + response.statusText);
+            }
+
+            const respData = await response.json();
+
+            if (respData.success) {
+                this.msgPopup.info('The list deleted');
+            } else {
+                throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
+            }
+        } catch (error) {
+            this.loadingBar.error();
+            this.msgPopup.error(error.message, {
+                closable: true,
+                duration: this.errorTimeout
+            });
+        } finally {
+            this.loadingBar.finish();
+        }
+    }
 }

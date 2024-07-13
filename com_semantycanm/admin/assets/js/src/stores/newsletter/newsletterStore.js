@@ -1,49 +1,41 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import {defineStore} from 'pinia';
+import {ref, computed} from 'vue';
 import MailingListApiManager from "../mailinglist/MailingListApiManager";
 import PaginatedData from '../PaginatedData';
 
 export const useNewsletterStore = defineStore('newsletters', () => {
     const newslettersListPage = new PaginatedData();
     const mailingListPage = new PaginatedData();
+    /** @deprecated redundant */
     const currentNewsletterId = ref(0);
     const progress = ref({
         dispatched: 0,
         read: 0
     });
-
     const currentInterval = ref(1000);
     const maxInterval = ref(30000);
-
     const mailingListApiManager = new MailingListApiManager();
-
     const getMailingListPage = computed(() => mailingListPage.getCurrentPageData());
-
     const mailingListOptions = computed(() =>
         mailingListPage.getAllDocs().map(doc => ({
             label: doc.name,
             value: doc.id
         }))
     );
-
     const getCurrentPage = computed(() => newslettersListPage.getCurrentPageData());
-
     const getPagination = computed(() => ({
         page: newslettersListPage.page.value,
         pageSize: newslettersListPage.pageSize.value,
         itemCount: newslettersListPage.itemCount.value,
         pageCount: newslettersListPage.pageCount.value
     }));
-
     const getMailingLists = async (currentPage, size = 10) => {
         const respData = await mailingListApiManager.fetch(currentPage, size);
-
         if (respData.success && respData.data) {
             mailingListPage.updateData(respData.data);
             mailingListPage.setPageSize(size);
         }
     };
-
     const fetchNewsLetters = async (page, size) => {
         try {
             const response = await fetch(`index.php?option=com_semantycanm&task=newsletters.findAll&page=${page}&limit=${size}`);
@@ -51,9 +43,9 @@ export const useNewsletterStore = defineStore('newsletters', () => {
             if (!response.ok) {
                 throw new Error(`HTTP error, status = ${response.status}`);
             }
-            const respData = await response.json();
-            if (respData.success && respData.data) {
-                newslettersListPage.updateData(respData.data);
+            const result = await response.json();
+            if (result.data) {
+                newslettersListPage.updateData(result.data);
                 newslettersListPage.setPageSize(size);
             }
         } catch (error) {
@@ -93,7 +85,7 @@ export const useNewsletterStore = defineStore('newsletters', () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ ids }),
+                body: JSON.stringify({ids}),
             });
 
             if (!response.ok) {

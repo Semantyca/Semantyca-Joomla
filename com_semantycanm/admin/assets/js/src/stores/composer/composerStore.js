@@ -40,6 +40,7 @@ export const useComposerStore = defineStore('composer', () => {
             loadingBar.start();
             const resp = await manager.fetch(id);
             const respData = resp.data;
+            console.log(respData);
             if (respData) {
                 const newsletterData = {
                     id: respData.id,

@@ -101,7 +101,7 @@ class MailingListModel extends BaseDatabaseModel
 			->join('INNER', $db->quoteName('#__usergroups', 'ug') . ' ON ' . $db->quoteName('mlr.user_group_id') . ' = ' . $db->quoteName('ug.id'))
 			->join('INNER', $db->quoteName('#__user_usergroup_map', 'ugm') . ' ON ' . $db->quoteName('ug.id') . ' = ' . $db->quoteName('ugm.group_id'))
 			->join('INNER', $db->quoteName('#__users', 'u') . ' ON ' . $db->quoteName('ugm.user_id') . ' = ' . $db->quoteName('u.id'))
-			->where($db->quoteName('ml.name') . ' = ' . $db->quote($mailing_list_name));
+			->where($db->quoteName('ml.id') . ' IN (' . implode(',', array_map([$db, 'quote'], $mailing_list_name)) . ')');
 
 		$db->setQuery($query);
 

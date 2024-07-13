@@ -24,7 +24,7 @@ class NewsletterDTO implements JsonSerializable
 		return [
 			'id'                 => $this->id,
 			'regDate'            => $this->regDate->format('Y-m-d H:i:s'),
-			'templateId'        => $this->templateId,
+			'templateId'         => $this->templateId,
 			'customFieldsValues' => $this->customFieldsValues,
 			'articlesIds'        => $this->articlesIds,
 			'isTest'             => $this->isTest,

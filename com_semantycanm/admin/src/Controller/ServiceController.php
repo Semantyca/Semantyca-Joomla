@@ -19,7 +19,10 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\MessagingException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\NewsletterSenderException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Messaging;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\NewsletterValidator;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Util;
 use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
@@ -28,87 +31,66 @@ use Semantyca\Component\SemantycaNM\Administrator\Model\SubscriberEventModel;
 
 class ServiceController extends BaseController
 {
-	public function sendEmailAsync()
+	public function sendEmailAsync(): void
 	{
 		header(Constants::JSON_CONTENT_TYPE);
 		$app = Factory::getApplication();
 
 		try
 		{
-			$jsonInput = json_decode(file_get_contents('php://input'), true);
-
-			$subject     = $jsonInput['subject'] ?? '';
-			$user_group  = $jsonInput['user_group'] ?? '';
-			$encodedBody = $jsonInput['msg'] ?? '';
-
-			$errors = [];
-
-			if (empty($user_group))
+			if ($_SERVER['REQUEST_METHOD'] !== 'POST')
 			{
-				$errors[] = 'User group is required';
+				http_response_code(405);
+				echo ResponseHelper::error('methodNotAllowed', 'Method Not Allowed');
+				$app->close();
+
+				return;
 			}
 
-			if (empty($encodedBody))
-			{
-				$errors[] = 'Encoded body is required';
-			}
-
-			if (!empty($errors))
-			{
-				throw new ValidationErrorException($errors);
-			}
-
-			$newLetterModel   = $this->getModel('NewsLetter');
-			$statModel        = $this->getModel('Stat');
-			$eventModel       = $this->getModel('SubscriberEvent');
-			$mailingListModel = $this->getModel('MailingList');
-
+			$input         = json_decode(file_get_contents('php://input'), true);
+			$newsletterDTO = NewsletterValidator::validateAndCreateDTO($input);
 			/** @var NewslettersModel $newLetterModel */
 			/** @var StatModel $statModel */
 			/** @var SubscriberEventModel $eventModel */
 			/** @var MailingListModel $mailingListModel */
+			$newLetterModel   = $this->getModel('Newsletters');
+			$statModel        = $this->getModel('Stat');
+			$eventModel       = $this->getModel('SubscriberEvent');
+			$mailingListModel = $this->getModel('MailingList');
+
 			$messaging = new Messaging($newLetterModel, $statModel, $eventModel, $mailingListModel);
-			$result    = $messaging->sendEmail($subject, $encodedBody, $user_group);
+			$result    = $messaging->sendEmail($newsletterDTO, false);
+
 			if ($result)
 			{
-				echo new JsonResponse($result);
+				echo ResponseHelper::success($result);
 			}
 			else
 			{
-				throw new MessagingException(['An error happened while sending the message']);
+				throw new MessagingException(['An error occurred while sending the message']);
 			}
-
 		}
-		catch (ValidationErrorException|MessagingException|NewsletterSenderException $e)
+		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse([
-				'message' => $e->getMessage(),
-				'errors'  => $e->getErrors()
-			], 'error', true);
+			echo ResponseHelper::error('validationError', 400, $e->getErrors());
+		}
+		catch (MessagingException|NewsletterSenderException $e)
+		{
+			http_response_code(400);
+			echo ResponseHelper::error('messagingError', 400, $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			$errorMessage = $e->getMessage();
-			//TODO temporary
-			$errorData = $e->getTraceAsString();
-
-			if ($errorData)
-			{
-				Log::add($errorMessage . ' | Additional details: ' . json_encode($errorData), Log::ERROR, Constants::COMPONENT_NAME);
-			}
-			else
-			{
-				Log::add($errorMessage, Log::ERROR, Constants::COMPONENT_NAME);
-			}
-
-			echo new JsonResponse(['message' => $errorMessage], 'error', true);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', 500,'An unexpected error occurred');
 		} finally
 		{
 			$app->close();
 		}
 	}
+
 
 	public function getSubject()
 	{

@@ -25,7 +25,7 @@
 <script setup>
 import {ref} from 'vue';
 import {NButton, NGrid, NGridItem, NDataTable, NSpace} from 'naive-ui';
-import {useMessageTemplateStore} from '../../stores/template/messageTemplateStore';
+import {useTemplateStore} from '../../stores/template/templateStore';
 
 const props = defineProps({
   id: {
@@ -44,7 +44,7 @@ const props = defineProps({
 });
 
 const formRef = ref(null);
-const templateStore = useMessageTemplateStore();
+const templateStore = useTemplateStore();
 const selectedTemplateId = ref(null);
 
 const columns = [

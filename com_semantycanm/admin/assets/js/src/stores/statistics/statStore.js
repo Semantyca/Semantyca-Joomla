@@ -7,7 +7,7 @@ export const useStatStore = defineStore('stat', () => {
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
-      const statListPage = ref({
+    const statListPage = ref({
         pageSize: 10,
         itemCount: 0,
         pageCount: 1,
@@ -19,18 +19,18 @@ export const useStatStore = defineStore('stat', () => {
         docs: {}
     });
 
-     const fetchStatisticsData = async (page, size) => {
+    const fetchStatisticsData = async (page, size) => {
         try {
             loadingBar.start();
             const manager = new StatApiManager(msgPopup, loadingBar);
             const respData = await manager.fetch(page, size);
             if (respData.success && respData.data) {
-                const { docs, count, maxPage, current } = respData.data;
+                const {docs, count, maxPage, current} = respData.data;
                 statListPage.value.page = current;
                 statListPage.value.pageSize = size;
                 statListPage.value.itemCount = count;
                 statListPage.value.pageCount = maxPage;
-                statListPage.value.pages.set(page, { docs });
+                statListPage.value.pages.set(page, {docs});
             }
         } catch (error) {
             loadingBar.error();
@@ -40,7 +40,7 @@ export const useStatStore = defineStore('stat', () => {
         }
     };
 
-    const fetchEvents = async (eventId, msgPopup, loadingBar) => {
+    const fetchEvents = async (eventId) => {
         try {
             loadingBar.start();
             const response = await fetch('index.php?option=com_semantycanm&task=Stat.getEvents&eventid=' + eventId);
@@ -57,8 +57,9 @@ export const useStatStore = defineStore('stat', () => {
         }
     };
 
-    const deleteDocs = async (value, msgPopup, loadingBar) => {
-        // Implement the deleteDocs action
+    const deleteDocs = async (ids) => {
+        const manager = new StatApiManager(msgPopup, loadingBar);
+        await manager.delete(ids);
     };
 
     return {

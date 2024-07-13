@@ -12,12 +12,10 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 defined('_JEXEC') or die;
 
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
-use Semantyca\Component\SemantycaNM\Administrator\Helper\RuntimeUtil;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
 class StatController extends BaseController
@@ -69,7 +67,6 @@ class StatController extends BaseController
 			$app->close();
 		}
 	}
-
 
 
 }

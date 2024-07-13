@@ -14,7 +14,6 @@ export class MessagingHandler {
         if (params.onlySave) {
             try {
                 const newsletterApiManager = new NewsletterApiManager();
-                console.log(params);
                 return await newsletterApiManager.upsert(params, params.id);
             } catch (error) {
                 throw error;
@@ -27,9 +26,10 @@ export class MessagingHandler {
                 listItems = params.mailingList.map(item => item.value);
             }
 
-            newsletterApiManager.sendEmail(params.subject, params.messageContent, params.mailingList)
+            newsletterApiManager.sendEmail(params, params.id)
                 .then((response) => {
                     console.log('response data:', response.data);
+                    /** @deprecated redundant ??? */
                     this.newsLetterStore.currentNewsletterId = response.data;
                 })
                 .catch(error => {

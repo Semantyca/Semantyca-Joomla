@@ -1,11 +1,4 @@
 <?php
-/**
- * @package     SemantycaNM
- * @subpackage  Administrator
- *
- * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
- * @license     GNU General Public License version 3 or later; see LICENSE.txt
- */
 
 namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
@@ -14,7 +7,6 @@ defined('_JEXEC') or die;
 use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\DuplicatedEntityModelException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundModelException;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
@@ -25,7 +17,6 @@ use Throwable;
 
 class TemplateController extends BaseController
 {
-
 	public function findAll()
 	{
 		$app = Factory::getApplication();
@@ -38,13 +29,14 @@ class TemplateController extends BaseController
 			$model  = $this->getModel('Template');
 			$result = $model->getList($currentPage, $itemsPerPage);
 
-			echo new JsonResponse($result);
+			echo ResponseHelper::success($result);
 		}
 		catch (Exception $e)
 		{
 			http_response_code(500);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+			echo ResponseHelper::error('error', $e->getMessage());
+		}
+		finally
 		{
 			$app->close();
 		}
@@ -57,18 +49,19 @@ class TemplateController extends BaseController
 		{
 			$id    = $this->input->getInt('id');
 			$model = $this->getModel('Template');
-			echo new JsonResponse($model->getTemplateById($id)->toArray());
+			echo ResponseHelper::success($model->getTemplateById($id)->toArray());
 		}
 		catch (RecordNotFoundModelException $e)
 		{
 			http_response_code(404);
-			echo new JsonResponse($e->getErrors(), 'applicationError', true);
+			echo ResponseHelper::error('applicationError', $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+			echo ResponseHelper::error('error', $e->getMessage());
+		}
+		finally
 		{
 			Factory::getApplication()->close();
 		}
@@ -113,7 +106,6 @@ class TemplateController extends BaseController
 			{
 				throw new Exception('Failed to update the template.');
 			}
-
 		}
 		catch (DuplicatedEntityModelException $e)
 		{
@@ -130,17 +122,13 @@ class TemplateController extends BaseController
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
 			echo ResponseHelper::error('error', $e->getMessage());
-		} finally
+		}
+		finally
 		{
 			$app->close();
 		}
 	}
 
-	/**
-	 * Handles auto-saving a template via PUT method.
-	 *
-	 * @since 1.0.0
-	 */
 	public function autoSave()
 	{
 		$app = Factory::getApplication();
@@ -166,35 +154,30 @@ class TemplateController extends BaseController
 
 			if ($result)
 			{
-				echo new JsonResponse(['success' => true, 'message' => 'Template auto-saved successfully.']);
+				echo ResponseHelper::success([], 'Template auto-saved successfully.');
 			}
 			else
 			{
 				throw new Exception('Failed to auto-save the template.');
 			}
-
 		}
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getErrors(), 'validationError', true);
+			echo ResponseHelper::error('validationError', $e->getErrors());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+			echo ResponseHelper::error('error', $e->getMessage());
+		}
+		finally
 		{
 			$app->close();
 		}
 	}
 
-	/**
-	 * Deletes one or more templates.
-	 *
-	 * @since 1.0.0
-	 */
 	public function delete(): void
 	{
 		$app = Factory::getApplication();
@@ -205,7 +188,7 @@ class TemplateController extends BaseController
 
 			if (empty($ids) || $ids === 'null')
 			{
-				throw new ValidationErrorException([], 'id cannot be null');
+				throw new ValidationErrorException(['id cannot be null']);
 			}
 
 			if (!is_array($ids))
@@ -219,7 +202,7 @@ class TemplateController extends BaseController
 			if ($result)
 			{
 				$message = count($ids) > 1 ? 'Templates deleted successfully.' : 'Template deleted successfully.';
-				echo new JsonResponse(['success' => true, 'message' => $message]);
+				echo ResponseHelper::success([], $message);
 			}
 			else
 			{
@@ -229,17 +212,17 @@ class TemplateController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'validationError', true);
+			echo ResponseHelper::error('validationError', $e->getMessage());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		} finally
+			echo ResponseHelper::error('error', $e->getMessage());
+		}
+		finally
 		{
 			$app->close();
 		}
 	}
-
 }

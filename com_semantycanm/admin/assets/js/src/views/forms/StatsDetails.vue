@@ -1,6 +1,12 @@
 <template>
-  <n-h3>Message statistics</n-h3>
   <n-grid :cols="1" x-gap="5" y-gap="10">
+    <n-gi>
+      <n-page-header class="mb-3">
+        <template #title>
+          Message statistics
+        </template>
+      </n-page-header>
+    </n-gi>
     <n-gi>
       <n-space>
         <n-button type="info" @click="$router.push('/list')">
@@ -12,26 +18,22 @@
           Back
         </n-button>
         <n-button type="error" @click="handleDelete">
-          {{ globalStore.translations.ARCHIVE }}
+          {{ globalStore.translations.DELETE }}
         </n-button>
       </n-space>
     </n-gi>
     <n-gi>
-      <n-form inline ref="formRef" :rules="rules" label-placement="left" label-width="auto">
-        <n-grid :cols="8">
-          <!-- Add your form fields here -->
-        </n-grid>
-      </n-form>
+      <n-data-table :columns="columns" :data="statsStore.eventListPage.docs[4]"/>
     </n-gi>
   </n-grid>
 </template>
 
 <script>
-import { onMounted, ref } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useGlobalStore } from "../../stores/globalStore";
+import {h, onMounted, ref} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useGlobalStore} from "../../stores/globalStore";
 import {
-  NButton,
+  NButton, NDataTable,
   NCheckbox,
   NForm,
   NFormItem,
@@ -41,51 +43,106 @@ import {
   NIcon,
   NInput,
   NSpace,
+  NPageHeader, NTag
 } from "naive-ui";
-import { ArrowBigLeft } from '@vicons/tabler';
-import { rules, typeOptions } from '../../stores/template/templateEditorUtils';
+import {ArrowBigLeft, Check} from '@vicons/tabler';
+import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
+import {useStatStore} from "../../stores/statistics/statStore";
 
 export default {
   name: 'StatsDetails',
   components: {
-    NButton, NSpace, NInput, NCheckbox, NForm, NFormItem, NGrid, NGi, NH3, NIcon, ArrowBigLeft
+    NButton, NSpace, NInput, NCheckbox, NForm, NFormItem, NGrid, NGi, NH3, NIcon, ArrowBigLeft, NPageHeader, NDataTable
   },
   setup() {
     const route = useRoute();
     const router = useRouter();
     const formRef = ref(null);
     const globalStore = useGlobalStore();
+    const statsStore = useStatStore();
 
     onMounted(async () => {
       const id = route.params.id;
-      // Fetch the stats details using the id
-      // ...
+      await statsStore.fetchEvents(id);
     });
 
-    const handleSave = () => {
-      // Handle saving the stats details
-      // ...
+    const handleDelete = async () => {
+      await statStore.deleteDocs(id);
+      router.push('/list');
     };
 
-    const handleDelete = async () => {
-      // Handle deleting the stats details
-      // ...
-      await deleteStats(route.params.id);
-      router.push('/stats');
-    };
+    const columns = [
+      {
+        title: 'Sending Date',
+        key: 'sending_reg_date',
+        width: 200,
+        render(row) {
+          return row.sending_reg_date ? new Date(row.sending_reg_date).toLocaleString() : 'No Sending Date Available';
+        }
+      },
+      {
+        title: 'Subscriber Email',
+        key: 'subscriber_email',
+        width: 200,
+      },
+      {
+        title: 'Events',
+        key: 'events',
+        width: 350,
+        render(row) {
+          return h('div', {}, row.events.map(event => {
+            let title;
+            switch (event.event_type) {
+              case 100:
+                title = 'Dispatched';
+                break;
+              case 101:
+                title = 'Read';
+                break;
+              case 102:
+                title = 'Unsubscribed';
+                break;
+              case 103:
+                title = 'Click';
+                break;
+              default:
+                title = 'Unknown';
+                break;
+            }
+            return h(NTag, {
+              type: event.fulfilled === 2 ? 'success' : 'default',
+              style: 'margin-right: 8px;',
+            }, {
+              default: () => [
+                title,
+                event.fulfilled === 2 ? h(NIcon, {component: Check, style: 'margin-left: 8px;'}) : null
+              ]
+            });
+          }));
+        }
+      },
+      {
+        title: 'Errors',
+        key: 'errors',
+        render(row) {
+          return h('div', {}, row.errors.map(error => h('div', {style: 'color: red;'}, error)));
+        }
+      }
+    ]
 
     return {
       globalStore,
-      handleSave,
+      statsStore,
       handleDelete,
       rules,
       formRef,
       typeOptions,
+      columns,
     };
   }
-};
+}
+;
 </script>
 
 <style>
-/* Add any additional styles here */
 </style>

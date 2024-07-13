@@ -11,17 +11,13 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-use DateTime;
-use Exception;
-use InvalidArgumentException;
 use Joomla\CMS\Factory;
-use Joomla\CMS\Log\Log;
 use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\Response\JsonResponse;
-use Semantyca\Component\SemantycaNM\Administrator\DTO\NewsletterDTO;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
-use Throwable;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\NewsletterValidator;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
 
 class NewslettersController extends BaseController
 {
@@ -34,13 +30,13 @@ class NewslettersController extends BaseController
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
 			$model        = $this->getModel('Newsletters');
-			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
+			echo ResponseHelper::success($model->getList($currentPage, $itemsPerPage));
 		}
-		catch (Throwable $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', $e->getMessage());
 		}
 		$app->close();
 	}
@@ -54,7 +50,7 @@ class NewslettersController extends BaseController
 			$id = $this->input->getInt('id');
 			if (!$id)
 			{
-				throw new InvalidArgumentException('Invalid or missing ID');
+				throw new ValidationErrorException(['Invalid or missing ID']);
 			}
 			$model      = $this->getModel('Newsletters');
 			$newsletter = $model->find($id);
@@ -62,84 +58,23 @@ class NewslettersController extends BaseController
 			if (!$newsletter)
 			{
 				http_response_code(404);
-				echo new JsonResponse('Newsletter not found', 'error', true);
+				echo ResponseHelper::error('notFound', 'Newsletter not found');
 			}
 			else
 			{
-				echo new JsonResponse($newsletter);
-			}
-		}
-		catch (InvalidArgumentException $e)
-		{
-			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		}
-		catch (Throwable $e)
-		{
-			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		}
-		$app->close();
-	}
-
-	public function findNewsletterEvents()
-	{
-		header(Constants::JSON_CONTENT_TYPE);
-		$app = Factory::getApplication();
-		try
-		{
-			$id    = $this->input->getString('id');
-			$model = $this->getModel('Newsletters');
-			echo new JsonResponse($model->findRelevantEvent($id, [Constants::EVENT_TYPE_DISPATCHED, Constants::EVENT_TYPE_READ]));
-		}
-		catch (Throwable $e)
-		{
-			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		}
-		$app->close();
-	}
-
-	public function add()
-	{
-		header(Constants::JSON_CONTENT_TYPE);
-		$app = Factory::getApplication();
-		try
-		{
-			$input = json_decode(file_get_contents('php://input'), true);
-
-			if ($_SERVER['REQUEST_METHOD'] === 'POST')
-			{
-				$subj = $input['subject'] ?? null;
-				$msg  = $input['msg'] ?? null;
-
-				if (empty($msg))
-				{
-					throw new ValidationErrorException(['Message body is required']);
-				}
-
-				$model = $this->getModel('Newsletters');
-				echo new JsonResponse($model->upsert($subj, $msg));
-			}
-			else
-			{
-				throw new ValidationErrorException(['Only POST request is allowed']);
+				echo ResponseHelper::success($newsletter);
 			}
 		}
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors  = $e->getErrors();
-			$message = $e->getMessage();
-			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
+			echo ResponseHelper::error('validationError', $e->getErrors());
 		}
-		catch (Throwable $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', $e->getMessage());
 		}
 		$app->close();
 	}
@@ -152,77 +87,31 @@ class NewslettersController extends BaseController
 		{
 			$input = json_decode(file_get_contents('php://input'), true);
 
-			if ($_SERVER['REQUEST_METHOD'] === 'POST')
-			{
-				if (empty($input['messageContent']))
-				{
-					throw new ValidationErrorException(['Message content is required']);
-				}
-
-				if (empty($input['subject']))
-				{
-					throw new ValidationErrorException(['Subject is required']);
-				}
-
-				$isTest = $input['isTest'] ?? false;
-
-				if (empty($input['templateId']))
-				{
-					throw new ValidationErrorException(['Template ID is required']);
-				}
-
-				if ($isTest)
-				{
-					if (empty($input['testEmail']))
-					{
-						throw new ValidationErrorException(['Test email is required when isTest is true']);
-					}
-				}
-				else
-				{
-					if (empty($input['mailingList']))
-					{
-						throw new ValidationErrorException(['Mailing list is required when isTest is false']);
-					}
-				}
-
-				$newsletterDTO                     = new NewsletterDTO();
-				$newsletterDTO->regDate            = new DateTime();
-				$newsletterDTO->templateId         = $input['templateId'];
-				$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
-				$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
-				$newsletterDTO->isTest             = $isTest;
-				$newsletterDTO->mailingListIds     = $input['mailingList'] ?? [];
-				$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
-				$newsletterDTO->subject            = $input['subject'];
-				$newsletterDTO->messageContent     = $input['messageContent'];
-				$newsletterDTO->useWrapper         = $input['useWrapper'];
-
-				$model = $this->getModel('Newsletters');
-				$id    = $app->input->getInt('id', null);
-				echo new JsonResponse(['id' => $model->upsert($id, $newsletterDTO)]);
-			}
-			else
+			if ($_SERVER['REQUEST_METHOD'] !== 'POST')
 			{
 				throw new ValidationErrorException(['Only POST request is allowed']);
 			}
+
+			$newsletterDTO = NewsletterValidator::validateAndCreateDTO($input);
+
+			$model = $this->getModel('Newsletters');
+			$id = $app->input->getInt('id', null);
+			$result = $model->upsert($id, $newsletterDTO);
+			echo ResponseHelper::success(['id' => $result]);
 		}
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			$errors  = $e->getErrors();
-			$message = $e->getMessage();
-			echo new JsonResponse(['errors' => $errors, 'message' => $message], 'Error', true);
+			echo ResponseHelper::error('validationError', $e->getErrors());
 		}
-		catch (Throwable $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', $e->getMessage());
 		}
 		$app->close();
 	}
-
 
 	public function delete(): void
 	{
@@ -232,9 +121,8 @@ class NewslettersController extends BaseController
 		if ($_SERVER['REQUEST_METHOD'] !== 'DELETE')
 		{
 			http_response_code(405);
-			echo new JsonResponse('Method Not Allowed', 'error', true);
+			echo ResponseHelper::error('methodNotAllowed', 'Method Not Allowed');
 			$app->close();
-
 			return;
 		}
 
@@ -245,19 +133,24 @@ class NewslettersController extends BaseController
 
 			if (empty($ids))
 			{
-				throw new InvalidArgumentException('No IDs provided');
+				throw new ValidationErrorException(['No IDs provided']);
 			}
 
 			$model = $this->getModel('Newsletters');
 			$model->delete($ids);
 
-			echo new JsonResponse(['success' => true, 'message' => 'Newsletters deleted successfully']);
+			echo ResponseHelper::success([], 'Newsletters deleted successfully');
 		}
-		catch (Throwable $e)
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(400);
+			echo ResponseHelper::error('validationError', $e->getErrors());
+		}
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			Log::add($e->getMessage(), Log::ERROR, Constants::COMPONENT_NAME);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', $e->getMessage());
 		}
 		$app->close();
 	}

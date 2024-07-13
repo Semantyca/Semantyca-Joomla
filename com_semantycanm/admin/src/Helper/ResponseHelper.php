@@ -11,20 +11,23 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Helper;
 
 defined('_JEXEC') or die('Restricted access');
 
-class ResponseHelper {
-	public static function success($data, $message = 'Processed with success') {
+class ResponseHelper
+{
+	public static function success($data, $message = 'Processed with success')
+	{
 		return json_encode(array(
-			'status' => 'success',
-			'data' => $data,
+			'status'  => 'success',
+			'data'    => $data,
 			'message' => $message
 		));
 	}
 
-	public static function error($message, $code = 400, $details = array()) {
+	public static function error($message, $code = 400, $details = array())
+	{
 		return json_encode(array(
-			'status' => 'error',
+			'status'  => 'error',
 			'message' => $message,
-			'code' => $code,
+			'code'    => $code,
 			'details' => $details
 		));
 	}

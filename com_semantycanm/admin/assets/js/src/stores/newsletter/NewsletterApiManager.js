@@ -2,6 +2,7 @@ import BaseObject from "../../utils/BaseObject";
 
 class NewsletterApiManager extends BaseObject {
     static BASE_URL = 'index.php?option=com_semantycanm&task=newsletters.';
+    static SERVICE_BASE_URL = 'index.php?option=com_semantycanm&task=service.';
 
     constructor() {
         super();
@@ -64,22 +65,18 @@ class NewsletterApiManager extends BaseObject {
         }
     }
 
-    async sendEmail(subject, messageContent, listOfUserGroups) {
-        const url = `${NewsletterApiManager.BASE_URL}Service.sendEmailAsync`;
-        const data = {
-            subject,
-            msg: messageContent,
-            user_group: listOfUserGroups
-        };
+    async sendEmail(newsletter, id) {
+        let url = `${NewsletterApiManager.SERVICE_BASE_URL}sendEmailAsync`;
+
+        if (id) {
+            url = url + '&id=' + id;
+        }
 
         try {
             const response = await fetch(url, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...this.headers
-                },
-                body: JSON.stringify(data),
+                headers: this.headers,
+                body: JSON.stringify(newsletter),
             });
 
             if (!response.ok) {
