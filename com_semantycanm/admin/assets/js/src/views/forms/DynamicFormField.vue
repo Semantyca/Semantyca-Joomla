@@ -1,14 +1,16 @@
 <template>
   <template v-if="field.type === 503">
-    <div v-for="(color, i) in field.defaultValue" :key="i">
+    <n-space>
       <n-color-picker
+          v-for="(color, i) in field.defaultValue"
+          :key="i"
           :value="color"
           :show-alpha="false"
           :actions="['confirm', 'clear']"
           @update:value="newValue => handleColorChange(i, newValue)"
-          style="margin-right: 5px; width: 80px"
+          style="width: 80px"
       />
-    </div>
+    </n-space>
   </template>
   <template v-else-if="field.type === 501">
     <n-input-number
@@ -31,6 +33,55 @@
         @update:value="handleArticleIdsChange"
     />
   </template>
+  <template v-else-if="field.type === 521">
+      <n-card size="small" title="Available Articles" style="width: 40%;">
+        <template #header-extra>
+          <n-input placeholder="Search..."></n-input>
+        </template>
+        <draggable
+            :list="availableArticles"
+            group="articles"
+            item-key="id"
+            @change="handleDragChange"
+            class="draggable-list"
+        >
+          <template #item="{ element }">
+            <n-card size="small" :title="element.category" class="draggable-item">
+              <n-space vertical>
+                <n-text strong>{{ element.title }}</n-text>
+                <n-ellipsis :line-clamp="2" expand-trigger="click">
+                  {{ decodeURIComponent(element.intro) }}
+                </n-ellipsis>
+              </n-space>
+            </n-card>
+          </template>
+        </draggable>
+      </n-card>
+      <n-card size="small" title="Selected Articles" style="width: 40%;">
+        <template #header-extra>
+           <n-button type="default" disabled>Clear</n-button>
+        </template>
+        <draggable
+            :list="selectedArticles"
+            group="articles"
+            item-key="id"
+            @change="handleDragChange"
+            class="draggable-list"
+        >
+          <template #item="{ element }">
+            <n-card size="small" class="draggable-item">
+              <n-space vertical>
+                <n-text strong>{{ element.title }}</n-text>
+                <n-ellipsis :line-clamp="2" expand-trigger="click">
+                  {{ decodeURIComponent(element.intro) }}
+                </n-ellipsis>
+              </n-space>
+            </n-card>
+          </template>
+        </draggable>
+      </n-card>
+
+  </template>
   <template v-else>
     <n-input
         v-model:value="field.defaultValue"
@@ -42,11 +93,12 @@
 
 <script>
 import {computed, defineComponent, h} from 'vue';
-import {NColorPicker, NInputNumber, NInput, NTag, NSelect} from 'naive-ui';
+import {NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis,NButton} from 'naive-ui';
+import draggable from "vuedraggable";
 
 export default defineComponent({
   name: 'DynamicFormField',
-  components: {NColorPicker, NInputNumber, NInput, NSelect},
+  components: {NColorPicker, NInputNumber, NInput, NSelect, draggable, NSpace, NCard, NTag, NText, NEllipsis, NButton},
   props: {
     field: {
       type: Object,
@@ -60,7 +112,7 @@ export default defineComponent({
   emits: ['update:field'],
   setup(props, {emit}) {
     const computedArticleOptions = computed(() => {
-      if (props.field.type === 520) {
+      if (props.field.type === 520 || props.field.type === 521) {
         return props.articleOptions.map(article => ({
           ...article,
           value: article.id
@@ -70,7 +122,7 @@ export default defineComponent({
     });
 
     const selectedArticleIds = computed(() => {
-      if (props.field.type === 520) {
+      if (props.field.type === 520 || props.field.type === 521) {
         return props.field.defaultValue.map(article => article.value);
       }
       return [];
@@ -112,6 +164,25 @@ export default defineComponent({
       });
     };
 
+    const availableArticles = computed(() => {
+      if (props.field.type === 521) {
+        return props.articleOptions.filter(article =>
+            !props.field.defaultValue.some(selected => selected.id === article.id)
+        );
+      }
+      return [];
+    });
+
+    const selectedArticles = computed({
+      get: () => props.field.defaultValue || [],
+      set: (value) => emit('update:field', {...props.field, defaultValue: value})
+    });
+
+    const handleDragChange = () => {
+      emit('update:field', {...props.field, defaultValue: selectedArticles.value});
+    };
+
+
     return {
       articleOptions: computedArticleOptions,
       selectedArticleIds,
@@ -119,8 +190,23 @@ export default defineComponent({
       handleFieldChange,
       renderArticleOption,
       handleArticleIdsChange,
-      renderSelectedArticle
+      renderSelectedArticle,
+      availableArticles,
+      selectedArticles,
+      handleDragChange
     };
   }
 })
 </script>
+
+<style scoped>
+.draggable-list {
+  height: 400px;
+  overflow-y: auto;
+}
+
+.draggable-item {
+  margin-bottom: 2px;
+  cursor: move;
+}
+</style>

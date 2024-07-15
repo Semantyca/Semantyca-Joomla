@@ -74,6 +74,7 @@ class SMTPSender
 		foreach ($results as $data) {
 			$email = $data['subscriber_email'];
 			$subject = $data['subject'];
+			$useWrapper = $data['use_wrapper'];
 			$messageContent = $data['message_content'];
 			$readTriggerToken = $data['trigger_token'];
 

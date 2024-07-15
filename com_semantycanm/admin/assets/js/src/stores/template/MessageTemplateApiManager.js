@@ -10,6 +10,7 @@ export default class MessageTemplateApiManager extends BaseObject {
         this.errorTimeout = 50000;
     }
 
+    /**deprecated  use directly**/
     async fetch(currentPage, size) {
         this.loadingBar.start();
         const url = `${MessageTemplateApiManager.BASE_URL}findAll&page=${currentPage}&limit=${size}`;

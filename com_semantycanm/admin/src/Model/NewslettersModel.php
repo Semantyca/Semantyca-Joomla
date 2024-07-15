@@ -115,6 +115,7 @@ class NewslettersModel extends BaseDatabaseModel
 		$query->select($db->quoteName([
 			'nl.subject',
 			'nl.message_content',
+			'nl.use_wrapper',
 			's.reg_date',
 			'e.subscriber_email',
 			'e.trigger_token'

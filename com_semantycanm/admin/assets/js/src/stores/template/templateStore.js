@@ -1,21 +1,20 @@
-import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import {defineStore} from 'pinia';
+import {ref, computed} from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
-import { useLoadingBar, useMessage } from "naive-ui";
+import {useLoadingBar, useMessage} from "naive-ui";
 import TemplateManager from "./TemplateManager";
 import {createCache} from "../../utils/cacheUtil";
+import PaginatedData from "../PaginatedData";
+
+const BASE_URL = 'index.php?option=com_semantycanm&task=Template';
 
 export const useTemplateStore = defineStore('templates', () => {
+    const listPage = new PaginatedData();
+    const documentPage = new PaginatedData();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
     const cache = createCache();
-    const templatesPage = ref({
-        page: 1,
-        pageSize: 10,
-        itemCount: 0,
-        pageCount: 1,
-        pages: new Map()
-    });
+
     const templateDoc = ref({
         id: 0,
         name: '',
@@ -39,38 +38,42 @@ export const useTemplateStore = defineStore('templates', () => {
     });
     const templateMap = ref(new Map());
     const availableCustomFields = ref({});
-    const pagination = ref({
-        currentPage: 1,
-        itemsPerPage: 10,
-        totalItems: 0,
-        totalPages: 0
-    });
+    const getCurrentPage = computed(() => listPage.getCurrentPageData());
+    const getPagination = computed(() => ({
+        page: listPage.page.value,
+        pageSize: listPage.pageSize.value,
+        itemCount: listPage.itemCount.value,
+        pageCount: listPage.pageCount.value
+    }));
+
+    const fetchTemplates = async (page, size) => {
+        try {
+            const response = await fetch(`${BASE_URL}.findAll&page=${page}&limit=${size}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error, status = ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.data) {
+                console.log(result.data);
+                listPage.updateData(result.data);
+                listPage.setPageSize(size);
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
 
     const templateSelectOptions = computed(() => {
         const options = [];
-        templatesPage.value.pages.forEach((pageData, pageNumber) => {
-            pageData.docs.forEach(template => {
-                options.push({
-                    label: template.name,
-                    key: template.id
-                });
+        const allDocs = listPage.getAllDocs();
+        console.log(allDocs);
+        allDocs.forEach(template => {
+            options.push({
+                label: template.name,
+                key: template.id
             });
         });
         return options;
-    });
-
-    const getCurrentPage = computed(() => {
-        const pageData = templatesPage.value.pages.get(templatesPage.value.page);
-        return pageData ? pageData.docs : [];
-    });
-
-    const getPagination = computed(() => {
-        return {
-            page: templatesPage.value.page,
-            pageSize: templatesPage.value.pageSize,
-            itemCount: templatesPage.value.itemCount,
-            pageCount: templatesPage.value.pageCount
-        };
     });
 
     async function fetchTemplate(id) {
@@ -109,26 +112,12 @@ export const useTemplateStore = defineStore('templates', () => {
     }
 
     const applyTemplateById = (id) => {
-        const pageNum = 1;
-        const onePage = templatesPage.value.pages.get(pageNum);
-        const templateDoc = onePage.docs.find(document => document.id === id);
-        appliedTemplateDoc.value = { ...templateDoc };
+        const allDocs = listPage.getAllDocs();
+        const templateDoc = allDocs.find(document => document.id === id);
+        console.log(templateDoc);
+        appliedTemplateDoc.value = {...templateDoc};
         const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
-    };
-
-    const resetAppliedTemplate = () => {
-        appliedTemplateDoc.value = {
-            id: 0,
-            name: 'no template',
-            type: '',
-            description: '',
-            content: '',
-            wrapper: '',
-            isDefault: false,
-            customFields: []
-        };
-        availableCustomFields.value = {};
     };
 
     function processFormCustomFields(availableFields, adaptField) {
@@ -149,7 +138,7 @@ export const useTemplateStore = defineStore('templates', () => {
             defaultValue: '',
             isAvailable: 0,
         };
-        templateDoc.value.customFields.push({ ...defaultFieldStructure, ...newField });
+        templateDoc.value.customFields.push({...defaultFieldStructure, ...newField});
     };
 
     const removeCustomField = (index) => {
@@ -158,22 +147,6 @@ export const useTemplateStore = defineStore('templates', () => {
         }
     };
 
-    const fetchTemplates = async (page, size) => {
-        try {
-            const manager = new MessageTemplateApiManager(msgPopup, loadingBar);
-            const respData = await manager.fetch(page, size);
-            if (respData.success && respData.data) {
-                const { docs, count, maxPage, current } = respData.data;
-                templatesPage.value.pageSize = size;
-                templatesPage.value.itemCount = count;
-                templatesPage.value.pageCount = maxPage;
-                templatesPage.value.pageNum = current;
-                templatesPage.value.pages.set(page, { docs });
-            }
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
     const deleteApi = async (ids) => {
         try {
@@ -209,7 +182,7 @@ export const useTemplateStore = defineStore('templates', () => {
                     ...field,
                     defaultValue: Number(field.defaultValue)
                 };
-            case 520:
+            case 521:
                 try {
                     const parsedValue = JSON.parse(field.defaultValue);
                     return {
@@ -223,27 +196,25 @@ export const useTemplateStore = defineStore('templates', () => {
                     };
                 }
             default:
-                return { ...field };
+                return {...field};
         }
     }
 
     return {
+        listPage,
         fetchTemplates,
         fetchTemplate,
         saveTemplate,
         deleteApi,
-        templatesPage,
         templateDoc,
         appliedTemplateDoc,
         getCurrentPage,
         getPagination,
         templateMap,
         availableCustomFields,
-        pagination,
         cache,
         templateSelectOptions,
         applyTemplateById,
-        resetAppliedTemplate,
         addCustomField,
         removeCustomField
     };

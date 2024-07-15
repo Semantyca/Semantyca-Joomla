@@ -20,7 +20,7 @@ class NewsletterValidator
 			throw new ValidationErrorException(['Subject is required']);
 		}
 
-		$isTest = $input['isTest'] ?? false;
+		$isTest = $input['isTestMessage'] ?? false;
 
 		if (empty($input['templateId']))
 		{

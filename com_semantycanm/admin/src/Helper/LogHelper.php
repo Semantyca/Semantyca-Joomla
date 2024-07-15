@@ -35,7 +35,7 @@ class LogHelper
 	}
 
 
-	public static function logException(Exception $e, $componentName)
+	public static function logException(\Throwable $e, $componentName)
 	{
 		$className   = $componentName;
 		$logEntry   = sprintf(

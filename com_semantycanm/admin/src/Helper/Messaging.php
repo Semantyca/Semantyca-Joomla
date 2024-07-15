@@ -42,7 +42,7 @@ class Messaging
 
 	/**
 	 * @throws Exception
-	 * @throws NewsletterSenderException
+	 * @throws NewsletterSenderException|MessagingException
 	 * @since 1.0
 	 */
 	public function sendEmail(NewsletterDTO $newsletterDTO, $send_async): int

@@ -7,3 +7,10 @@
  * @project EJS
  * @license {@link http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0}
  */
+
+/**!
+ * Sortable 1.14.0
+ * @author	RubaXa   <trash@rubaxa.org>
+ * @author	owenm    <owen23355@gmail.com>
+ * @license MIT
+ */

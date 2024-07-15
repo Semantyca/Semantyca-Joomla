@@ -265,7 +265,8 @@ export default {
     }
 
     const handleSave = () => {
-      const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), true, newsletterId.value);
+      //const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), true, newsletterId.value);
+      const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, true, newsletterId.value);
       messagingHandler.send(newsletterParams);
     }
 
@@ -312,7 +313,7 @@ export default {
       Object.entries(modelRef.value.customFields).forEach(([fieldName, field]) => {
         const fieldRules = [];
 
-        if (field.type === 520) {
+        if (field.type === 520 || field.type === 521) {
           fieldRules.push({
             validator(rule, value) {
               console.log('def', field);

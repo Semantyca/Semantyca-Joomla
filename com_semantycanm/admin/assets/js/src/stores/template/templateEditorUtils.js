@@ -32,6 +32,7 @@ export const typeOptions = [
     {label: "Colors", value: 503},
     {label: "URL", value: 504},
     {label: "Articles", value: 520},
+    {label: "Articles", value: 521},
 ];
 
 function isValidJson(value) {

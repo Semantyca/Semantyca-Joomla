@@ -1,3 +1,4 @@
+/*
 function showSpinner(spinnerId) {
     const spinner = document.getElementById(spinnerId);
     spinner.style.display = 'block';
@@ -74,3 +75,4 @@ function fadeOutAndRemoveAlert(alert) {
 }
 
 
+*/

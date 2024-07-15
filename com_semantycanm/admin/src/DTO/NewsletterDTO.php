@@ -7,7 +7,7 @@ use JsonSerializable;
 
 class NewsletterDTO implements JsonSerializable
 {
-	public int $id;
+	public ?int $id;
 	public DateTime $regDate;
 	public int $templateId;
 	public string $customFieldsValues;
