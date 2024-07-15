@@ -29,7 +29,7 @@
                     :options="templateStore.templateSelectOptions"
                     @select="handleTemplateChange">
           <n-button type="primary" :disabled="isTemplateButtonDisabled">
-            Apply template
+            Select Template
           </n-button>
         </n-dropdown>
       </n-space>

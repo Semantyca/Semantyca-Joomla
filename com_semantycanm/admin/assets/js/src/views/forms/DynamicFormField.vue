@@ -34,52 +34,57 @@
     />
   </template>
   <template v-else-if="field.type === 521">
-      <n-card size="small" title="Available Articles" style="width: 40%;">
-        <template #header-extra>
-          <n-input placeholder="Search..."></n-input>
+    <n-card size="small" title="Available Articles" style="width: 40%;">
+      <template #header-extra>
+        <n-input
+            placeholder="Search..."
+            @input="debouncedFetchArticles">
+        </n-input>
+      </template>
+      <draggable
+          :list="availableArticles"
+          group="articles"
+          item-key="id"
+          @change="handleDragChange"
+          class="draggable-list"
+      >
+        <template #item="{ element }">
+          <n-card size="small" class="draggable-item">
+            <n-space vertical>
+              <n-text strong>{{ element.category }}</n-text>
+              <n-ellipsis :line-clamp="2" expand-trigger="click">
+                {{ element.title }}
+              </n-ellipsis>
+            </n-space>
+          </n-card>
         </template>
-        <draggable
-            :list="availableArticles"
-            group="articles"
-            item-key="id"
-            @change="handleDragChange"
-            class="draggable-list"
-        >
-          <template #item="{ element }">
-            <n-card size="small" :title="element.category" class="draggable-item">
-              <n-space vertical>
-                <n-text strong>{{ element.title }}</n-text>
-                <n-ellipsis :line-clamp="2" expand-trigger="click">
-                  {{ decodeURIComponent(element.intro) }}
-                </n-ellipsis>
-              </n-space>
-            </n-card>
-          </template>
-        </draggable>
-      </n-card>
-      <n-card size="small" title="Selected Articles" style="width: 40%;">
-        <template #header-extra>
-           <n-button type="default" disabled>Clear</n-button>
+      </draggable>
+    </n-card>
+    <n-card size="small" title="Selected Articles" style="width: 40%;">
+      <template #header-extra>
+        <n-badge type="info" :value="countOfSelectedArticles" show-zero>
+          <n-button type="default" disabled>Clear</n-button>
+        </n-badge>
+      </template>
+      <draggable
+          :list="selectedArticles"
+          group="articles"
+          item-key="id"
+          @change="handleDragChange"
+          class="draggable-list"
+      >
+        <template #item="{ element }">
+          <n-card size="small" class="draggable-item">
+            <n-space vertical>
+              <n-text strong>{{ element.category }}</n-text>
+              <n-ellipsis :line-clamp="2" expand-trigger="click">
+                {{ element.title }}
+              </n-ellipsis>
+            </n-space>
+          </n-card>
         </template>
-        <draggable
-            :list="selectedArticles"
-            group="articles"
-            item-key="id"
-            @change="handleDragChange"
-            class="draggable-list"
-        >
-          <template #item="{ element }">
-            <n-card size="small" class="draggable-item">
-              <n-space vertical>
-                <n-text strong>{{ element.title }}</n-text>
-                <n-ellipsis :line-clamp="2" expand-trigger="click">
-                  {{ decodeURIComponent(element.intro) }}
-                </n-ellipsis>
-              </n-space>
-            </n-card>
-          </template>
-        </draggable>
-      </n-card>
+      </draggable>
+    </n-card>
 
   </template>
   <template v-else>
@@ -93,12 +98,13 @@
 
 <script>
 import {computed, defineComponent, h} from 'vue';
-import {NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis,NButton} from 'naive-ui';
+import {NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis, NButton, NBadge} from 'naive-ui';
 import draggable from "vuedraggable";
+import {debounce} from "lodash";
 
 export default defineComponent({
   name: 'DynamicFormField',
-  components: {NColorPicker, NInputNumber, NInput, NSelect, draggable, NSpace, NCard, NTag, NText, NEllipsis, NButton},
+  components: {NColorPicker, NInputNumber, NInput, NSelect, draggable, NSpace, NCard, NTag, NText, NEllipsis, NBadge, NButton},
   props: {
     field: {
       type: Object,
@@ -178,14 +184,24 @@ export default defineComponent({
       set: (value) => emit('update:field', {...props.field, defaultValue: value})
     });
 
+    const countOfSelectedArticles = computed(() => {
+      return selectedArticles.value.length;
+    });
+
     const handleDragChange = () => {
       emit('update:field', {...props.field, defaultValue: selectedArticles.value});
     };
 
+    // const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
+
+    const debouncedFetchArticles = (val) => {
+      // fetchArticlesDebounced(val);
+    };
 
     return {
       articleOptions: computedArticleOptions,
       selectedArticleIds,
+      countOfSelectedArticles,
       handleColorChange,
       handleFieldChange,
       renderArticleOption,
@@ -193,7 +209,8 @@ export default defineComponent({
       renderSelectedArticle,
       availableArticles,
       selectedArticles,
-      handleDragChange
+      handleDragChange,
+      debouncedFetchArticles
     };
   }
 })
