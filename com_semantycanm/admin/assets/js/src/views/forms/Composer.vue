@@ -55,7 +55,6 @@
           >
             <dynamic-form-field
                 :field="field"
-                :articleOptions="composerStore.articleOptions"
                 @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
             />
           </n-form-item>
@@ -141,7 +140,6 @@ import {
   NSpace,
   NSpin,
   NTransfer,
-  useDialog,
   useLoadingBar,
   useMessage
 } from "naive-ui";
@@ -234,18 +232,6 @@ export default {
         msgPopup.error("Failed to load initial data");
       }
     }
-
-   /* const preview = () => {
-      dialog.create({
-        title: 'Preview',
-        style: 'width: 800px; max-width: 90vw;',
-        bordered: true,
-        content: () => h(NCode, {
-          code: modelRef.value.content,
-          language: 'html',
-        })
-      })
-    }*/
 
     const handleTemplateChange = (appliedTemplateId) => {
       modelRef.value.templateId = appliedTemplateId;

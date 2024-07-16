@@ -104,8 +104,8 @@ export default defineComponent({
           ellipsis: true
         },
         {
-          title: 'Content',
-          key: 'message_content',
+          title: 'Brief stats',
+
           width: 500,
           ellipsis: true
         }

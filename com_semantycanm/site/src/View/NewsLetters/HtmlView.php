@@ -1,6 +1,12 @@
 <?php
-
-namespace Semantyca\Component\SemantycaNM\Site\View\Dashboard;
+/**
+ * @package     SemantycaNM
+ * @subpackage  Site
+ *
+ * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
+namespace Semantyca\Component\SemantycaNM\Site\View\NewsLetters;
 
 defined('_JEXEC') or die;
 

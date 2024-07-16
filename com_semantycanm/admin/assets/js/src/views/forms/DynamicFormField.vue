@@ -25,7 +25,7 @@
         multiple
         filterable
         placeholder="Search articles"
-        :options="articleOptions"
+        :options="computedArticleOptions"
         :render-label="renderArticleOption"
         :render-tag="renderSelectedArticle"
         :clear-filter-after-select="true"
@@ -38,6 +38,8 @@
       <template #header-extra>
         <n-input
             placeholder="Search..."
+            v-model:value="searchQuery"
+            :loading="isLoading"
             @input="debouncedFetchArticles">
         </n-input>
       </template>
@@ -87,7 +89,6 @@
         </template>
       </draggable>
     </n-card>
-
   </template>
   <template v-else>
     <n-input
@@ -99,28 +100,38 @@
 </template>
 
 <script>
-import {computed, defineComponent, h} from 'vue';
-import {NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis, NButton, NBadge} from 'naive-ui';
+import { computed, defineComponent, h, onMounted, ref } from 'vue';
+import { NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis, NButton, NBadge } from 'naive-ui';
 import draggable from "vuedraggable";
+import { useComposerStore } from '../../stores/composer/composerStore';
+import {debounce} from "lodash";
 
 export default defineComponent({
   name: 'DynamicFormField',
-  components: {NColorPicker, NInputNumber, NInput, NSelect, draggable, NSpace, NCard, NTag, NText, NEllipsis, NBadge, NButton},
+  components: { NColorPicker, NInputNumber, NInput, NSelect, draggable, NSpace, NCard, NTag, NText, NEllipsis, NBadge, NButton },
   props: {
     field: {
       type: Object,
       required: true
-    },
-    articleOptions: {
-      type: Array,
-      required: true
     }
   },
   emits: ['update:field'],
-  setup(props, {emit}) {
+  setup(props, { emit }) {
+    const composerStore = useComposerStore();
+    const articleOptions = ref([]);
+    const searchQuery = ref('');
+    const isLoading = ref(false);
+
+    onMounted(async () => {
+      if (props.field.type === 520 || props.field.type === 521) {
+        await composerStore.searchArticles('');
+        articleOptions.value = composerStore.articleOptions;
+      }
+    });
+
     const computedArticleOptions = computed(() => {
       if (props.field.type === 520 || props.field.type === 521) {
-        return props.articleOptions.map(article => ({
+        return articleOptions.value.map(article => ({
           ...article,
           value: article.id
         }));
@@ -133,7 +144,7 @@ export default defineComponent({
         return props.field.defaultValue.map(article => article.value);
       }
       return [];
-    })
+    });
 
     const handleColorChange = (index, newValue) => {
       const updatedField = {
@@ -145,24 +156,24 @@ export default defineComponent({
     };
 
     const handleFieldChange = (newValue) => {
-      emit('update:field', {...props.field, defaultValue: newValue});
+      emit('update:field', { ...props.field, defaultValue: newValue });
     };
 
     const renderArticleOption = (option) => {
       return h('div', [
-        h('div', {style: 'font-weight: bold;'}, option.category),
+        h('div', { style: 'font-weight: bold;' }, option.category),
         h('div', option.title)
       ]);
     };
 
     const handleArticleIdsChange = (selectedIds) => {
       const articles = selectedIds.map(id =>
-          props.articleOptions.find(article => article.id === id)
+          articleOptions.value.find(article => article.id === id)
       ).filter(article => article !== undefined);
-      emit('update:field', {...props.field, defaultValue: articles});
+      emit('update:field', { ...props.field, defaultValue: articles });
     };
 
-    const renderSelectedArticle = ({option, handleClose}) => {
+    const renderSelectedArticle = ({ option, handleClose }) => {
       return h(NTag, {
         closable: true,
         onClose: handleClose,
@@ -173,7 +184,7 @@ export default defineComponent({
 
     const availableArticles = computed(() => {
       if (props.field.type === 521) {
-        return props.articleOptions.filter(article =>
+        return articleOptions.value.filter(article =>
             !props.field.defaultValue.some(selected => selected.id === article.id)
         );
       }
@@ -182,7 +193,7 @@ export default defineComponent({
 
     const selectedArticles = computed({
       get: () => props.field.defaultValue || [],
-      set: (value) => emit('update:field', {...props.field, defaultValue: value})
+      set: (value) => emit('update:field', { ...props.field, defaultValue: value })
     });
 
     const countOfSelectedArticles = computed(() => {
@@ -190,19 +201,33 @@ export default defineComponent({
     });
 
     const handleDragChange = () => {
-      emit('update:field', {...props.field, defaultValue: selectedArticles.value});
+      emit('update:field', { ...props.field, defaultValue: selectedArticles.value });
     };
 
-    const debouncedFetchArticles = (val) => {
-      // Implement fetch articles logic here
+    const fetchArticles = async (query = '') => {
+      isLoading.value = true;
+      try {
+        console.log(query);
+        await composerStore.searchArticles(query);
+        articleOptions.value = composerStore.articleOptions;
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+      } finally {
+        isLoading.value = false;
+      }
     };
+
+    const debouncedFetchArticles = debounce((value) => {
+      fetchArticles(value);
+    }, 300);
+
 
     const clearSelectedArticles = () => {
-      emit('update:field', {...props.field, defaultValue: []});
+      emit('update:field', { ...props.field, defaultValue: [] });
     };
 
     return {
-      articleOptions: computedArticleOptions,
+      computedArticleOptions,
       selectedArticleIds,
       countOfSelectedArticles,
       handleColorChange,
@@ -213,11 +238,13 @@ export default defineComponent({
       availableArticles,
       selectedArticles,
       handleDragChange,
+      searchQuery,
       debouncedFetchArticles,
+      isLoading,
       clearSelectedArticles
     };
   }
-})
+});
 </script>
 
 <style scoped>

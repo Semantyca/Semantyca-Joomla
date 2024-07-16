@@ -92,7 +92,8 @@ export default {
         key: 'events',
         width: 350,
         render(row) {
-          return h('div', {}, row.events.map(event => {
+          const sortedEvents = [...row.events].sort((a, b) => a.event_type - b.event_type);
+          return h('div', {}, sortedEvents.map(event => {
             let title;
             switch (event.event_type) {
               case 100:

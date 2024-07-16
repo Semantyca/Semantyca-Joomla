@@ -1,19 +1,20 @@
 <?php
-
-namespace Semantyca\Component\SemantycaNM\Site\Controller;
-
-defined('_JEXEC') or die;
 /**
  * @package     SemantycaNM
- * @subpackage  Administrator
+ * @subpackage  Site
  *
  * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
  * @license     GNU General Public License version 3 or later; see LICENSE.txt
  */
 
+namespace Semantyca\Component\SemantycaNM\Site\Controller;
+
+defined('_JEXEC') or die;
+
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
 use Semantyca\Component\SemantycaNM\Site\Helper\SiteConsts;
 
 class SiteSubscriberEventController extends BaseController
@@ -33,6 +34,7 @@ class SiteSubscriberEventController extends BaseController
 		{
 			header(SiteConsts::JSON_CONTENT_TYPE);
 			http_response_code(500);
+			echo ResponseHelper::error('error', $e->getMessage());
 			echo new JsonResponse($e->getMessage(), 'error', true);
 		} finally
 		{

@@ -5,6 +5,8 @@ import NewsletterApiManager from "../newsletter/NewsletterApiManager";
 import SourceEntity from "../../utils/SourceEntity"
 import {createCache} from "../../utils/cacheUtil";
 
+const ARTICLE_URL = 'index.php?option=com_semantycanm&task=Article';
+
 export const useComposerStore = defineStore('composer', () => {
     const newsletterDoc = ref({
         id: null,
@@ -81,7 +83,7 @@ export const useComposerStore = defineStore('composer', () => {
 
     async function searchArticles(searchTerm) {
         try {
-            const url = `index.php?option=com_semantycanm&task=Article.search&q=${encodeURIComponent(searchTerm)}&cb=${new Date().getTime()}`;
+            const url = `${ARTICLE_URL}.search&q=${encodeURIComponent(searchTerm)}&cb=${new Date().getTime()}`;
             const response = await fetch(url);
 
             if (!response.ok) {
@@ -111,7 +113,6 @@ export const useComposerStore = defineStore('composer', () => {
         articleOptions,
         isLoading,
         fetchNewsletter,
-        saveNewsletter,
         searchArticles,
     };
 });
