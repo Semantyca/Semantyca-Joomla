@@ -49,7 +49,7 @@
           class="draggable-list"
       >
         <template #item="{ element }">
-          <n-card size="small" class="draggable-item">
+          <n-card size="small" class="draggable-item" style="padding: 0">
             <n-space vertical>
               <n-text strong>{{ element.category }}</n-text>
               <n-ellipsis :line-clamp="2" expand-trigger="click">
@@ -63,7 +63,9 @@
     <n-card size="small" title="Selected Articles" style="width: 40%;">
       <template #header-extra>
         <n-badge type="info" :value="countOfSelectedArticles" show-zero>
-          <n-button type="default" disabled>Clear</n-button>
+          <n-button type="default" @click="clearSelectedArticles" :disabled="countOfSelectedArticles === 0">
+            Clear
+          </n-button>
         </n-badge>
       </template>
       <draggable
@@ -192,10 +194,12 @@ export default defineComponent({
       emit('update:field', {...props.field, defaultValue: selectedArticles.value});
     };
 
-    // const fetchArticlesDebounced = debounce(composerStore.fetchEverything, 300);
-
     const debouncedFetchArticles = (val) => {
-      // fetchArticlesDebounced(val);
+      // Implement fetch articles logic here
+    };
+
+    const clearSelectedArticles = () => {
+      emit('update:field', {...props.field, defaultValue: []});
     };
 
     return {
@@ -210,7 +214,8 @@ export default defineComponent({
       availableArticles,
       selectedArticles,
       handleDragChange,
-      debouncedFetchArticles
+      debouncedFetchArticles,
+      clearSelectedArticles
     };
   }
 })
