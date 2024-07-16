@@ -13,10 +13,11 @@
 
 <script>
 import { defineComponent, inject, h } from 'vue'
-import {NButtonGroup, NButton, NIcon, useDialog} from 'naive-ui'
+import { NButtonGroup, NButton, NIcon, useDialog } from 'naive-ui'
 import { Bold, Italic, Underline, Strikethrough, Photo, ClearFormatting, Code } from '@vicons/tabler'
 import CodeMirror from 'vue-codemirror6'
 import { html } from '@codemirror/lang-html'
+import { EditorView } from '@codemirror/view'
 
 export default defineComponent({
   name: 'FormattingButtons',
@@ -96,8 +97,14 @@ export default defineComponent({
               style: {width: '100%'},
               readOnly: true,
               extensions: [
-                html()
+                html(),
+                EditorView.lineWrapping
               ],
+              editorProps: {
+                attributes: {
+                  class: 'cm-editor-readonly'
+                }
+              }
             }),
           ]),
         });
@@ -124,3 +131,9 @@ export default defineComponent({
   }
 })
 </script>
+
+<style>
+.cm-editor-readonly .cm-scroller {
+  font-family: monospace;
+}
+</style>

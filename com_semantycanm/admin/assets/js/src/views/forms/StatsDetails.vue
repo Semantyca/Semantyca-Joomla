@@ -23,7 +23,9 @@
       </n-space>
     </n-gi>
     <n-gi>
-      <n-data-table :columns="columns" :data="statsStore.eventListPage.docs[4]"/>
+      <n-data-table
+          :columns="columns"
+          :data="statsStore.getCurrentEventPage"/>
     </n-gi>
   </n-grid>
 </template>

@@ -102,7 +102,6 @@
 import {computed, defineComponent, h} from 'vue';
 import {NColorPicker, NInputNumber, NInput, NTag, NSelect, NSpace, NCard, NText, NEllipsis, NButton, NBadge} from 'naive-ui';
 import draggable from "vuedraggable";
-import {debounce} from "lodash";
 
 export default defineComponent({
   name: 'DynamicFormField',

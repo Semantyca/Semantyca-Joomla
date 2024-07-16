@@ -1,36 +1,38 @@
 import {defineStore} from 'pinia';
-import {ref} from 'vue';
+import {computed} from 'vue';
 import StatApiManager from "./StatApiManager";
 import {useLoadingBar, useMessage} from "naive-ui";
+import PaginatedData from "../PaginatedData";
+
+const BASE_URL = 'index.php?option=com_semantycanm&task=Stat';
 
 export const useStatStore = defineStore('stat', () => {
+    const listPage = new PaginatedData();
+    const eventListPage = new PaginatedData();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
 
-    const statListPage = ref({
-        pageSize: 10,
-        itemCount: 0,
-        pageCount: 1,
-        page: 1,
-        pages: new Map(),
-    });
-
-    const eventListPage = ref({
-        docs: {}
-    });
+    const getCurrentPage = computed(() => listPage.getCurrentPageData());
+    const getCurrentEventPage = computed(() => eventListPage.getCurrentPageData());
+    const getPagination = computed(() => ({
+        page: listPage.page.value,
+        pageSize: listPage.pageSize.value,
+        itemCount: listPage.itemCount.value,
+        pageCount: listPage.pageCount.value
+    }));
 
     const fetchStatisticsData = async (page, size) => {
         try {
             loadingBar.start();
-            const manager = new StatApiManager(msgPopup, loadingBar);
-            const respData = await manager.fetch(page, size);
-            if (respData.success && respData.data) {
-                const {docs, count, maxPage, current} = respData.data;
-                statListPage.value.page = current;
-                statListPage.value.pageSize = size;
-                statListPage.value.itemCount = count;
-                statListPage.value.pageCount = maxPage;
-                statListPage.value.pages.set(page, {docs});
+            const response = await fetch(`${BASE_URL}findAll&page=${page}&limit=${size}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error, status = ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.data) {
+                console.log(result.data);
+                listPage.updateData(result.data);
+                listPage.setPageSize(size);
             }
         } catch (error) {
             loadingBar.error();
@@ -43,11 +45,15 @@ export const useStatStore = defineStore('stat', () => {
     const fetchEvents = async (eventId) => {
         try {
             loadingBar.start();
-            const response = await fetch('index.php?option=com_semantycanm&task=Stat.getEvents&eventid=' + eventId);
-            const respData = await response.json();
-            if (respData.success && respData.data) {
-                console.log('resp', respData.data);
-                eventListPage.value.docs[eventId] = respData.data.docs;
+            const response = await fetch(`${BASE_URL}.getEvents&eventid=${eventId}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error, status = ${response.status}`);
+            }
+            const result = await response.json();
+            if (result.data) {
+                console.log(result.data);
+                eventListPage.updateData(result.data);
+                eventListPage.setPageSize(1000);
             }
         } catch (error) {
             loadingBar.error();
@@ -63,8 +69,9 @@ export const useStatStore = defineStore('stat', () => {
     };
 
     return {
-        statListPage,
-        eventListPage,
+        getCurrentPage,
+        getPagination,
+        getCurrentEventPage,
         fetchStatisticsData,
         fetchEvents,
         deleteDocs

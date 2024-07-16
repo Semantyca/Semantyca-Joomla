@@ -118,11 +118,10 @@
 import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useGlobalStore} from "../../stores/globalStore";
-import HtmlWrapper from '../../components/HtmlWrapper.vue';
 import {
   NButton,
   NButtonGroup,
-  NCheckbox,
+  NCheckbox, NCode,
   NCollapseTransition,
   NColorPicker,
   NDropdown,
@@ -182,7 +181,6 @@ export default {
     const mailingListStore = useMailingListStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
-    const dialog = useDialog();
     const loadingBar = useLoadingBar();
     const squireEditor = ref(null);
     provide('squireEditor', squireEditor)
@@ -237,16 +235,17 @@ export default {
       }
     }
 
-    const preview = () => {
+   /* const preview = () => {
       dialog.create({
         title: 'Preview',
-        style: 'width: 800px',
+        style: 'width: 800px; max-width: 90vw;',
         bordered: true,
-        content: () => h(HtmlWrapper, {
-          html: squireEditor.value.getHTML()
-        }),
-      });
-    };
+        content: () => h(NCode, {
+          code: modelRef.value.content,
+          language: 'html',
+        })
+      })
+    }*/
 
     const handleTemplateChange = (appliedTemplateId) => {
       modelRef.value.templateId = appliedTemplateId;
@@ -260,12 +259,11 @@ export default {
     };
 
     const handleSendAndSave = () => {
-      const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), false, newsletterId.value);
+      const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, false, newsletterId.value);
       messagingHandler.send(newsletterParams);
     }
 
     const handleSave = () => {
-      //const newsletterParams = new NewsletterParams(modelRef, squireEditor.value.getHTML(), true, newsletterId.value);
       const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, true, newsletterId.value);
       messagingHandler.send(newsletterParams);
     }
@@ -385,7 +383,6 @@ export default {
       rules,
       handleSave,
       handleSendAndSave,
-      preview,
       handleTemplateChange,
       handleFieldChange,
       handleFetchSubject,

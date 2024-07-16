@@ -20,8 +20,6 @@ class SMTPSender
 	private $mailer;
 	private $config;
 	private NewslettersModel $newsletterModel;
-	private const TRACKING_PIXEL_TEMPLATE = '<img src="%sindex.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=%s" width="1" height="1" alt="" style="display:none;">';
-
 
 	/**
 	 * @throws Exception
@@ -95,7 +93,8 @@ class SMTPSender
 	 */
 	private function sendEmail($email, $subject, $messageContent, $readTriggerToken, $baseURL): bool
 	{
-		$trackingPixel  = sprintf(self::TRACKING_PIXEL_TEMPLATE, $baseURL, urlencode($readTriggerToken));
+		$trackingPixelUrl = $baseURL . 'index.php?option=com_semantycanm&task=SiteSubscriberEvent.postEvent&id=' . urlencode($readTriggerToken);
+		$trackingPixel = '<img src="' . $trackingPixelUrl . '" width="1" height="1" alt="" style="display:none;">';
 		$customizedBody = str_replace('</body>', $trackingPixel . '</body>', $messageContent);
 
 		$this->mailer->addAddress($email);

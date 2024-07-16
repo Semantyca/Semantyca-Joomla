@@ -32,7 +32,10 @@ export default class DynamicBuilder {
             url: this.normalizeUrl(article.url),
             intro: this.makeImageUrlsAbsolute(decodeURIComponent(article.intro)),
         }));
-        return ejs.render(this.template.content, this.variables);
+        //console.log(this.template.content);
+        const outcome = ejs.render(this.template.content, this.variables);
+        console.log(outcome);
+        return outcome;
     }
 
     getWrappedContent = (content) => {

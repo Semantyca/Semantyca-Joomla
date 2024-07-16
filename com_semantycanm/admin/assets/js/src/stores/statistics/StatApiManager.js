@@ -10,6 +10,7 @@ export default class StatApiManager extends BaseObject {
         this.errorTimeout = 50000;
     }
 
+    /**deprecated**/
     async fetch(currentPage, size) {
         this.loadingBar.start();
 

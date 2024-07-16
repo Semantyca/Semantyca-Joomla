@@ -16,6 +16,7 @@ use Joomla\CMS\MVC\Controller\BaseController;
 use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Model\StatModel;
 
 class StatController extends BaseController
@@ -38,7 +39,7 @@ class StatController extends BaseController
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			echo ResponseHelper::error('error', $e->getMessage());
 		} finally
 		{
 			$app->close();
@@ -55,13 +56,13 @@ class StatController extends BaseController
 
 			/** @var StatModel $model */
 			$model = $this->getModel('Stat');
-			echo new JsonResponse($model->getMergedEvents($eventId));
+			echo ResponseHelper::success($model->getMergedEvents($eventId));
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			echo ResponseHelper::error('error', $e->getMessage());
 		} finally
 		{
 			$app->close();

@@ -3,6 +3,13 @@
 namespace Semantyca\Component\SemantycaNM\Site\Controller;
 
 defined('_JEXEC') or die;
+/**
+ * @package     SemantycaNM
+ * @subpackage  Administrator
+ *
+ * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
 
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
