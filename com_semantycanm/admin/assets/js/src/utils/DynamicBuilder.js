@@ -27,12 +27,16 @@ export default class DynamicBuilder {
     }
 
     buildContent() {
-        this.variables['articles'] = this.variables['articles'].map(article => ({
-            ...article,
-            url: this.normalizeUrl(article.url),
-            intro: this.makeImageUrlsAbsolute(decodeURIComponent(article.intro)),
-        }));
-        //console.log(this.template.content);
+        if (Array.isArray(this.variables['articles'])) {
+            this.variables['articles'] = this.variables['articles'].map(article => ({
+                ...article,
+                url: this.normalizeUrl(article.url),
+                intro: this.makeImageUrlsAbsolute(decodeURIComponent(article.intro)),
+            }));
+        } else {
+            this.variables['articles'] = [];
+        }
+
         const outcome = ejs.render(this.template.content, this.variables);
         console.log(outcome);
         return outcome;

@@ -6,19 +6,21 @@ DROP TABLE IF EXISTS `#__semantyca_nm_custom_fields`;
 DROP TABLE IF EXISTS `#__semantyca_nm_mailing_list`;
 DROP TABLE IF EXISTS `#__semantyca_nm_templates`;
 
-
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates`
 (
     id            INT AUTO_INCREMENT,
     reg_date      DATETIME DEFAULT CURRENT_TIMESTAMP,
     modified_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     type          VARCHAR(20),
-    name          VARCHAR(255) UNIQUE,
+    version       INT      DEFAULT 1,
+    name          VARCHAR(255) NOT NULL UNIQUE,
     is_available  BOOL     DEFAULT false,
     description   MEDIUMTEXT,
     content       MEDIUMTEXT,
     wrapper       MEDIUMTEXT,
-    PRIMARY KEY (id)
+    hash          VARCHAR(255),
+    PRIMARY KEY (id),
+    CONSTRAINT check_name_not_empty CHECK (name <> '')
 ) ENGINE = InnoDB;
 
 CREATE TABLE IF NOT EXISTS `#__semantyca_nm_templates_autosave`

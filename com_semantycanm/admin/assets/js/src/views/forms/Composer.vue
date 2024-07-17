@@ -1,5 +1,5 @@
 <template>
-  <n-grid :cols="1" x-gap="5" y-gap="10">
+  <n-grid :cols="1" x-gap="5" y-gap="15">
     <n-gi>
       <n-page-header :subtitle="modelRef.subject" class="mb-3">
         <template #title>
@@ -18,17 +18,17 @@
           &nbsp;Back
         </n-button>
         <n-button type="success"
-                  @click="handleSendAndSave">
+                  @click="handleSendAndSave(false)">
           {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
         </n-button>
-        <n-button type="primary" @click="handleSave">
+        <n-button type="primary" @click="handleSendAndSave(true)">
           {{ globalStore.translations.SAVE }}
         </n-button>
         <n-dropdown trigger="click"
                     ref="templateDropdownRef"
                     :options="templateStore.templateSelectOptions"
                     @select="handleTemplateChange">
-          <n-button type="primary" :disabled="isTemplateButtonDisabled">
+          <n-button type="primary">
             Select Template
           </n-button>
         </n-dropdown>
@@ -68,7 +68,7 @@
             label-placement="left"
             path="recipientField"
             :show-feedback="false"
-            :style="{ marginBottom: '16px' }"
+            :style="{ marginBottom: '20px' }"
         >
           <template v-if="modelRef.isTestMessage">
             <n-input v-model:value="modelRef.testEmail"
@@ -89,7 +89,7 @@
         <n-form-item label="Subject"
                      path="subject"
                      :show-feedback="false"
-                     :style="{ marginBottom: '16px' }">
+                     :style="{ marginBottom: '20px' }">
           <n-input v-model:value="modelRef.subject"
                    type="text"
                    id="subject"
@@ -98,12 +98,11 @@
           <n-button type="tertiary" @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
           </n-button>
         </n-form-item>
-
         <n-form-item label="Review">
           <n-space vertical>
             <formatting-buttons/>
             <div id="squire-editor"
-                 style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
+                 style="height: 400px; width: 80%; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
                  v-html="modelRef.content"
             ></div>
           </n-space>
@@ -114,13 +113,13 @@
 </template>
 
 <script>
-import {computed, h, nextTick, onMounted, provide, ref, watch} from 'vue';
+import {computed, nextTick, onMounted, provide, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import {useGlobalStore} from "../../stores/globalStore";
 import {
   NButton,
   NButtonGroup,
-  NCheckbox, NCode,
+  NCheckbox,
   NCollapseTransition,
   NColorPicker,
   NDropdown,
@@ -151,9 +150,7 @@ import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough,
 import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../../components/buttons/FormattingButtons.vue";
-import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {MessagingHandler} from "../../utils/MessagingHandler";
-import NewsletterParams from '../../utils/NewsletterParams';
 import DynamicBuilder from "../../utils/DynamicBuilder"
 import {isEmail} from "validator";
 
@@ -175,7 +172,6 @@ export default {
     const showCustomFields = ref(false);
     const globalStore = useGlobalStore();
     const composerStore = useComposerStore();
-    const newsLetterStore = useNewsletterStore();
     const mailingListStore = useMailingListStore();
     const templateStore = useTemplateStore();
     const msgPopup = useMessage();
@@ -184,7 +180,7 @@ export default {
     provide('squireEditor', squireEditor)
     const isFetchingTemplateOptions = ref(false);
     const newsletterId = computed(() => route.params.id ? parseInt(route.params.id) : null);
-    const messagingHandler = new MessagingHandler(newsLetterStore);
+    const messagingHandler = new MessagingHandler();
     const modelRef = ref({
       templateId: null,
       customFields: {},
@@ -195,8 +191,6 @@ export default {
       useWrapper: true,
       isTestMessage: false
     });
-
-    const isTemplateButtonDisabled = computed(() => newsletterId.value !== null);
 
     const fetchInitialData = async () => {
       try {
@@ -244,15 +238,9 @@ export default {
       modelRef.value.customFields[fieldName] = updatedField;
     };
 
-    const handleSendAndSave = () => {
-      const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, false, newsletterId.value);
-      messagingHandler.send(newsletterParams);
-    }
-
-    const handleSave = () => {
-      const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, true, newsletterId.value);
-      messagingHandler.send(newsletterParams);
-    }
+    const handleSendAndSave = async (save) => {
+      await messagingHandler.handleSendAndSave(modelRef, formRef, loadingBar, router, save, newsletterId);
+    };
 
     const handleFetchSubject = async () => {
       loadingBar.start();
@@ -343,7 +331,7 @@ export default {
           try {
             modelRef.value.content = dynamicBuilder.buildContent();
           } catch (e) {
-            console.log(e.message);
+            console.log(e);
             msgPopup.error(e.message, {
               closable: true,
               duration: 10000
@@ -365,9 +353,7 @@ export default {
       modelRef,
       formRef,
       isFetchingTemplateOptions,
-      isTemplateButtonDisabled,
       rules,
-      handleSave,
       handleSendAndSave,
       handleTemplateChange,
       handleFieldChange,

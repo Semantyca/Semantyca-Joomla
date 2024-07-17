@@ -228,8 +228,8 @@ class TemplateModel extends BaseDatabaseModel
 		if ($exists)
 		{
 			$fields     = [
-				$db->quoteName('name') . ' = ' . $db->quote($messageContent['name']),
-				$db->quoteName('type') . ' = ' . $db->quote($messageContent['type']),
+				$db->quoteName('name') . ' = ' . $db->quote($messageContent['templateName']),
+				$db->quoteName('type') . ' = ' . $db->quote($messageContent['templateType']),
 				$db->quoteName('content') . ' = ' . $db->quote($messageContent['content']),
 				$db->quoteName('wrapper') . ' = ' . $db->quote($messageContent['wrapper']),
 				$db->quoteName('description') . ' = ' . $db->quote($messageContent['description'])
@@ -248,8 +248,8 @@ class TemplateModel extends BaseDatabaseModel
 			$columns = ['content', 'name', 'type', 'wrapper', 'description'];
 			$values  = [
 				$db->quote($messageContent['content']),
-				$db->quote($messageContent['name']),
-				$db->quote($messageContent['type']),
+				$db->quote($messageContent['templateName']),
+				$db->quote($messageContent['templateType']),
 				$db->quote($messageContent['wrapper']),
 				$db->quote($messageContent['description'])
 			];

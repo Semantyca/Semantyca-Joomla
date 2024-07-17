@@ -1,14 +1,19 @@
-export default  class NewsletterParams {
-    constructor(modelRef, content,  onlySave = false, id = null ) {
+export class NewsletterParams {
+    constructor(modelRef, content, onlySave, id) {
+        const {
+            templateId, subject, useWrapper, customFields,
+            isTestMessage, mailingListIds, testEmail
+        } = modelRef.value;
+
+        this.templateId = templateId;
+        this.subject = subject;
+        this.content = content;
+        this.useWrapper = useWrapper;
+        this.customFields = customFields;
+        this.isTestMessage = isTestMessage;
+        this.mailingListIds = mailingListIds;
+        this.testEmail = testEmail;
         this.onlySave = onlySave;
         this.id = id;
-        this.templateId = modelRef.value.templateId;
-        this.customFieldsValues = modelRef.value.customFields;
-        this.isTestMessage = modelRef.value.isTestMessage;
-        this.testEmail = modelRef.value.testEmail;
-        this.mailingList = modelRef.value.mailingListIds;
-        this.subject = modelRef.value.subject;
-        this.messageContent = content;
-        this.useWrapper = modelRef.value.useWrapper;
     }
 }

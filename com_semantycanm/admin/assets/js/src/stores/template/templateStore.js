@@ -1,10 +1,11 @@
-import {defineStore} from 'pinia';
-import {ref, computed} from 'vue';
+import { defineStore } from 'pinia';
+import { ref, computed } from 'vue';
 import MessageTemplateApiManager from "./MessageTemplateApiManager";
-import {useLoadingBar, useMessage} from "naive-ui";
+import { useLoadingBar, useMessage } from "naive-ui";
 import TemplateManager from "./TemplateManager";
-import {createCache} from "../../utils/cacheUtil";
 import PaginatedData from "../PaginatedData";
+import { Template } from '../../utils/Template';
+import { CustomField } from '../../utils/Template';
 
 const BASE_URL = 'index.php?option=com_semantycanm&task=Template';
 
@@ -13,29 +14,9 @@ export const useTemplateStore = defineStore('templates', () => {
     const documentPage = new PaginatedData();
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
-    const cache = createCache();
 
-    const templateDoc = ref({
-        id: 0,
-        name: '',
-        type: '',
-        description: '',
-        content: '',
-        wrapper: '',
-        isDefault: false,
-        customFields: [],
-        cacheTime: null
-    });
-    const appliedTemplateDoc = ref({
-        id: 0,
-        name: 'no template',
-        type: '',
-        description: '',
-        content: '',
-        wrapper: '',
-        isDefault: false,
-        customFields: []
-    });
+    const templateDoc = ref(new Template());
+    const appliedTemplateDoc = ref(new Template(0, 'no template'));
     const templateMap = ref(new Map());
     const availableCustomFields = ref({});
     const getCurrentPage = computed(() => listPage.getCurrentPageData());
@@ -54,7 +35,6 @@ export const useTemplateStore = defineStore('templates', () => {
             }
             const result = await response.json();
             if (result.data) {
-                console.log(result.data);
                 listPage.updateData(result.data);
                 listPage.setPageSize(size);
             }
@@ -77,19 +57,21 @@ export const useTemplateStore = defineStore('templates', () => {
     });
 
     async function fetchTemplate(id) {
-        const cachedTemplate = cache.get(id);
-        if (cachedTemplate) {
-            templateDoc.value = cachedTemplate;
-            return;
-        }
-
         try {
             loadingBar.start();
             const response = await new MessageTemplateApiManager(msgPopup, loadingBar).fetchTemplate(id);
             const data = response.data;
             if (data) {
-                templateDoc.value = data;
-                cache.set(id, data);
+                templateDoc.value = new Template(
+                    data.id,
+                    data.name,
+                    data.type,
+                    data.description,
+                    data.content,
+                    data.wrapper,
+                    data.isDefault,
+                    data.customFields
+                );
             } else {
                 throw new Error('Template not found');
             }
@@ -100,12 +82,10 @@ export const useTemplateStore = defineStore('templates', () => {
         }
     }
 
-
     async function saveTemplate(template, id) {
         try {
-            const manager = new TemplateManager(this, msgPopup, loadingBar);
+            const manager = new TemplateManager(this);
             await manager.saveTemplate(template, id);
-            cache.delete(id);
         } catch (error) {
             console.error(error);
         }
@@ -115,7 +95,7 @@ export const useTemplateStore = defineStore('templates', () => {
         const allDocs = listPage.getAllDocs();
         const templateDoc = allDocs.find(document => document.id === id);
         console.log(templateDoc);
-        appliedTemplateDoc.value = {...templateDoc};
+        appliedTemplateDoc.value = new Template({ ...templateDoc });
         const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
         availableCustomFields.value = processFormCustomFields(customFields, adaptField);
     };
@@ -131,14 +111,8 @@ export const useTemplateStore = defineStore('templates', () => {
     }
 
     const addCustomField = (newField) => {
-        const defaultFieldStructure = {
-            name: '',
-            type: '',
-            caption: '',
-            defaultValue: '',
-            isAvailable: 0,
-        };
-        templateDoc.value.customFields.push({...defaultFieldStructure, ...newField});
+        const defaultFieldStructure = new CustomField({});
+        templateDoc.value.customFields.push(new CustomField({ ...defaultFieldStructure, ...newField }));
     };
 
     const removeCustomField = (index) => {
@@ -147,14 +121,21 @@ export const useTemplateStore = defineStore('templates', () => {
         }
     };
 
-
     const deleteApi = async (ids) => {
+        loadingBar.start();
         try {
-            const manager = new TemplateManager(this, msgPopup, loadingBar);
+            const manager = new TemplateManager(this);
             await manager.deleteTemplates(ids);
         } catch (error) {
+            loadingBar.error();
             console.error(error);
+        } finally {
+            loadingBar.finish();
         }
+    };
+
+    const setImportedTemplate = (importedTemplate) => {
+        templateDoc.value = importedTemplate;
     };
 
     function adaptField(field) {
@@ -196,7 +177,7 @@ export const useTemplateStore = defineStore('templates', () => {
                     };
                 }
             default:
-                return {...field};
+                return { ...field };
         }
     }
 
@@ -212,10 +193,10 @@ export const useTemplateStore = defineStore('templates', () => {
         getPagination,
         templateMap,
         availableCustomFields,
-        cache,
         templateSelectOptions,
         applyTemplateById,
         addCustomField,
-        removeCustomField
+        removeCustomField,
+        setImportedTemplate
     };
 });

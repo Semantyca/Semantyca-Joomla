@@ -10,7 +10,7 @@ class NewsletterValidator
 {
 	public static function validateAndCreateDTO(array $input): NewsletterDTO
 	{
-		if (empty($input['messageContent']))
+		if (empty($input['content']))
 		{
 			throw new ValidationErrorException(['Message content is required']);
 		}
@@ -52,7 +52,7 @@ class NewsletterValidator
 		$newsletterDTO->mailingListIds     = $input['mailingList'] ?? [];
 		$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
 		$newsletterDTO->subject            = $input['subject'];
-		$newsletterDTO->messageContent     = $input['messageContent'];
+		$newsletterDTO->messageContent     = $input['content'];
 		$newsletterDTO->useWrapper         = $input['useWrapper'];
 
 		return $newsletterDTO;

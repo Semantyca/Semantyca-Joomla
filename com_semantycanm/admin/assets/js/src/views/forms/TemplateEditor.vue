@@ -165,6 +165,7 @@ import {rules, typeOptions} from '../../stores/template/templateEditorUtils';
 import {addCustomField, handleTypeChange, removeCustomField} from '../../stores/template/templateEditorHandlers';
 import TemplateManager from "../../stores/template/TemplateManager";
 import {useRoute, useRouter} from "vue-router";
+import {defaultEmailTemplate} from "../../templates/defaultEmailTemplate";
 
 export default {
   name: 'TemplateEditor',
@@ -191,7 +192,7 @@ export default {
       wrapper: ''
     });
 
-    const templateManager = new TemplateManager(templateStore, msgPopup, loadingBar);
+    const templateManager = new TemplateManager(templateStore);
 
     const editorFocused = ref(false);
 
@@ -202,6 +203,16 @@ export default {
     onMounted(async () => {
       if (route.params.id != null) {
         await templateStore.fetchTemplate(route.params.id);
+      } else {
+        modelRef.value = {
+          id: 0,
+          templateName: '',
+          description: 'A HTML email template',
+          templateType: '',
+          customFields: [],
+          content: defaultEmailTemplate,
+          wrapper: ''
+        };
       }
     });
 
@@ -213,13 +224,13 @@ export default {
       editorFocused.value = true;
     };
 
-    const selectedMode = ref('ejs');
+    const selectedMode = ref('html');
     const modeOptions = [
       {label: 'HTML', value: 'html'},
       {label: 'EJS', value: 'ejs'}
     ];
 
-    const lang = ref(ejs());
+    const lang = ref(html());
 
     const updateEditorMode = (mode) => {
       if (mode === 'html') {
@@ -253,7 +264,7 @@ export default {
             wrapper: newValue.wrapper
           };
         },
-        {deep: true, immediate: true}
+        { deep: true, immediate: true }
     );
 
     return {

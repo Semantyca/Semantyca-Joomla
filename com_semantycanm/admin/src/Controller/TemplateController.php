@@ -3,6 +3,9 @@
 namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+error_reporting(E_ALL);
 
 use Exception;
 use Joomla\CMS\Factory;
@@ -13,6 +16,8 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorExcep
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
+use Semantyca\Component\SemantycaNM\Administrator\Model\TemplateModel;
 use Throwable;
 
 class TemplateController extends BaseController
@@ -96,6 +101,7 @@ class TemplateController extends BaseController
 				}
 			}
 
+			/** @var TemplateModel $model */
 			$model  = $this->getModel('Template');
 			$result = $model->upsert($id, $doc);
 			if ($result)
@@ -110,7 +116,7 @@ class TemplateController extends BaseController
 		catch (DuplicatedEntityModelException $e)
 		{
 			http_response_code(400);
-			echo ResponseHelper::error('duplicateError', $e->getCode());
+			echo ResponseHelper::error('duplicateError', $e->getMessage(), $e->getCode());
 		}
 		catch (ValidationErrorException $e)
 		{

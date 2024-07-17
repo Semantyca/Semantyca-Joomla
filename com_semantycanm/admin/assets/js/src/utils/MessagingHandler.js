@@ -1,102 +1,82 @@
 import { ref } from 'vue';
 import NewsletterApiManager from "../stores/newsletter/NewsletterApiManager";
 import UserExperienceHelper from './UserExperienceHelper';
+import { useMessage } from 'naive-ui';
+import { NewsletterParams } from './NewsletterParams';
 
 export class MessagingHandler {
-    constructor(newsLetterStore) {
-        this.newsLetterStore = newsLetterStore;
-        this.isTestMessage = ref(false);
+    constructor() {
+        this.newsletterApiManager = new NewsletterApiManager();
+        this.msgPopup = useMessage();
     }
 
     async send(params) {
-        const newsletterApiManager = new NewsletterApiManager();
-
         if (params.onlySave) {
-            try {
-                const newsletterApiManager = new NewsletterApiManager();
-                return await newsletterApiManager.upsert(params, params.id);
-            } catch (error) {
-                throw error;
-            }
-        } else {
-            let listItems;
-            if (params.isTestMessage) {
-                listItems = [params.testEmail.trim()];
-            } else {
-                listItems = params.mailingList.map(item => item.value);
-            }
-
-            newsletterApiManager.sendEmail(params, params.id)
-                .then((response) => {
-                    console.log('response data:', response.data);
-                    /** @deprecated redundant ??? */
-                    this.newsLetterStore.currentNewsletterId = response.data;
-                })
-                .catch(error => {
-                    throw error;
-                });
+            return this.newsletterApiManager.upsert(params);
         }
+        return this.newsletterApiManager.sendEmail(params);
     }
 
     async fetchSubject() {
         try {
             return await UserExperienceHelper.getSubject();
         } catch (error) {
-            throw new Error("Failed to fetch subject");
+            this.handleError(new Error("Failed to fetch subject"));
         }
     }
 
-    //deprected ?
-    async handleSendNewsletter(modelRef, formRef, loadingBar, msgPopup, router, onlySave, newsletterId) {
-        formRef.value.validate((errors) => {
-            if (!errors) {
-                loadingBar.start();
-                const { templateId, subject, content, useWrapper, customFields, isTestMessage, mailingListIds, testEmail } = modelRef;
-
-                this.send(subject, content, useWrapper, templateId, customFields, isTestMessage, mailingListIds, testEmail, onlySave, newsletterId)
-                    .then(() => {
-                        if (onlySave) {
-                            msgPopup.success('Newsletter saved successfully', {
-                                closable: true,
-                                duration: 5000
-                            });
-                        } else {
-                            msgPopup.success('Newsletter sent successfully', {
-                                closable: true,
-                                duration: 5000
-                            });
-                        }
-                        router.push('/list');  // Navigate back to the list after saving/sending
-                    })
-                    .catch(error => {
-                        console.error('Error sending/saving newsletter:', error);
-                        msgPopup.error('An error occurred while sending/saving the newsletter', {
-                            closable: true,
-                            duration: 5000
-                        });
-                    })
-                    .finally(() => {
-                        loadingBar.finish();
-                    });
-            } else {
-                if (errors && typeof errors === 'object') {
-                    const errorMessages = {};
-
-                    Object.keys(errors).forEach(fieldName => {
-                        const fieldError = errors[fieldName];
-                        if (fieldError && fieldError.length > 0) {
-                            errorMessages[fieldName] = fieldError[0].message + ` [${fieldName}]`;
-                        }
-                    });
-
-                    Object.values(errorMessages).forEach(errorMessage => {
-                        msgPopup.error(errorMessage, {
-                            closable: true,
-                            duration: 5000
-                        });
-                    });
-                }
+    async handleSendAndSave(modelRef, formRef, loadingBar, router, onlySave, newsletterId) {
+        try {
+            if (!await this.validateForm(formRef)) {
+                return;
             }
+
+            loadingBar.start();
+            const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, onlySave, newsletterId.value);
+            const response = await this.send(newsletterParams);
+
+            this.handleSuccess(response, onlySave);
+            router.push('/list');
+        } catch (error) {
+            this.handleError(error);
+        } finally {
+            loadingBar.finish();
+        }
+    }
+
+    async validateForm(formRef) {
+        return new Promise((resolve) => {
+            formRef.value.validate((errors) => {
+                if (!errors) {
+                    resolve(true);
+                    return;
+                }
+
+                this.displayFormErrors(errors);
+                resolve(false);
+            });
+        });
+    }
+
+    handleSuccess(response, onlySave) {
+        const message = onlySave ? 'Newsletter saved successfully' : 'Newsletter sent successfully';
+        this.msgPopup.success(message, { closable: true, duration: 5000 });
+    }
+
+    handleError(error) {
+        console.error('Error:', error);
+        const errorMessage = error.message || 'An unexpected error occurred';
+        this.msgPopup.error(errorMessage, { closable: true, duration: 5000 });
+    }
+
+    displayFormErrors(errors) {
+        Object.entries(errors).forEach(([fieldName, fieldErrors]) => {
+            if (!fieldErrors || fieldErrors.length === 0) {
+                return;
+            }
+
+            const errorMessage = `${fieldErrors[0].message} [${fieldName}]`;
+            this.msgPopup.error(errorMessage, { closable: true, duration: 5000 });
         });
     }
 }

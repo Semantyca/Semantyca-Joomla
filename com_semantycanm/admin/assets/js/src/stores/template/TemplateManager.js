@@ -1,12 +1,14 @@
 import BaseObject from "../../utils/BaseObject";
+import {CustomField, Template} from "../../utils/Template";
+import {useLoadingBar, useMessage} from "naive-ui";
 
 class TemplateManager extends BaseObject {
 
-    constructor(store, msgPopup, loadingBar) {
+    constructor(store) {
         super();
         this.templateStore = store;
-        this.msgPopup = msgPopup;
-        this.loadingBar = loadingBar;
+        this.msgPopup = useMessage();
+        this.loadingBar = useLoadingBar();
         this.errorTimeout = 50000;
     }
 
@@ -46,8 +48,8 @@ class TemplateManager extends BaseObject {
     }
 
     async saveTemplate(doc, id = null) {
-        this.startBusyMessage('Saving template ...');
-        const endpoint = `index.php?option=com_semantycanm&task=Template.upsert&id=${doc.id}`;
+        this.loadingBar.start();
+        const endpoint = `index.php?option=com_semantycanm&task=Template.upsert&id=${id}`;
         const method = 'POST';
 
         try {
@@ -57,21 +59,24 @@ class TemplateManager extends BaseObject {
                 body: JSON.stringify(doc)
             });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error, status = ${response.status}`);
-            }
             const result = await response.json();
-            this.msgPopup.success(result.data.message);
 
-            await this.getTemplates();
+            if (!response.ok) {
+                const errorMessage = result.message || `HTTP error, status = ${response.status}`;
+                throw new Error(errorMessage);
+            }
+
+            this.msgPopup.success(result.message || 'Template saved successfully');
             return result;
         } catch (error) {
+            this.loadingBar.error();
             this.msgPopup.error(error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });
+            throw error;
         } finally {
-            this.stopBusyMessage();
+            this.loadingBar.finish();
         }
     }
 
@@ -85,18 +90,30 @@ class TemplateManager extends BaseObject {
                 const reader = new FileReader();
                 reader.onload = async (e) => {
                     try {
-                        this.startBusyMessage('Importing template ...');
+                        this.loadingBar.start();
                         const jsonObj = JSON.parse(e.target.result);
-                        await this.saveTemplate(jsonObj, true);
-                        await this.getTemplates();
-                        this.msgPopup.success('Template imported and saved successfully');
+                        console.log(jsonObj);
+
+                        const importedTemplate = new Template(
+                            0,
+                            jsonObj.name,
+                            jsonObj.type,
+                            jsonObj.description,
+                            jsonObj.content,
+                            jsonObj.wrapper,
+                            jsonObj.isDefault || false,
+                            jsonObj.customFields.map(cf => new CustomField(cf))
+                        );
+                        this.templateStore.setImportedTemplate(importedTemplate);
+                        this.msgPopup.success('Template imported successfully');
                     } catch (err) {
+                        this.loadingBar.error();
                         this.msgPopup.error('Failed to import template: ' + err, {
                             closable: true,
                             duration: this.errorTimeout
                         });
                     } finally {
-                        this.stopBusyMessage();
+                        this.loadingBar.finish();
                     }
                 };
                 reader.readAsText(file);
@@ -106,11 +123,30 @@ class TemplateManager extends BaseObject {
     }
 
     exportCurrentTemplate() {
-        const filename = `${this.templateStore.currentTemplate.name || 'template'}.json`;
-        const jsonStr = JSON.stringify(this.templateStore.currentTemplate, (key, value) => {
-            if (key === "id" || key === "availableCustomFields" || key === "regDate") return undefined;
-            return value;
-        }, 2);
+        const currentTemplate = this.templateStore.templateDoc;
+        if (!currentTemplate) {
+            this.msgPopup.error('No template selected for export');
+            return;
+        }
+
+        const filename = `${currentTemplate.name || 'template'}.json`;
+        const templateForExport = {
+            name: currentTemplate.name,
+            type: currentTemplate.type,
+            description: currentTemplate.description,
+            content: currentTemplate.content,
+            wrapper: currentTemplate.wrapper,
+            isDefault: currentTemplate.isDefault,
+            customFields: currentTemplate.customFields.map(field => ({
+                name: field.name,
+                type: field.type,
+                caption: field.caption,
+                defaultValue: field.defaultValue,
+                isAvailable: field.isAvailable
+            }))
+        };
+
+        const jsonStr = JSON.stringify(templateForExport, null, 2);
         const blob = new Blob([jsonStr], {type: "application/json"});
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -124,7 +160,6 @@ class TemplateManager extends BaseObject {
 
 
     async deleteTemplates(ids) {
-        this.startBusyMessage(`Deleting template(s) ...`);
         const idsParam = ids.join(',');
         const endpoint = `index.php?option=com_semantycanm&task=Template.delete&ids=${encodeURIComponent(idsParam)}`;
         try {
@@ -136,17 +171,13 @@ class TemplateManager extends BaseObject {
                 throw new Error(`Failed to delete templates, HTTP status = ${response.status}`);
             }
             const result = await response.json();
-
             await this.getTemplates();
-
             this.msgPopup.success(result.message || 'Templates successfully deleted');
         } catch (error) {
             this.msgPopup.error(error.message, {
                 closable: true,
                 duration: this.errorTimeout
             });
-        } finally {
-            this.stopBusyMessage();
         }
     }
 }
