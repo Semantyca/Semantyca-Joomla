@@ -95,9 +95,24 @@ export const useTemplateStore = defineStore('templates', () => {
         const allDocs = listPage.getAllDocs();
         const templateDoc = allDocs.find(document => document.id === id);
         console.log(templateDoc);
-        appliedTemplateDoc.value = new Template({ ...templateDoc });
-        const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
-        availableCustomFields.value = processFormCustomFields(customFields, adaptField);
+
+        if (templateDoc) {
+            appliedTemplateDoc.value = new Template(
+                templateDoc.id,
+                templateDoc.name,
+                templateDoc.type,
+                templateDoc.description,
+                templateDoc.content,
+                templateDoc.wrapper,
+                templateDoc.isDefault,
+                templateDoc.customFields
+            );
+
+            const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
+            availableCustomFields.value = processFormCustomFields(customFields, adaptField);
+        } else {
+            console.error(`Template with id ${id} not found`);
+        }
     };
 
     function processFormCustomFields(availableFields, adaptField) {
