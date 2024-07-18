@@ -93,19 +93,19 @@ export const useTemplateStore = defineStore('templates', () => {
 
     const applyTemplateById = (id) => {
         const allDocs = listPage.getAllDocs();
-        const templateDoc = allDocs.find(document => document.id === id);
-        console.log(templateDoc);
+        const doc = allDocs.find(document => document.id === id);
+        console.log(doc);
 
-        if (templateDoc) {
+        if (doc) {
             appliedTemplateDoc.value = new Template(
-                templateDoc.id,
-                templateDoc.name,
-                templateDoc.type,
-                templateDoc.description,
-                templateDoc.content,
-                templateDoc.wrapper,
-                templateDoc.isDefault,
-                templateDoc.customFields
+                doc.id,
+                doc.name,
+                doc.type,
+                doc.description,
+                doc.content,
+                doc.wrapper,
+                doc.isDefault,
+                doc.customFields
             );
 
             const customFields = appliedTemplateDoc.value.customFields.filter(field => field.isAvailable === 1);
@@ -113,6 +113,11 @@ export const useTemplateStore = defineStore('templates', () => {
         } else {
             console.error(`Template with id ${id} not found`);
         }
+    };
+
+    const resetAppliedTemplate = () => {
+        appliedTemplateDoc.value = new Template(0, 'no template');
+        availableCustomFields.value = {};
     };
 
     function processFormCustomFields(availableFields, adaptField) {
@@ -210,6 +215,7 @@ export const useTemplateStore = defineStore('templates', () => {
         availableCustomFields,
         templateSelectOptions,
         applyTemplateById,
+        resetAppliedTemplate,
         addCustomField,
         removeCustomField,
         setImportedTemplate

@@ -63,7 +63,7 @@ class ServiceController extends BaseController
 
 			if ($result)
 			{
-				echo ResponseHelper::success($result);
+				echo ResponseHelper::success($result, 'Newsletter has been sent successfully');
 			}
 			else
 			{
@@ -72,8 +72,8 @@ class ServiceController extends BaseController
 		}
 		catch (ValidationErrorException $e)
 		{
-			http_response_code(400);
-			echo ResponseHelper::error('validationError', 400, $e->getErrors());
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, $e->getErrors());
 		}
 		catch (MessagingException|NewsletterSenderException $e)
 		{

@@ -1,7 +1,7 @@
 <template>
   <n-grid :cols="1" x-gap="5" y-gap="15">
     <n-gi>
-      <n-page-header :subtitle="modelRef.subject" class="mb-3">
+      <n-page-header :subtitle="templateStore.appliedTemplateDoc.name" class="mb-3">
         <template #title>
           Newsletter
         </template>
@@ -38,7 +38,7 @@
       <n-form ref="formRef"
               :model="modelRef"
               :rules="rules"
-              label-placement="left"
+              label-placement="top"
               label-width="auto"
               require-mark-placement="right-hanging"
       >
@@ -50,7 +50,7 @@
               :path="fieldName"
               :rule="rules[fieldName]"
               :show-feedback="false"
-              label-placement="left"
+              label-placement="top"
               :style="{ marginBottom: '16px' }"
           >
             <dynamic-form-field
@@ -59,13 +59,15 @@
             />
           </n-form-item>
         </n-collapse-transition>
-        <n-form-item label="Test message" :show-require-mark="false" label-placement="left"
-                     path="recipientField" :show-feedback="false">
+        <n-form-item label="Test message"
+                     :show-require-mark="false"
+                     label-placement="left"
+                     :show-feedback="false">
           <n-checkbox v-model:checked="modelRef.isTestMessage"/>
         </n-form-item>
         <n-form-item
             :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'"
-            label-placement="left"
+            label-placement="top"
             path="recipientField"
             :show-feedback="false"
             :style="{ marginBottom: '20px' }"
@@ -195,6 +197,11 @@ export default {
     const fetchInitialData = async () => {
       try {
         if (newsletterId.value) {
+          templateStore.resetAppliedTemplate();
+          showCustomFields.value = true;
+          if (squireEditor.value) {
+            squireEditor.value.setHTML(newsletter.messageContent);
+          }
           await composerStore.fetchNewsletter(newsletterId.value);
           const newsletter = composerStore.newsletterDoc;
           modelRef.value = {
@@ -207,10 +214,7 @@ export default {
             useWrapper: newsletter.useWrapper,
             isTestMessage: newsletter.isTest,
           };
-          showCustomFields.value = true;
-          if (squireEditor.value) {
-            squireEditor.value.setHTML(newsletter.messageContent);
-          }
+
         } else {
           showCustomFields.value = false;
           modelRef.value.customFields = {};

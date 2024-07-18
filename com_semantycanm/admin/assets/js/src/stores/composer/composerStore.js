@@ -1,9 +1,8 @@
-import { defineStore } from 'pinia';
-import { computed, ref } from 'vue';
-import { useLoadingBar, useMessage } from "naive-ui";
+import {defineStore} from 'pinia';
+import {computed, ref} from 'vue';
+import {useLoadingBar, useMessage} from "naive-ui";
 import NewsletterApiManager from "../newsletter/NewsletterApiManager";
 import SourceEntity from "../../utils/SourceEntity"
-import {createCache} from "../../utils/cacheUtil";
 
 const ARTICLE_URL = 'index.php?option=com_semantycanm&task=Article';
 
@@ -22,7 +21,6 @@ export const useComposerStore = defineStore('composer', () => {
         messageContent: '',
         modifiedDate: null
     });
-    const cache = createCache();
     const articlesPage = ref({ docs: [] });
     const isLoading = ref(false);
     const msgPopup = useMessage();
@@ -32,11 +30,6 @@ export const useComposerStore = defineStore('composer', () => {
     });
 
     async function fetchNewsletter(id) {
-        const cachedNewsletter = cache.get(id);
-        if (cachedNewsletter) {
-            newsletterDoc.value = cachedNewsletter;
-            return;
-        }
         const manager = new NewsletterApiManager(msgPopup, loadingBar);
         try {
             loadingBar.start();
@@ -58,7 +51,6 @@ export const useComposerStore = defineStore('composer', () => {
                     useWrapper: respData.useWrapper,
                 };
                 newsletterDoc.value = newsletterData;
-                cache.set(id, newsletterData);
             } else {
                 throw new Error('Newsletter not found');
             }
@@ -67,17 +59,6 @@ export const useComposerStore = defineStore('composer', () => {
             msgPopup.error('Failed to fetch newsletter: ' + error.message);
         } finally {
             loadingBar.finish();
-        }
-    }
-
-    async function saveNewsletter(newsletter, id) {
-        try {
-            const manager = new NewsletterApiManager(msgPopup, loadingBar);
-            await manager.save(newsletter, id);
-            cache.value.newsletterMap.delete(id);
-        } catch (error) {
-            console.error('Error saving newsletter:', error);
-            msgPopup.error('Failed to save newsletter: ' + error.message);
         }
     }
 

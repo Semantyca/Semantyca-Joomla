@@ -1,10 +1,7 @@
-import BaseObject from "../../utils/BaseObject";
-
-export default class MailingListApiManager extends BaseObject {
+export default class MailingListApiManager  {
     static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
 
     constructor(msgPopup, loadingBar) {
-        super();
         this.msgPopup = msgPopup;
         this.loadingBar = loadingBar;
         this.errorTimeout = 50000;

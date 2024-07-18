@@ -16,7 +16,6 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorExcep
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
-use Semantyca\Component\SemantycaNM\Administrator\Model\NewslettersModel;
 use Semantyca\Component\SemantycaNM\Administrator\Model\TemplateModel;
 use Throwable;
 
@@ -39,9 +38,8 @@ class TemplateController extends BaseController
 		catch (Exception $e)
 		{
 			http_response_code(500);
-			echo ResponseHelper::error('error', $e->getMessage());
-		}
-		finally
+			echo ResponseHelper::error('error', 500, $e->getMessage());
+		} finally
 		{
 			$app->close();
 		}
@@ -59,14 +57,13 @@ class TemplateController extends BaseController
 		catch (RecordNotFoundModelException $e)
 		{
 			http_response_code(404);
-			echo ResponseHelper::error('applicationError', $e->getErrors());
+			echo ResponseHelper::error('applicationError', 404, $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			echo ResponseHelper::error('error', $e->getMessage());
-		}
-		finally
+			echo ResponseHelper::error('error', 500, $e->getMessage());
+		} finally
 		{
 			Factory::getApplication()->close();
 		}
@@ -116,20 +113,19 @@ class TemplateController extends BaseController
 		catch (DuplicatedEntityModelException $e)
 		{
 			http_response_code(400);
-			echo ResponseHelper::error('duplicateError', $e->getMessage(), $e->getCode());
+			echo ResponseHelper::error('duplicateError', 400, $e->getMessage(), $e->getCode());
 		}
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(422);
-			echo ResponseHelper::error('validationError', $e->getMessage());
+			echo ResponseHelper::error('validationError', 422, $e->getMessage());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
-		}
-		finally
+			echo ResponseHelper::error('error', 500, $e->getMessage());
+		} finally
 		{
 			$app->close();
 		}
@@ -169,16 +165,15 @@ class TemplateController extends BaseController
 		}
 		catch (ValidationErrorException $e)
 		{
-			http_response_code(400);
-			echo ResponseHelper::error('validationError', $e->getErrors());
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, $e->getErrors());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
-		}
-		finally
+			echo ResponseHelper::error('error', 500, $e->getMessage());
+		} finally
 		{
 			$app->close();
 		}
@@ -217,16 +212,15 @@ class TemplateController extends BaseController
 		}
 		catch (ValidationErrorException $e)
 		{
-			http_response_code(400);
-			echo ResponseHelper::error('validationError', $e->getMessage());
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, $e->getMessage());
 		}
 		catch (Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
-		}
-		finally
+			echo ResponseHelper::error('error', 500, $e->getMessage());
+		} finally
 		{
 			$app->close();
 		}

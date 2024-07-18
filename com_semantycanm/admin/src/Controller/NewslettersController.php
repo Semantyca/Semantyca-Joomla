@@ -36,7 +36,7 @@ class NewslettersController extends BaseController
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		}
 		$app->close();
 	}
@@ -67,14 +67,14 @@ class NewslettersController extends BaseController
 		}
 		catch (ValidationErrorException $e)
 		{
-			http_response_code(400);
-			echo ResponseHelper::error('validationError', $e->getErrors());
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		}
 		$app->close();
 	}
@@ -97,18 +97,18 @@ class NewslettersController extends BaseController
 			$model = $this->getModel('Newsletters');
 			$id = $app->input->getInt('id', null);
 			$result = $model->upsert($id, $newsletterDTO);
-			echo ResponseHelper::success(['id' => $result]);
+			echo ResponseHelper::success(['id' => $result], 'Newsletter saved successfully');
 		}
 		catch (ValidationErrorException $e)
 		{
-			http_response_code(400);
-			echo ResponseHelper::error('validationError', $e->getErrors());
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		}
 		$app->close();
 	}
@@ -144,13 +144,13 @@ class NewslettersController extends BaseController
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo ResponseHelper::error('validationError', $e->getErrors());
+			echo ResponseHelper::error('validationError', 400, $e->getErrors());
 		}
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		}
 		$app->close();
 	}

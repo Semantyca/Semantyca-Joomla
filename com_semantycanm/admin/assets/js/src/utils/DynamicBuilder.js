@@ -38,7 +38,6 @@ export default class DynamicBuilder {
         }
 
         const outcome = ejs.render(this.template.content, this.variables);
-        console.log(outcome);
         return outcome;
     }
 

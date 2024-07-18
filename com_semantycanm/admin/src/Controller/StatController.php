@@ -39,7 +39,7 @@ class StatController extends BaseController
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		} finally
 		{
 			$app->close();
@@ -62,7 +62,7 @@ class StatController extends BaseController
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo ResponseHelper::error('error', $e->getMessage());
+			echo ResponseHelper::error('error', 500, $e->getMessage());
 		} finally
 		{
 			$app->close();
