@@ -21,7 +21,11 @@ use Throwable;
 
 class TemplateController extends BaseController
 {
-	public function findAll()
+	/**
+	 * @throws Exception
+	 * @since 1.0
+	 */
+	public function findAll(): void
 	{
 		$app = Factory::getApplication();
 		header(Constants::JSON_CONTENT_TYPE);
@@ -29,16 +33,17 @@ class TemplateController extends BaseController
 		{
 			$currentPage  = $this->input->getInt('page', 1);
 			$itemsPerPage = $this->input->getInt('limit', 10);
-
+			$currentTemplateId = $this->input->getInt('currentTemplateId', null);
+			/** @var TemplateModel $model */
 			$model  = $this->getModel('Template');
-			$result = $model->getList($currentPage, $itemsPerPage);
+			$result = $model->getList($currentPage, $itemsPerPage, $currentTemplateId);
 
 			echo ResponseHelper::success($result);
 		}
-		catch (Exception $e)
+		catch (Throwable $e)
 		{
 			http_response_code(500);
-			echo ResponseHelper::error('error', 500, $e->getMessage());
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
 		} finally
 		{
 			$app->close();
@@ -51,6 +56,7 @@ class TemplateController extends BaseController
 		try
 		{
 			$id    = $this->input->getInt('id');
+			/** @var TemplateModel $model */
 			$model = $this->getModel('Template');
 			echo ResponseHelper::success($model->getTemplateById($id)->toArray());
 		}
@@ -62,7 +68,7 @@ class TemplateController extends BaseController
 		catch (\Throwable $e)
 		{
 			http_response_code(500);
-			echo ResponseHelper::error('error', 500, $e->getMessage());
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
 		} finally
 		{
 			Factory::getApplication()->close();
@@ -150,7 +156,7 @@ class TemplateController extends BaseController
 			{
 				throw new ValidationErrorException(['Invalid JSON data provided.']);
 			}
-
+			/** @var TemplateModel $model */
 			$model  = $this->getModel('Template');
 			$result = $model->autoSaveTemplate($id, $inputData);
 
@@ -196,7 +202,7 @@ class TemplateController extends BaseController
 			{
 				$ids = explode(',', $ids);
 			}
-
+			/** @var TemplateModel $model */
 			$model  = $this->getModel('Template');
 			$result = $model->delete($ids);
 

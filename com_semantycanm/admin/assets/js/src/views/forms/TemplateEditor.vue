@@ -24,6 +24,9 @@
         <n-button type="primary" @click="importTemplate">
           Import
         </n-button>
+        <n-button type="primary" @click="cloneTemplate">
+          Clone
+        </n-button>
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
@@ -183,7 +186,7 @@ export default {
     const loadingBar = useLoadingBar();
 
     const modelRef = ref({
-      id: 0,
+      id: null,
       templateName: '',
       description: '',
       templateType: '',
@@ -205,7 +208,7 @@ export default {
         await templateStore.fetchTemplate(route.params.id);
       } else {
         modelRef.value = {
-          id: 0,
+          id: null,
           templateName: '',
           description: 'A HTML email template',
           templateType: '',
@@ -249,13 +252,39 @@ export default {
         ...templateStore.currentTemplate,
         ...modelRef.value
       };
-      templateManager.saveTemplate(updatedTemplate, route.params.id);
+
+      // Use the ID from modelRef instead of route.params.id
+      const templateId = modelRef.value.id;
+
+      templateManager.saveTemplate(updatedTemplate, templateId);
+    };
+
+    const cloneTemplate = () => {
+      // Create a deep copy of the current template
+      const clonedTemplate = JSON.parse(JSON.stringify(modelRef.value));
+
+      // Modify the name and description to reflect it's a clone
+      clonedTemplate.templateName = `${clonedTemplate.templateName} (Clone)`;
+      clonedTemplate.description = `Clone of: ${clonedTemplate.description}`;
+
+      // Reset the ID to ensure it's treated as a new template
+      clonedTemplate.id = null;
+
+      // Update the modelRef with the cloned data
+      modelRef.value = clonedTemplate;
+
+      // Reset the route parameter
+      router.replace({ params: { id: null } });
+
+      // Optionally, show a success message
+      msgPopup.success("Template cloned successfully. You're now editing the clone.");
     };
 
     watch(
         () => templateStore.templateDoc,
         (newValue) => {
           modelRef.value = {
+            id: newValue.id,
             templateName: newValue.name,
             description: newValue.description,
             templateType: newValue.type,
@@ -274,6 +303,7 @@ export default {
       saveTemplate,
       exportTemplate: () => templateManager.exportCurrentTemplate(),
       importTemplate: () => templateManager.importTemplate(),
+      cloneTemplate,
       addCustomField: () => addCustomField(modelRef),
       removeCustomField: (index) => removeCustomField(modelRef, index),
       handleTypeChange: (index) => handleTypeChange(modelRef.value.customFields, index),

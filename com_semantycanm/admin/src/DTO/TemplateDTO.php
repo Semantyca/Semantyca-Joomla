@@ -15,6 +15,8 @@ class TemplateDTO implements JsonSerializable
 	public string $content;
 	public string $wrapper;
 	public array $customFields = [];
+	public ?string $hash;
+	public bool $isCompatible = false;
 
 	public function toArray(): array
 	{
@@ -26,6 +28,8 @@ class TemplateDTO implements JsonSerializable
 			'description'  => $this->description,
 			'content'      => $this->content,
 			'wrapper'      => $this->wrapper,
+			'hash'         => $this->hash,
+			'isCompatible' => $this->isCompatible,
 			'customFields' => array_map(function ($field) {
 				return [
 					'id'           => $field['id'],

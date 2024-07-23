@@ -6,6 +6,7 @@ import TemplateManager from "./TemplateManager";
 import PaginatedData from "../PaginatedData";
 import { Template } from '../../utils/Template';
 import { CustomField } from '../../utils/Template';
+import {handleError, handleNotOkError} from "../../utils/apiRequestHelper";
 
 const BASE_URL = 'index.php?option=com_semantycanm&task=Template';
 
@@ -31,15 +32,16 @@ export const useTemplateStore = defineStore('templates', () => {
         try {
             const response = await fetch(`${BASE_URL}.findAll&page=${page}&limit=${size}`);
             if (!response.ok) {
-                throw new Error(`HTTP error, status = ${response.status}`);
-            }
-            const result = await response.json();
-            if (result.data) {
-                listPage.updateData(result.data);
-                listPage.setPageSize(size);
+                await handleNotOkError(msgPopup, response)
+            } else {
+                const result = await response.json();
+                if (result.data) {
+                    listPage.updateData(result.data);
+                    listPage.setPageSize(size);
+                }
             }
         } catch (error) {
-            console.error(error);
+            handleError(msgPopup, error);
         }
     };
 

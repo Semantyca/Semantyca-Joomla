@@ -1,20 +1,24 @@
 <template>
   <n-button-group>
-    <n-button v-for="button in buttons" :key="button.action" @click="handleClick(button.action)" secondary>
+    <n-tooltip v-for="button in buttons"  :delay="1000" :key="button.action" trigger="hover" :show-arrow="false">
+      <template #trigger>
+        <n-button @click="handleClick(button.action)" secondary>
       <template #icon>
         <n-icon>
           <component :is="button.icon" />
         </n-icon>
       </template>
-      {{ button.label }}
     </n-button>
+      </template>
+      {{ button.label }}
+    </n-tooltip>
   </n-button-group>
 </template>
 
 <script>
 import { defineComponent, inject, h } from 'vue'
-import { NButtonGroup, NButton, NIcon, useDialog } from 'naive-ui'
-import { Bold, Italic, Underline, Strikethrough, Photo, ClearFormatting, Code } from '@vicons/tabler'
+import {NButtonGroup, NButton, NIcon, useDialog, NTooltip} from 'naive-ui'
+import {Bold, Italic, Underline, Strikethrough, Photo, ClearFormatting, Code,} from '@vicons/tabler'
 import CodeMirror from 'vue-codemirror6'
 import { html } from '@codemirror/lang-html'
 import { EditorView } from '@codemirror/view'
@@ -31,7 +35,8 @@ export default defineComponent({
     Strikethrough,
     Photo,
     ClearFormatting,
-    Code
+    Code,
+    NTooltip
   },
   setup() {
     const squireEditor = inject('squireEditor')

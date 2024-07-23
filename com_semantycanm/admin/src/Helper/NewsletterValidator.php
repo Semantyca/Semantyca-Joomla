@@ -36,7 +36,7 @@ class NewsletterValidator
 		}
 		else
 		{
-			if (empty($input['mailingList']))
+			if (empty($input['mailingListIds']))
 			{
 				throw new ValidationErrorException(['Mailing list is required when isTest is false']);
 			}

@@ -101,10 +101,10 @@
           </n-button>
         </n-form-item>
         <n-form-item label="Review">
-          <n-space vertical>
+          <n-space vertical style="width: 80%;">
             <formatting-buttons/>
             <div id="squire-editor"
-                 style="height: 400px; width: 80%; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
+                 style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
                  v-html="modelRef.content"
             ></div>
           </n-space>

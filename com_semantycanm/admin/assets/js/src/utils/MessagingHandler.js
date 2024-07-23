@@ -22,6 +22,7 @@ export class MessagingHandler {
     }
 
     async handleSendAndSave(modelRef, formRef, loadingBar, router, onlySave, newsletterId) {
+        console.log(modelRef.value.content);
         try {
             if (!await this.validateForm(formRef)) {
                 return;

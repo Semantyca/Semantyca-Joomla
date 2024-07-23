@@ -23,13 +23,25 @@ class TemplateModel extends BaseDatabaseModel
 	 * @throws Exception
 	 * @since 1.0
 	 */
-	public function getList($currentPage, $itemsPerPage): array
+	public function getList($currentPage, $itemsPerPage, $currentTemplateId = null): array
 	{
-		$db     = $this->getDatabase();
-		$query  = $db->getQuery(true);
-		$offset = ($currentPage - 1) * $itemsPerPage;
+		$db                  = $this->getDatabase();
+		$query               = $db->getQuery(true);
+		$offset              = ($currentPage - 1) * $itemsPerPage;
+		$currentTemplateHash = '';
+
+		if ($currentTemplateId !== null)
+		{
+			$currentTemplateQuery = $db->getQuery(true)
+				->select('hash')
+				->from($db->quoteName('#__semantyca_nm_templates'))
+				->where($db->quoteName('id') . ' = ' . (int) $currentTemplateId);
+			$db->setQuery($currentTemplateQuery);
+			$currentTemplateHash = $db->loadResult();
+		}
+
 		$query
-			->select('id, reg_date, name, type, description, content, wrapper')
+			->select('id, reg_date, name, type, description, content, wrapper, hash')
 			->from($db->quoteName('#__semantyca_nm_templates'))
 			->order(array('reg_date DESC'))
 			->setLimit($itemsPerPage, $offset);
@@ -38,14 +50,16 @@ class TemplateModel extends BaseDatabaseModel
 		$templates = [];
 		foreach ($rows as $row)
 		{
-			$template              = new TemplateDTO();
-			$template->id          = $row->id;
-			$template->regDate     = new \DateTime($row->reg_date);
-			$template->name        = $row->name;
-			$template->type        = $row->type;
-			$template->description = $row->description;
-			$template->content     = $row->content;
-			$template->wrapper     = $row->wrapper;
+			$template               = new TemplateDTO();
+			$template->id           = $row->id;
+			$template->regDate      = new \DateTime($row->reg_date);
+			$template->name         = $row->name;
+			$template->type         = $row->type;
+			$template->description  = $row->description;
+			$template->content      = $row->content;
+			$template->wrapper      = $row->wrapper;
+			$template->hash         = $row->hash;
+			$template->isCompatible = ($row->hash === $currentTemplateHash);
 
 			$customFieldsQuery = $db->getQuery(true)
 				->select('id, template_id, name, type, caption, default_value, is_available')
@@ -111,6 +125,7 @@ class TemplateModel extends BaseDatabaseModel
 		$template->type        = $row->type;
 		$template->description = $row->description;
 		$template->wrapper     = $row->wrapper;
+		$template->hash        = $row->hash;
 
 		$customFieldsQuery = $db->getQuery(true)
 			->select('id, template_id, name, type, caption, default_value, is_available')
@@ -212,6 +227,14 @@ class TemplateModel extends BaseDatabaseModel
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 
+		$customFieldsData = [];
+		foreach ($messageContent['customFields'] as $customField)
+		{
+			$customFieldsData[] = $customField['name'] . '|' . $customField['type'];
+		}
+		sort($customFieldsData);
+		$templateHash = md5(implode(',', $customFieldsData));
+
 		if ($id === "")
 		{
 			$exists = false;
@@ -232,7 +255,9 @@ class TemplateModel extends BaseDatabaseModel
 				$db->quoteName('type') . ' = ' . $db->quote($messageContent['templateType']),
 				$db->quoteName('content') . ' = ' . $db->quote($messageContent['content']),
 				$db->quoteName('wrapper') . ' = ' . $db->quote($messageContent['wrapper']),
-				$db->quoteName('description') . ' = ' . $db->quote($messageContent['description'])
+				$db->quoteName('description') . ' = ' . $db->quote($messageContent['description']),
+				$db->quoteName('hash') . ' = ' . $db->quote($templateHash),
+				$db->quoteName('modified_date') . ' = ' . $db->quote(date('Y-m-d H:i:s'))
 			];
 			$conditions = [$db->quoteName('id') . ' = ' . (int) $id];
 			$query->clear()
@@ -245,13 +270,14 @@ class TemplateModel extends BaseDatabaseModel
 		}
 		else
 		{
-			$columns = ['content', 'name', 'type', 'wrapper', 'description'];
+			$columns = ['content', 'name', 'type', 'wrapper', 'description', 'hash'];
 			$values  = [
 				$db->quote($messageContent['content']),
 				$db->quote($messageContent['templateName']),
 				$db->quote($messageContent['templateType']),
 				$db->quote($messageContent['wrapper']),
-				$db->quote($messageContent['description'])
+				$db->quote($messageContent['description']),
+				$db->quote($templateHash)
 			];
 			$query->clear()
 				->insert($db->quoteName('#__semantyca_nm_templates'))
@@ -276,7 +302,6 @@ class TemplateModel extends BaseDatabaseModel
 			$parent_template_id = $db->insertid();
 		}
 
-
 		$query->clear()
 			->delete($db->quoteName('#__semantyca_nm_custom_fields'))
 			->where($db->quoteName('template_id') . ' = ' . (int) $parent_template_id);
@@ -300,7 +325,7 @@ class TemplateModel extends BaseDatabaseModel
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
 			$db->setQuery($query);
-			error_log(str_replace('#_', 'smtc', ((string)$query)));
+			error_log(str_replace('#_', 'smtc', ((string) $query)));
 			$db->execute();
 		}
 
