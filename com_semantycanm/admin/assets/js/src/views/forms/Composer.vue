@@ -1,7 +1,7 @@
 <template>
   <n-grid :cols="1" x-gap="5" y-gap="15">
     <n-gi>
-      <n-page-header :subtitle="templateStore.appliedTemplateDoc.name" class="mb-3">
+      <n-page-header :subtitle="modelRef.templateName" class="mb-3">
         <template #title>
           Newsletter
         </template>
@@ -19,10 +19,12 @@
         </n-button>
         <n-button type="success"
                   @click="handleSendAndSave(false)">
-          {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }}
+          {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }} & {{
+            globalStore.translations.CLOSE
+          }}
         </n-button>
         <n-button type="primary" @click="handleSendAndSave(true)">
-          {{ globalStore.translations.SAVE }}
+          {{ globalStore.translations.SAVE_AND_CLOSE }}
         </n-button>
         <n-dropdown trigger="click"
                     ref="templateDropdownRef"
@@ -185,6 +187,7 @@ export default {
     const messagingHandler = new MessagingHandler();
     const modelRef = ref({
       templateId: null,
+      templateName: '',
       customFields: {},
       mailingListIds: [],
       articlesIds: [],
@@ -195,23 +198,24 @@ export default {
     });
 
     const fetchInitialData = async () => {
+      loadingBar.start();
       try {
         if (newsletterId.value) {
           templateStore.resetAppliedTemplate();
           showCustomFields.value = true;
           await composerStore.fetchNewsletter(newsletterId.value);
-          const newsletter = composerStore.newsletterDoc;
           modelRef.value = {
-            templateId: newsletter.templateId,
-            customFields: JSON.parse(newsletter.customFieldsValues),
-            articleIds: newsletter.articlesIds,
-            mailingListIds: newsletter.mailingListIds,
-            testEmail: newsletter.testEmail,
-            subject: newsletter.subject,
-            useWrapper: newsletter.useWrapper,
-            isTestMessage: newsletter.isTest,
+            templateId: composerStore.newsletterDoc.templateId,
+            templateName: composerStore.newsletterDoc.templateName,
+            customFields: JSON.parse(composerStore.newsletterDoc.customFieldsValues),
+            articleIds: composerStore.newsletterDoc.articlesIds,
+            mailingListIds: composerStore.newsletterDoc.mailingListIds,
+            testEmail: composerStore.newsletterDoc.testEmail,
+            subject: composerStore.newsletterDoc.subject,
+            useWrapper: composerStore.newsletterDoc.useWrapper,
+            isTestMessage: composerStore.newsletterDoc.isTest,
           };
-          squireEditor.value.setHTML(newsletter.messageContent);
+          squireEditor.value.setHTML(composerStore.newsletterDoc.messageContent);
         } else {
           showCustomFields.value = false;
           modelRef.value.customFields = {};
@@ -223,8 +227,11 @@ export default {
           mailingListStore.fetchMailingList(1, 100, true)
         ]);
       } catch (error) {
+        loadingBar.error();
         console.error("Error fetching initial data:", error);
         msgPopup.error("Failed to load initial data");
+      } finally {
+        loadingBar.finish();
       }
     }
 

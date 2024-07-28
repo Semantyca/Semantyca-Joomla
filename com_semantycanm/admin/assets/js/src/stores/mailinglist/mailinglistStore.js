@@ -1,6 +1,6 @@
-import { defineStore } from 'pinia';
-import { computed } from 'vue';
-import { useLoadingBar, useMessage } from "naive-ui";
+import {defineStore} from 'pinia';
+import {computed} from 'vue';
+import {useLoadingBar, useMessage} from "naive-ui";
 import MailingListApiManager from './MailingListApiManager';
 import PaginatedData from '../PaginatedData';
 import {createCache} from "../../utils/cacheUtil";
@@ -37,10 +37,9 @@ export const useMailingListStore = defineStore('mailingList', () => {
 
     async function fetchMailingList(currentPage, size = 10, forceRefresh = false) {
         if (!mailingListPage.pages.value.get(currentPage) || forceRefresh) {
-            const manager = new MailingListApiManager(msgPopup, loadingBar);
+            const manager = new MailingListApiManager();
             const respData = await manager.fetch(currentPage, size);
-
-            if (respData.success && respData.data) {
+            if (respData.status === 'success' && respData.data) {
                 mailingListPage.updateData(respData.data);
                 mailingListPage.setPageSize(size);
             }
@@ -55,7 +54,7 @@ export const useMailingListStore = defineStore('mailingList', () => {
             return cachedDoc;
         }
 
-        const manager = new MailingListApiManager(msgPopup, loadingBar);
+        const manager = new MailingListApiManager();
         const details = await manager.fetchDetails(id, detailed);
 
         if (details) {
@@ -66,32 +65,14 @@ export const useMailingListStore = defineStore('mailingList', () => {
     }
 
     async function saveList(model) {
-        loadingBar.start();
-        try {
-            const mailingListName = model.groupName;
-            const listItems = model.selectedGroups;
-            const manager = new MailingListApiManager(msgPopup, loadingBar);
-            const result = await manager.upsert(mailingListName, listItems, model.id);
-            if (result.success) {
-                msgPopup.success('Mailing list saved successfully');
-                cache.delete(model.id);
-                return true;
-            } else {
-                throw new Error(result.message || 'Failed to save mailing list');
-            }
-        } catch (error) {
-            msgPopup.error(error.message, {
-                closable: true,
-                duration: 10000
-            });
-            return false;
-        } finally {
-            loadingBar.finish();
-        }
+        const mailingListName = model.groupName;
+        const listItems = model.selectedGroups;
+        const manager = new MailingListApiManager();
+        return await manager.upsert(mailingListName, listItems, model.id);
     }
 
     async function deleteMailingList(ids) {
-        const manager = new MailingListApiManager(msgPopup, loadingBar);
+        const manager = new MailingListApiManager();
         await manager.delete(ids);
     }
 

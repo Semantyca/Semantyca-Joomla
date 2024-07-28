@@ -17,8 +17,8 @@ class MailingListModel extends BaseDatabaseModel
 {
 	public function getList($currentPage, $itemsPerPage)
 	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
+		$db     = $this->getDatabase();
+		$query  = $db->getQuery(true);
 		$offset = ($currentPage - 1) * $itemsPerPage;
 
 		$query
@@ -51,7 +51,7 @@ class MailingListModel extends BaseDatabaseModel
 	 */
 	public function find($id, $detailed)
 	{
-		$db = $this->getDatabase();
+		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
 		$query->select(
 			array(
@@ -67,7 +67,7 @@ class MailingListModel extends BaseDatabaseModel
 
 		if (!$mailingList)
 		{
-			throw new RecordNotFoundModelException("Record not found for ID: $id");
+			throw new RecordNotFoundModelException(["Record not found for ID: $id"]);
 		}
 
 		if ($detailed)
@@ -108,58 +108,7 @@ class MailingListModel extends BaseDatabaseModel
 		return $db->loadColumn();
 	}
 
-
-	public function getSubscribers()
-	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-		$query->select($db->quoteName('email'))
-			->from($db->quoteName('#__semantyca_nm_subscribers'));
-		$db->setQuery($query);
-
-		return $db->loadObjectList();
-	}
-
-
-	/**
-	 * @throws RecordNotFoundModelException
-	 * @since 1.0
-	 */
-	public function add($mailing_list_name, $mailing_list_ids): object
-	{
-		$db    = $this->getDatabase();
-		$query = $db->getQuery(true);
-		try
-		{
-			$db->transactionStart();
-
-			$query
-				->insert($db->quoteName('#__semantyca_nm_mailing_list'))
-				->columns(array('name'))
-				->values(array($db->quote($mailing_list_name)));
-			$db->setQuery($query);
-			$db->execute();
-
-			$mailing_list_id = $db->insertid();
-			$this->insertUserGroups($mailing_list_id, explode(",", $mailing_list_ids));
-
-			$db->transactionCommit();
-
-			return $this->find($mailing_list_id, false);
-		}
-		catch (Exception $e)
-		{
-			$db->transactionRollback();
-			throw $e;
-		}
-
-	}
-
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
-	public function update($id, $mailing_lst_name, $mailing_list_ids): object
+	public function upsert(int $id, string $mailingListName, $mailingListIds): object
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -168,25 +117,38 @@ class MailingListModel extends BaseDatabaseModel
 		{
 			$db->transactionStart();
 
-			$query
-				->update($db->quoteName('#__semantyca_nm_mailing_list'))
-				->set($db->quoteName('name') . ' = ' . $db->quote($mailing_lst_name))
-				->where($db->quoteName('id') . ' = ' . $db->quote($id));
-			$db->setQuery($query);
-			$db->execute();
+			if ($id === -1)
+			{
+				$query
+					->insert($db->quoteName('#__semantyca_nm_mailing_list'))
+					->columns([$db->quoteName('name')])
+					->values($db->quote($mailingListName));
+				$db->setQuery($query);
+				$db->execute();
 
-			$query = $db->getQuery(true);
-			$query->delete($db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups'))
-				->where($db->quoteName('mailing_list_id') . ' = ' . $db->quote($id));
-			$db->setQuery($query);
-			$db->execute();
+				$id = $db->insertid();
+			}
+			else
+			{
+				$query
+					->update($db->quoteName('#__semantyca_nm_mailing_list'))
+					->set($db->quoteName('name') . ' = ' . $db->quote($mailingListName))
+					->where($db->quoteName('id') . ' = ' . $db->quote($id));
+				$db->setQuery($query);
+				$db->execute();
 
-			$this->insertUserGroups($id, explode(",", $mailing_list_ids));
+				$query = $db->getQuery(true);
+				$query->delete($db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups'))
+					->where($db->quoteName('mailing_list_id') . ' = ' . $db->quote($id));
+				$db->setQuery($query);
+				$db->execute();
+			}
+
+			$this->insertUserGroups($id, $mailingListIds);
 
 			$db->transactionCommit();
 
 			return $this->find($id, false);
-
 		}
 		catch (Exception $e)
 		{
@@ -195,7 +157,7 @@ class MailingListModel extends BaseDatabaseModel
 		}
 	}
 
-	public function remove($ids)
+	public function delete($ids)
 	{
 		$db    = $this->getDatabase();
 		$query = $db->getQuery(true);
@@ -217,7 +179,7 @@ class MailingListModel extends BaseDatabaseModel
 
 	}
 
-	private function insertUserGroups($mailing_list_id, $user_group_ids)
+	private function insertUserGroups($mailing_list_id, $user_group_ids): void
 	{
 		$db = $this->getDatabase();
 		//TODO FE can send empty element
@@ -227,7 +189,7 @@ class MailingListModel extends BaseDatabaseModel
 			$query
 				->insert($db->quoteName('#__semantyca_nm_mailing_list_rel_usergroups'))
 				->columns(array('mailing_list_id', 'user_group_id'))
-				->values($db->quote($mailing_list_id) . ', ' . $db->quote($id));
+				->values($mailing_list_id . ', ' . $id);
 
 			$db->setQuery($query);
 			$db->execute();

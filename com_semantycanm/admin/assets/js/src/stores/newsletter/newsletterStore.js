@@ -2,10 +2,12 @@ import {defineStore} from 'pinia';
 import {ref, computed} from 'vue';
 import MailingListApiManager from "../mailinglist/MailingListApiManager";
 import PaginatedData from '../PaginatedData';
+import {useLoadingBar} from "naive-ui";
 
 export const useNewsletterStore = defineStore('newsletters', () => {
     const newslettersListPage = new PaginatedData();
     const mailingListPage = new PaginatedData();
+    const loadingBar = useLoadingBar();
     /** @deprecated redundant */
     const currentNewsletterId = ref(0);
     const progress = ref({
@@ -37,6 +39,7 @@ export const useNewsletterStore = defineStore('newsletters', () => {
         }
     };
     const fetchNewsLetters = async (page, size) => {
+        loadingBar.start();
         try {
             const response = await fetch(`index.php?option=com_semantycanm&task=newsletters.findAll&page=${page}&limit=${size}`);
 
@@ -49,7 +52,10 @@ export const useNewsletterStore = defineStore('newsletters', () => {
                 newslettersListPage.setPageSize(size);
             }
         } catch (error) {
+            loadingBar.error();
             console.error(error);
+        } finally {
+            loadingBar.finish();
         }
     };
 

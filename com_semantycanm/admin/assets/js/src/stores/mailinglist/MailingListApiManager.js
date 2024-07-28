@@ -1,130 +1,55 @@
-export default class MailingListApiManager  {
-    static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList.';
-
-    constructor(msgPopup, loadingBar) {
-        this.msgPopup = msgPopup;
-        this.loadingBar = loadingBar;
-        this.errorTimeout = 50000;
-    }
+export default class MailingListApiManager {
+    static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList';
 
     async fetch(currentPage, size) {
-        this.loadingBar.start();
-
-        const url = `${MailingListApiManager.BASE_URL}findAll&page=${currentPage}&limit=${size}`;
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            return await response.json();
-        } catch (error) {
-            this.loadingBar.error();
-            this.msgPopup.error(error.message);
-            throw error;
-        } finally {
-            this.loadingBar.finish();
+        const url = `${MailingListApiManager.BASE_URL}.findAll&page=${currentPage}&limit=${size}`;
+        const response = await fetch(url, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
         }
+        return await response.json();
     }
 
     async fetchDetails(id, detailed = false) {
-        this.loadingBar.start();
-
-        const url = `${MailingListApiManager.BASE_URL}find&id=${encodeURIComponent(id)}&detailed=${detailed}`;
-        try {
-            const response = await fetch(url, {
-                method: 'GET',
-            });
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-            const respData = await response.json();
-            if (respData.success) {
-                return respData.data;
-            } else {
-                throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
-            }
-        } catch (error) {
-            this.loadingBar.error();
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-            throw error;
-        } finally {
-            this.loadingBar.finish();
+        const url = `${MailingListApiManager.BASE_URL}.find&id=${encodeURIComponent(id)}&detailed=${detailed}`;
+        const response = await fetch(url, {
+            method: 'GET',
+        });
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
         }
+        return await response.json();
     }
 
     async delete(ids) {
-        this.loadingBar.start();
-        const idsParam = ids.join(',');
-        const url = `${MailingListApiManager.BASE_URL}delete&ids=${encodeURIComponent(idsParam)}`;
+        const url = `${MailingListApiManager.BASE_URL}.delete`;
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ids})
+        });
 
-        try {
-            const response = await fetch(url, {
-                method: 'DELETE',
-            });
-
-            if (!response.ok) {
-                throw new Error('Network response was not ok: ' + response.statusText);
-            }
-
-            const respData = await response.json();
-
-            if (respData.success) {
-                this.msgPopup.info('The mailing list deleted');
-            } else {
-                throw new Error('Error from server: ' + (respData.message || 'Unknown error'));
-            }
-        } catch (error) {
-            this.loadingBar.error();
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout
-            });
-        } finally {
-            this.loadingBar.finish();
+        if (!response.ok) {
+            throw new Error('Network response was not ok: ' + response.statusText);
         }
+        return await response.json();
     }
 
     async upsert(mailingListName, listItems, id = null) {
-        this.loadingBar.start();
-
-        try {
-            const response = await fetch(MailingListApiManager.BASE_URL + 'upsert', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    'id': id || '',
-                    'mailinglistname': mailingListName,
-                    'mailinglists': listItems.join(',')
-                })
-            });
-
-            if (!response.ok) {
-                throw new Error('HTTP error, status = ' + response.status);
-            }
-
-            const data = await response.json();
-
-            if (!data.success) {
-                throw new Error(data.message || 'Unknown error occurred');
-            }
-
-            return data;
-        } catch (error) {
-            this.loadingBar.error();
-            this.msgPopup.error(error.message, {
-                closable: true,
-                duration: this.errorTimeout.value
-            });
-            throw error;
-        } finally {
-            this.loadingBar.finish();
-        }
+        const url = `${MailingListApiManager.BASE_URL}.upsert&id=${id ? id : -1}`;
+        return await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                mailinglistname: mailingListName,
+                mailinglists: listItems
+            })
+        });
     }
 }

@@ -17,3 +17,8 @@ export async function handleNotOkError(msgPopup, response) {
         msgPopup.error(errorMessages, {closable: true, duration: 5000});
     }
 }
+
+export async function handleSuccess(msgPopup, response) {
+    const responseData = await response.json();
+    msgPopup.success(responseData.message, {closable: true, duration: 5000});
+}

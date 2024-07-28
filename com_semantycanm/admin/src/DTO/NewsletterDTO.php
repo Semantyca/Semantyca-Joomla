@@ -1,4 +1,11 @@
 <?php
+/**
+ * @package     SemantycaNM
+ * @subpackage  Administrator
+ *
+ * @copyright   Copyright (C) 2024 Semantyca. All rights reserved.
+ * @license     GNU General Public License version 3 or later; see LICENSE.txt
+ */
 
 namespace Semantyca\Component\SemantycaNM\Administrator\DTO;
 
@@ -10,6 +17,7 @@ class NewsletterDTO implements JsonSerializable
 	public ?int $id;
 	public DateTime $regDate;
 	public int $templateId;
+	public string $templateName;
 	public string $customFieldsValues;
 	public array $articlesIds;
 	public bool $isTest;
@@ -25,6 +33,7 @@ class NewsletterDTO implements JsonSerializable
 			'id'                 => $this->id,
 			'regDate'            => $this->regDate->format('Y-m-d H:i:s'),
 			'templateId'         => $this->templateId,
+			'templateName'       => $this->templateName,
 			'customFieldsValues' => $this->customFieldsValues,
 			'articlesIds'        => $this->articlesIds,
 			'isTest'             => $this->isTest,

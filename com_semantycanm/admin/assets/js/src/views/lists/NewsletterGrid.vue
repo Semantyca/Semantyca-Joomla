@@ -15,10 +15,10 @@
       <n-data-table
           remote
           size="large"
-          :row-key="rowKey"
           :columns="columns"
           :data="newsLetterStore.getCurrentPage"
           :pagination="newsLetterStore.getPagination"
+          :row-key="rowKey"
           :row-props="getRowProps"
           @update:checked-row-keys="handleSelectionChange"
           @update:page="handlePageChange"
@@ -29,10 +29,10 @@
 </template>
 
 <script>
-import { defineComponent, onMounted, ref, computed } from 'vue';
-import { useRouter } from 'vue-router';
-import { useGlobalStore } from "../../stores/globalStore";
-import { useNewsletterStore } from "../../stores/newsletter/newsletterStore";
+import {defineComponent, onMounted, ref, computed} from 'vue';
+import {useRouter} from 'vue-router';
+import {useGlobalStore} from "../../stores/globalStore";
+import {useNewsletterStore} from "../../stores/newsletter/newsletterStore";
 import {
   NDataTable,
   NButton,

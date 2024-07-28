@@ -11,20 +11,16 @@ namespace Semantyca\Component\SemantycaNM\Administrator\Controller;
 
 defined('_JEXEC') or die;
 
-use Exception;
 use Joomla\CMS\Factory;
 use Joomla\CMS\MVC\Controller\BaseController;
-use Joomla\CMS\Response\JsonResponse;
 use Semantyca\Component\SemantycaNM\Administrator\Exception\ValidationErrorException;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\Constants;
 use Semantyca\Component\SemantycaNM\Administrator\Helper\LogHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Helper\ResponseHelper;
+use Semantyca\Component\SemantycaNM\Administrator\Model\MailingListModel;
 
 class MailingListController extends BaseController
 {
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
 	public function findAll()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
@@ -33,119 +29,139 @@ class MailingListController extends BaseController
 		{
 			$currentPage  = $app->input->getInt('page', 1);
 			$itemsPerPage = $app->input->getInt('limit', 10);
+			/** @var MailingListModel $model */
 			$model = $this->getModel('MailingList');
-			echo new JsonResponse($model->getList($currentPage, $itemsPerPage));
+			echo ResponseHelper::success($model->getList($currentPage, [$itemsPerPage]));
 		}
-		catch (Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
 		}
-		finally
-		{
-			$app->close();
-		}
+		$app->close();
 	}
 
 	public function find()
 	{
 		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
 		try
 		{
 			$id       = $this->input->getString('id');
 			$detailed = $this->input->getString('detailed');
+			if (!$id)
+			{
+				throw new ValidationErrorException(['Invalid or missing ID']);
+			}
+			/** @var MailingListModel $model */
+			$model       = $this->getModel('MailingList');
+			$mailingList = $model->find($id, $detailed);
+
+			if (!$mailingList)
+			{
+				http_response_code(404);
+				echo ResponseHelper::error('notFound', 'Mailing list not found');
+			}
+			else
+			{
+				echo ResponseHelper::success($mailingList);
+			}
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, [$e->getErrors()]);
+		}
+		catch (\Throwable $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
+		}
+		$app->close();
+	}
+
+	public function upsert(): void
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
+		try
+		{
+			$input = json_decode(file_get_contents('php://input'), true);
+
+			if ($_SERVER['REQUEST_METHOD'] !== 'POST')
+			{
+				throw new ValidationErrorException(['Only POST request is allowed']);
+			}
+
+			$id              = $app->input->getInt('id', 0);
+			$mailingListName = $input['mailinglistname'] ?? null;
+			$mailingLists    = $input['mailinglists'] ?? null;
+
+			if (!$mailingListName)
+			{
+				throw new ValidationErrorException(['Mailing list name is required']);
+			}
+			/** @var MailingListModel $model */
+			$model  = $this->getModel('MailingList');
+			$result = $model->upsert($id, $mailingListName, $mailingLists);
+			echo ResponseHelper::success(['id' => $result], 'Mailing list saved successfully');
+		}
+		catch (ValidationErrorException $e)
+		{
+			http_response_code(422);
+			echo ResponseHelper::error('validationError', 422, [$e->getErrors()]);
+		}
+		catch (\Throwable $e)
+		{
+			http_response_code(500);
+			LogHelper::logException($e, __CLASS__);
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
+		}
+		$app->close();
+	}
+
+	public function delete(): void
+	{
+		header(Constants::JSON_CONTENT_TYPE);
+		$app = Factory::getApplication();
+
+		if ($_SERVER['REQUEST_METHOD'] !== 'DELETE')
+		{
+			http_response_code(405);
+			echo ResponseHelper::error('methodNotAllowed', 'Method Not Allowed');
+			$app->close();
+
+			return;
+		}
+
+		try
+		{
+			$input = json_decode(file_get_contents('php://input'), true);
+			$ids   = $input['ids'] ?? [];
+
+			if (empty($ids))
+			{
+				throw new ValidationErrorException(['No IDs provided']);
+			}
+			/** @var MailingListModel $model */
 			$model = $this->getModel('MailingList');
-			$results  = $model->find($id, $detailed);
-			echo new JsonResponse($results);
-		}
-		catch (Exception $e)
-		{
-			http_response_code(500);
-			echo new JsonResponse($e->getMessage(), 'error', true);
-		}
-		finally
-		{
-			Factory::getApplication()->close();
-		}
-	}
+			$model->delete($ids);
 
-	/**
-	 * @throws Exception
-	 * @since 1.0
-	 */
-	public function upsert()
-	{
-		$app = Factory::getApplication();
-		header(Constants::JSON_CONTENT_TYPE);
-		try
-		{
-			$id                 = $this->input->getString('id', null);
-			$mailing_lst_name   = $this->input->getString('mailinglistname');
-			$mailing_lists      = $this->input->getString('mailinglists');
-			$mailing_list_model = $this->getModel('MailingList');
-
-			if ($id) {
-				$results = $mailing_list_model->upsert($id, $mailing_lst_name, $mailing_lists);
-			} else {
-				$results = $mailing_list_model->add($mailing_lst_name, $mailing_lists);
-			}
-
-			echo new JsonResponse($results);
+			echo ResponseHelper::success([], 'Mailing lists deleted successfully');
 		}
 		catch (ValidationErrorException $e)
 		{
 			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'validationError', true);
+			echo ResponseHelper::error('validationError', 400, [$e->getErrors()]);
 		}
-		catch (Exception $e)
+		catch (\Throwable $e)
 		{
 			http_response_code(500);
 			LogHelper::logException($e, __CLASS__);
-			echo new JsonResponse($e->getMessage(), 'error', true);
+			echo ResponseHelper::error('error', 500, [$e->getMessage()]);
 		}
-		finally
-		{
-			$app->close();
-		}
-	}
-
-	public function delete()
-	{
-		$app = Factory::getApplication();
-		header(Constants::JSON_CONTENT_TYPE);
-		try
-		{
-			$ids = $this->input->getString('ids');
-
-			if (empty($ids) || $ids === 'null')
-			{
-				throw new ValidationErrorException([], 'id cannot be null');
-			}
-
-			if (!is_array($ids))
-			{
-				$ids = explode(',', $ids);
-			}
-
-			$mailing_list_model = $this->getModel('MailingList');
-			$results = $mailing_list_model->delete($ids);
-			echo new JsonResponse($results);
-		}
-		catch (ValidationErrorException $e)
-		{
-			http_response_code(400);
-			echo new JsonResponse($e->getMessage(), 'validationError', true);
-		}
-		catch (Exception $e)
-		{
-			LogHelper::logException($e, __CLASS__);
-			http_response_code(500);
-			echo new JsonResponse($e->getMessage(), "error", true);
-		}
-		finally
-		{
-			$app->close();
-		}
+		$app->close();
 	}
 }

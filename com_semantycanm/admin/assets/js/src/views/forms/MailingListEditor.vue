@@ -20,13 +20,11 @@
         <n-button type="primary" @click="handleSave">
           {{ globalStore.translations.SAVE }}
         </n-button>
-        <div v-if="isLoading" class="mt-1">
-          <progress-svg :size="24"  />
-        </div>
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
-      <n-form v-if="!isLoading" ref="formRef" label-placement="left" label-width="auto" :model="formValue" :rules="rules">
+      <n-form ref="formRef" label-placement="left" label-width="auto" :model="formValue"
+              :rules="rules">
         <n-form-item label="User groups" path="selectedGroups">
           <n-select
               v-model:value="formValue.selectedGroups"
@@ -51,15 +49,15 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useGlobalStore } from "../../stores/globalStore";
+import {ref, reactive} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
+import {useGlobalStore} from "../../stores/globalStore";
 import {
-  NButton, NForm, NFormItem, NGi, NGrid, NIcon, NInput, NSpace, NSelect, NPageHeader
+  NButton, NForm, NFormItem, NGi, NGrid, NIcon, NInput, NSpace, NSelect, NPageHeader, useMessage, useLoadingBar
 } from "naive-ui";
-import { ArrowBigLeft } from '@vicons/tabler'
-import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
-import ProgressSvg from "../../components/ui/ProgressSvg.vue";
+import {ArrowBigLeft} from '@vicons/tabler'
+import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
+import {handleNotOkError, handleSuccess} from "../../utils/apiRequestHelper";
 
 const route = useRoute();
 const router = useRouter();
@@ -71,9 +69,11 @@ const formValue = reactive({
 });
 const globalStore = useGlobalStore();
 const mailingListStore = useMailingListStore();
-const isLoading = ref(true);
+const msgPopup = useMessage();
+const loadingBar = useLoadingBar();
 
 const fetchInitialData = async () => {
+  loadingBar.start();
   try {
     const [details, _] = await Promise.all([
       formValue.id ? mailingListStore.getDetails(formValue.id, true) : Promise.resolve(null),
@@ -81,35 +81,50 @@ const fetchInitialData = async () => {
     ]);
 
     if (details) {
-      formValue.groupName = details.name;
-      formValue.selectedGroups = details.groups.map(group => group.id);
+      console.log('details ', details);
+      formValue.groupName = details.data.name;
+      formValue.selectedGroups = details.data.groups.map(group => group.id);
     }
   } catch (error) {
+    loadingBar.error();
     console.error("Error fetching initial data:", error);
   } finally {
-    isLoading.value = false;
+    loadingBar.finish();
   }
 };
 
 fetchInitialData();
 
 const handleSave = () => {
-  formRef.value.validate(async (errors) => {
-    if (!errors) {
-      const success = await mailingListStore.saveList(formValue);
-      if (success) {
-        router.push('/list');
+  loadingBar.start();
+  try {
+    formRef.value.validate(async (errors) => {
+      if (!errors) {
+        const response = await mailingListStore.saveList(formValue);
+        console.log(response);
+        if (!response.ok) {
+          await handleNotOkError(msgPopup, response);
+        } else {
+          await handleSuccess(msgPopup, response);
+          router.push('/list');
+        }
       }
-    }
-  });
+    });
+  } catch (error) {
+    loadingBar.error();
+    console.error("Error saving mailing list", error);
+  } finally {
+    loadingBar.finish();
+  }
 }
 
 const rules = {
   groupName: [
-    { required: true, message: 'Please input the group name', trigger: 'blur' }
+    {required: true, message: 'Please input the group name', trigger: 'blur'}
   ],
   selectedGroups: [
-    { type: 'array', min: 1, message: 'Please select at least one user group', trigger: 'change' }
+    {type: 'array', min: 1, message: 'Please select at least one user group', trigger: 'change'}
   ]
 };
+
 </script>

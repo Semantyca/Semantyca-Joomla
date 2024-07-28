@@ -14,17 +14,19 @@ $smtca_assets = "administrator/components/com_semantycanm/assets/";
 $rootUrl      = JUri::root();
 
 $translations     = array(
-	'CREATE'        => Text::_('CREATE'),
-	'BACK'          => Text::_('BACK'),
-	'SAVE'          => Text::_('SAVE'),
-	'SEND'          => Text::_('SEND'),
-	'DELETE'        => Text::_('DELETE'),
-	'REVIEW'        => Text::_('REVIEW'),
-	'EDIT'          => Text::_('EDIT'),
-	'RESET'         => Text::_('RESET'),
-	'CANCEL'        => Text::_('CANCEL'),
-	'SUBJECT'       => Text::_('SUBJECT'),
-	'FETCH_SUBJECT' => Text::_('FETCH_SUBJECT'),
+	'CREATE'         => Text::_('CREATE'),
+	'BACK'           => Text::_('BACK'),
+	'SAVE'           => Text::_('SAVE'),
+	'SAVE_AND_CLOSE' => Text::_('SAVE_AND_CLOSE'),
+	'CLOSE'          => Text::_('CLOSE'),
+	'SEND'           => Text::_('SEND'),
+	'DELETE'         => Text::_('DELETE'),
+	'REVIEW'         => Text::_('REVIEW'),
+	'EDIT'           => Text::_('EDIT'),
+	'RESET'          => Text::_('RESET'),
+	'CANCEL'         => Text::_('CANCEL'),
+	'SUBJECT'        => Text::_('SUBJECT'),
+	'FETCH_SUBJECT'  => Text::_('FETCH_SUBJECT'),
 );
 $jsonTranslations = json_encode($translations);
 

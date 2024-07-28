@@ -10,7 +10,7 @@ export function createCache(expiration = 60000) {
             return null;
         },
         set(key, value) {
-            this.map.set(key, { value, cacheTime: Date.now() });
+            this.map.set(key, {value, cacheTime: Date.now()});
         },
         delete(key) {
             this.map.delete(key);

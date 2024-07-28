@@ -19,13 +19,13 @@
           size="large"
           :columns="columns"
           :data="mailingListStore.getMailingListPage"
-          :bordered="false"
           :pagination="mailingListStore.getPagination"
           :row-key="rowKey"
+          :row-props="getRowProps"
           @update:page="handlePageChange"
           @update:page-size="handlePageSizeChange"
           @update:checked-row-keys="handleCheck"
-          :row-props="getRowProps"
+
       />
     </n-gi>
   </n-grid>
@@ -34,7 +34,7 @@
 <script>
 import {defineComponent, ref} from 'vue';
 import {useGlobalStore} from "../../stores/globalStore";
-import {NButton, NDataTable, NGi, NGrid, NH3, NSpace} from "naive-ui";
+import {NButton, NDataTable, NGi, NGrid, NH3, NSpace, useLoadingBar, useMessage} from "naive-ui";
 import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
 import {useRouter} from "vue-router";
 
@@ -54,9 +54,20 @@ export default defineComponent({
     const mailingListStore = useMailingListStore();
     const checkedRowKeysRef = ref([]);
     const isLoading = ref(true);
+    const msgPopup = useMessage();
+    const loadingBar = useLoadingBar();
 
     const fetchInitialData = async () => {
-      await mailingListStore.fetchMailingList(1, 10, true);
+      loadingBar.start();
+      try {
+        await mailingListStore.fetchMailingList(1, 10, true);
+      } catch (error) {
+        loadingBar.error();
+        msgPopup.error(error.message);
+        throw error;
+      } finally {
+        loadingBar.finish();
+      }
     };
 
     fetchInitialData();

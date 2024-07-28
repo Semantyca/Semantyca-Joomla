@@ -325,7 +325,7 @@ class TemplateModel extends BaseDatabaseModel
 				->columns($db->quoteName($columns))
 				->values(implode(',', $values));
 			$db->setQuery($query);
-			error_log(str_replace('#_', 'smtc', ((string) $query)));
+			//error_log(str_replace('#_', 'smtc', ((string) $query)));
 			$db->execute();
 		}
 

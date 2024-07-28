@@ -95,7 +95,7 @@ class NewslettersController extends BaseController
 			$newsletterDTO = NewsletterValidator::validateAndCreateDTO($input);
 
 			$model = $this->getModel('Newsletters');
-			$id = $app->input->getInt('id', null);
+			$id = $app->input->getInt('id', 0);
 			$result = $model->upsert($id, $newsletterDTO);
 			echo ResponseHelper::success(['id' => $result], 'Newsletter saved successfully');
 		}

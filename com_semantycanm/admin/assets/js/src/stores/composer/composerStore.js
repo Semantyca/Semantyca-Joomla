@@ -13,6 +13,7 @@ export const useComposerStore = defineStore('composer', () => {
         subject: '',
         useWrapper: false,
         templateId: null,
+        templateName: '',
         customFieldsValues: {},
         articlesIds: [],
         isTest: false,
@@ -21,7 +22,7 @@ export const useComposerStore = defineStore('composer', () => {
         messageContent: '',
         modifiedDate: null
     });
-    const articlesPage = ref({ docs: [] });
+    const articlesPage = ref({docs: []});
     const isLoading = ref(false);
     const msgPopup = useMessage();
     const loadingBar = useLoadingBar();
@@ -40,6 +41,7 @@ export const useComposerStore = defineStore('composer', () => {
                     id: respData.id,
                     regDate: respData.regDate,
                     templateId: respData.templateId,
+                    templateName: respData.templateName,
                     customFieldsValues: respData.customFieldsValues,
                     articlesIds: respData.articlesIds,
                     isTest: respData.isTest,
