@@ -35,9 +35,8 @@ export const useComposerStore = defineStore('composer', () => {
             loadingBar.start();
             const resp = await manager.fetch(id);
             const respData = resp.data;
-            console.log(respData);
             if (respData) {
-                const newsletterData = {
+                newsletterDoc.value = {
                     id: respData.id,
                     regDate: respData.regDate,
                     templateId: respData.templateId,
@@ -50,7 +49,6 @@ export const useComposerStore = defineStore('composer', () => {
                     subject: respData.subject,
                     useWrapper: respData.useWrapper,
                 };
-                newsletterDoc.value = newsletterData;
             } else {
                 throw new Error('Newsletter not found');
             }

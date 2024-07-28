@@ -22,11 +22,6 @@ class NewsletterValidator
 
 		$isTest = $input['isTestMessage'] ?? false;
 
-		if (empty($input['templateId']))
-		{
-			throw new ValidationErrorException(['Template ID is required']);
-		}
-
 		if ($isTest)
 		{
 			if (empty($input['testEmail']))
@@ -45,11 +40,11 @@ class NewsletterValidator
 		$newsletterDTO                     = new NewsletterDTO();
 		$newsletterDTO->regDate            = new DateTime();
 		$newsletterDTO->id                 = $input['id'];
-		$newsletterDTO->templateId         = $input['templateId'];
-		$newsletterDTO->customFieldsValues = json_encode($input['customFieldsValues'] ?? []);
+		$newsletterDTO->templateId         = $input['templateId']??-1;
+		$newsletterDTO->customFieldsValues = json_encode($input['customFields'] ?? []);
 		$newsletterDTO->articlesIds        = $input['articlesIds'] ?? [];
 		$newsletterDTO->isTest             = $input['isTestMessage'];
-		$newsletterDTO->mailingListIds     = $input['mailingList'] ?? [];
+		$newsletterDTO->mailingListIds     = $input['mailingListIds'] ?? [];
 		$newsletterDTO->testEmail          = $input['testEmail'] ?? '';
 		$newsletterDTO->subject            = $input['subject'];
 		$newsletterDTO->messageContent     = $input['content'];

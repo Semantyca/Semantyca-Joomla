@@ -40,7 +40,7 @@ import {
   NGi,
   NGrid,
   NSpace,
-  useMessage
+  useMessage, useLoadingBar
 } from "naive-ui";
 import {useComposerStore} from "../../stores/composer/composerStore";
 
@@ -61,6 +61,7 @@ export default defineComponent({
     const composerStore = useComposerStore();
     const selectedRowKeys = ref([]);
     const message = useMessage();
+    const loadingBar = useLoadingBar();
 
     onMounted(() => {
       newsLetterStore.fetchNewsLetters(1, 100);
@@ -83,13 +84,18 @@ export default defineComponent({
     };
 
     const handleDeleteSelected = async () => {
+      loadingBar.start();
       try {
         await newsLetterStore.deleteNewsletters(selectedRowKeys.value);
+        await newsLetterStore.fetchNewsLetters(1, 100);
         message.success('Newsletters deleted successfully');
         selectedRowKeys.value = [];
       } catch (error) {
+        loadingBar.error();
         console.error(error);
         message.error('An error occurred while deleting newsletters.');
+      } finally {
+        loadingBar.finish();
       }
     };
 

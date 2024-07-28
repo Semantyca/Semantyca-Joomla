@@ -1,8 +1,8 @@
 import {useMessage} from "naive-ui";
 
 class NewsletterApiManager  {
-    static BASE_URL = 'index.php?option=com_semantycanm&task=newsletters';
-    static SERVICE_BASE_URL = 'index.php?option=com_semantycanm&task=service';
+    static BASE_URL = 'index.php?option=com_semantycanm&task=Newsletters';
+    static SERVICE_BASE_URL = 'index.php?option=com_semantycanm&task=Service';
 
     constructor() {
         this.msgPopup = useMessage();

@@ -2,8 +2,8 @@ import UserExperienceHelper from './UserExperienceHelper';
 import {useMessage} from 'naive-ui';
 import {NewsletterParams} from './NewsletterParams';
 
-const BASE_URL = 'index.php?option=com_semantycanm&task=newsletters';
-const MAIL_SERVICE_URL = 'index.php?option=com_semantycanm&task=service';
+const BASE_URL = 'index.php?option=com_semantycanm&task=Newsletters';
+const MAIL_SERVICE_URL = 'index.php?option=com_semantycanm&task=Service';
 const headers = new Headers({
     'Content-Type': 'application/json',
 });
@@ -21,14 +21,13 @@ export class MessagingHandler {
         }
     }
 
-    async handleSendAndSave(modelRef, formRef, loadingBar, router, onlySave, newsletterId) {
-        console.log(modelRef.value.content);
+    async handleSendAndSave(content, modelRef, formRef, loadingBar, router, onlySave, newsletterId) {
         try {
             if (!await this.validateForm(formRef)) {
                 return;
             }
             loadingBar.start();
-            const newsletterParams = new NewsletterParams(modelRef, modelRef.value.content, onlySave, newsletterId.value);
+            const newsletterParams = new NewsletterParams(modelRef, content, onlySave, newsletterId.value);
             const response = await this.send(newsletterParams);
             if (!response.ok) {
                 await this.handleSoftError(response, onlySave);
@@ -65,6 +64,7 @@ export class MessagingHandler {
         } else {
             url = `${MAIL_SERVICE_URL}.sendEmailAsync${params.id ? '&id=' + params.id : ''}`;
         }
+        console.log(params);
         return fetch(url, {
             method: 'POST',
             headers: headers,

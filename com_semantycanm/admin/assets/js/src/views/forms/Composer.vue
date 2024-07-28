@@ -187,9 +187,9 @@ export default {
       templateId: null,
       customFields: {},
       mailingListIds: [],
+      articlesIds: [],
       testEmail: '',
       subject: '',
-      content: '',
       useWrapper: true,
       isTestMessage: false
     });
@@ -199,9 +199,6 @@ export default {
         if (newsletterId.value) {
           templateStore.resetAppliedTemplate();
           showCustomFields.value = true;
-          if (squireEditor.value) {
-            squireEditor.value.setHTML(newsletter.messageContent);
-          }
           await composerStore.fetchNewsletter(newsletterId.value);
           const newsletter = composerStore.newsletterDoc;
           modelRef.value = {
@@ -214,7 +211,7 @@ export default {
             useWrapper: newsletter.useWrapper,
             isTestMessage: newsletter.isTest,
           };
-
+          squireEditor.value.setHTML(newsletter.messageContent);
         } else {
           showCustomFields.value = false;
           modelRef.value.customFields = {};
@@ -243,7 +240,7 @@ export default {
     };
 
     const handleSendAndSave = async (save) => {
-      await messagingHandler.handleSendAndSave(modelRef, formRef, loadingBar, router, save, newsletterId);
+      await messagingHandler.handleSendAndSave(squireEditor.value.getHTML(), modelRef, formRef, loadingBar, router, save, newsletterId);
     };
 
     const handleFetchSubject = async () => {
@@ -306,40 +303,45 @@ export default {
       });
     };
 
-    watch(modelRef.value.customFields, () => {
-      updateRules();
-    }, {deep: true, immediate: true});
-
     fetchInitialData();
 
     onMounted(() => {
       window.DOMPurify = DOMPurify;
       nextTick(() => {
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
+        /*   squireEditor.value.addEventListener('input', () => {
+             modelRef.value.content = squireEditor.value.getHTML();
+           });*/
       });
     });
+
+    watch(modelRef.value.customFields, () => {
+      updateRules();
+    }, {deep: true, immediate: true});
 
     watch(
         [
           () => modelRef.value.customFields,
         ],
         () => {
-          const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
+          if (templateStore.appliedTemplateDoc.id > 0) {
+            const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
 
-          Object.keys(modelRef.value.customFields).forEach((key) => {
-            const field = modelRef.value.customFields[key];
-            dynamicBuilder.addVariable(field.name, field.defaultValue);
-          });
-
-
-          try {
-            modelRef.value.content = dynamicBuilder.buildContent();
-          } catch (e) {
-            console.log(e);
-            msgPopup.error(e.message, {
-              closable: true,
-              duration: 10000
+            Object.keys(modelRef.value.customFields).forEach((key) => {
+              const field = modelRef.value.customFields[key];
+              dynamicBuilder.addVariable(field.name, field.defaultValue);
             });
+
+
+            try {
+              squireEditor.value.setHTML(dynamicBuilder.buildContent());
+            } catch (e) {
+              console.log(e);
+              msgPopup.error(e.message, {
+                closable: true,
+                duration: 10000
+              });
+            }
           }
         },
         {deep: true}
