@@ -41,7 +41,7 @@ export const useNewsletterStore = defineStore('newsletters', () => {
     const fetchNewsLetters = async (page, size) => {
         loadingBar.start();
         try {
-            const response = await fetch(`index.php?option=com_semantycanm&task=newsletters.findAll&page=${page}&limit=${size}`);
+            const response = await fetch(`index.php?option=com_semantycanm&task=newsletters.findAll&page=${page}&size=${size}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error, status = ${response.status}`);

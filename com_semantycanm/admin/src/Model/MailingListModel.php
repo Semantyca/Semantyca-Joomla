@@ -15,7 +15,7 @@ use Semantyca\Component\SemantycaNM\Administrator\Exception\RecordNotFoundModelE
 
 class MailingListModel extends BaseDatabaseModel
 {
-	public function getList($currentPage, $itemsPerPage)
+	public function getList($currentPage, $itemsPerPage): array
 	{
 		$db     = $this->getDatabase();
 		$query  = $db->getQuery(true);

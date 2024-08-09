@@ -2,7 +2,7 @@ export default class MailingListApiManager {
     static BASE_URL = 'index.php?option=com_semantycanm&task=MailingList';
 
     async fetch(currentPage, size) {
-        const url = `${MailingListApiManager.BASE_URL}.findAll&page=${currentPage}&limit=${size}`;
+        const url = `${MailingListApiManager.BASE_URL}.findAll&page=${currentPage}&size=${size}`;
         const response = await fetch(url, {
             method: 'GET',
         });

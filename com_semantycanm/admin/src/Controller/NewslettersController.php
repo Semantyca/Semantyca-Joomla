@@ -28,7 +28,7 @@ class NewslettersController extends BaseController
 		try
 		{
 			$currentPage  = $app->input->getInt('page', 1);
-			$itemsPerPage = $app->input->getInt('limit', 10);
+			$itemsPerPage = $app->input->getInt('size', 10);
 			$model        = $this->getModel('Newsletters');
 			echo ResponseHelper::success($model->getList($currentPage, $itemsPerPage));
 		}

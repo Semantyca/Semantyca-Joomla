@@ -52,7 +52,7 @@ export const useComposerStore = defineStore('composer', () => {
                     useWrapper: respData.useWrapper,
                 };
             } else {
-                throw new Error('Newsletter not found');
+                msgPopup.warning('Newsletter not found');
             }
         } catch (error) {
             console.error('Error fetching newsletter:', error);

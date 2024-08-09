@@ -28,10 +28,10 @@ class MailingListController extends BaseController
 		try
 		{
 			$currentPage  = $app->input->getInt('page', 1);
-			$itemsPerPage = $app->input->getInt('limit', 10);
+			$itemsPerPage = $app->input->getInt('size', 10);
 			/** @var MailingListModel $model */
 			$model = $this->getModel('MailingList');
-			echo ResponseHelper::success($model->getList($currentPage, [$itemsPerPage]));
+			echo ResponseHelper::success($model->getList($currentPage, $itemsPerPage));
 		}
 		catch (\Throwable $e)
 		{
