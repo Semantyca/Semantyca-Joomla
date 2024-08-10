@@ -1,6 +1,7 @@
 import UserExperienceHelper from './UserExperienceHelper';
 import {useMessage} from 'naive-ui';
 import {NewsletterParams} from './NewsletterParams';
+import {parseErr} from "./apiRequestHelper";
 
 const BASE_URL = 'index.php?option=com_semantycanm&task=Newsletters';
 const MAIL_SERVICE_URL = 'index.php?option=com_semantycanm&task=Service';
@@ -79,13 +80,16 @@ export class MessagingHandler {
 
     async handleSoftError(response, onlySave) {
         const responseData = await response.json();
-        console.log('response data: ', responseData);
         if (response.status === 422) {
-            const errorMessages = responseData.details.map(error => `${error}`).join('\n');
             this.msgPopup.warning(
-                `Validation Error:\n${errorMessages}`,
-                { closable: true, duration: 10000 }
+                `Validation Error:\n${parseErr(responseData)}`,
+                {closable: true, duration: 10000}
             );
+        }else if (response.status === 400) {
+                this.msgPopup.warning(
+                    `Error:\n${parseErr(responseData)}`,
+                    { closable: true, duration: 10000 }
+                );
         } else {
             const message = onlySave ? 'Newsletter not saved' : 'Newsletter was not sent';
             this.msgPopup.warning(responseData.message || message, { closable: true, duration: 5000 });

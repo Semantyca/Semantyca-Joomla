@@ -17,19 +17,13 @@
           </template>
           &nbsp;Back
         </n-button>
-        <n-button type="success"
-                  @click="handleSendAndSave(false)">
-          {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }} & {{
-            globalStore.translations.CLOSE
-          }}
+        <n-button type="success" @click="handleSendAndSave(false)">
+          {{ globalStore.translations.SEND }} & {{ globalStore.translations.SAVE }} & {{ globalStore.translations.CLOSE }}
         </n-button>
         <n-button type="primary" @click="handleSendAndSave(true)">
           {{ globalStore.translations.SAVE_AND_CLOSE }}
         </n-button>
-        <n-dropdown trigger="click"
-                    ref="templateDropdownRef"
-                    :options="templateStore.templateSelectOptions"
-                    @select="handleTemplateChange">
+        <n-dropdown trigger="click" ref="templateDropdownRef" :options="templateStore.templateSelectOptions" @select="handleTemplateChange">
           <n-button type="primary">
             Select Template
           </n-button>
@@ -37,78 +31,31 @@
       </n-space>
     </n-gi>
     <n-gi class="mt-4">
-      <n-form ref="formRef"
-              :model="modelRef"
-              :rules="rules"
-              label-placement="top"
-              label-width="auto"
-              require-mark-placement="right-hanging"
-      >
+      <n-form ref="formRef" :model="modelRef" :rules="rules" label-placement="top" label-width="auto" require-mark-placement="right-hanging">
         <n-collapse-transition :show="showCustomFields">
-          <n-form-item
-              v-for="(field, fieldName) in modelRef.customFields"
-              :key="field.id"
-              :label="field.caption"
-              :path="fieldName"
-              :rule="rules[fieldName]"
-              :show-feedback="false"
-              label-placement="top"
-              :style="{ marginBottom: '16px' }"
-          >
-            <dynamic-form-field
-                :field="field"
-                @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)"
-            />
+          <n-form-item v-for="(field, fieldName) in modelRef.customFields" :key="field.id" :label="field.caption" :path="fieldName" :rule="rules[fieldName]" :show-feedback="false" label-placement="top" :style="{ marginBottom: '16px' }">
+            <dynamic-form-field :field="field" @update:field="(updatedField) => handleFieldChange(fieldName, updatedField)" />
           </n-form-item>
         </n-collapse-transition>
-        <n-form-item label="Test message"
-                     :show-require-mark="false"
-                     label-placement="left"
-                     :show-feedback="false">
-          <n-checkbox v-model:checked="modelRef.isTestMessage"/>
+        <n-form-item label="Test message" :show-require-mark="false" label-placement="left" :show-feedback="false">
+          <n-checkbox v-model:checked="modelRef.isTestMessage" />
         </n-form-item>
-        <n-form-item
-            :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'"
-            label-placement="top"
-            path="recipientField"
-            :show-feedback="false"
-            :style="{ marginBottom: '20px' }"
-        >
+        <n-form-item :label="modelRef.isTestMessage ? 'Test user' : 'Mailing List'" label-placement="top" path="recipientField" :show-feedback="false" :style="{ marginBottom: '20px' }">
           <template v-if="modelRef.isTestMessage">
-            <n-input v-model:value="modelRef.testEmail"
-                     placeholder="Enter test user email"
-                     style="width: 80%; max-width: 600px;"
-            />
+            <n-input v-model:value="modelRef.testEmail" placeholder="Enter test user email" style="width: 80%; max-width: 600px;" />
           </template>
           <template v-else>
-            <n-select multiple
-                      checkable
-                      v-model:value="modelRef.mailingListIds"
-                      :options="mailingListStore.getMailingListOptions"
-                      placeholder="Select mailing list"
-                      style="width: 80%; max-width: 600px;"
-            />
+            <n-select multiple checkable v-model:value="modelRef.mailingListIds" :options="mailingListStore.getMailingListOptions" placeholder="Select mailing list" style="width: 80%; max-width: 600px;" />
           </template>
         </n-form-item>
-        <n-form-item label="Subject"
-                     path="subject"
-                     :show-feedback="false"
-                     :style="{ marginBottom: '20px' }">
-          <n-input v-model:value="modelRef.subject"
-                   type="text"
-                   id="subject"
-                   style="width: 80%; max-width: 600px;"
-                   placeholder="Subject"/>
-          <n-button type="tertiary" @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}
-          </n-button>
+        <n-form-item label="Subject" path="subject" :show-feedback="false" :style="{ marginBottom: '20px' }">
+          <n-input v-model:value="modelRef.subject" type="text" id="subject" style="width: 80%; max-width: 600px;" placeholder="Subject" />
+          <n-button type="tertiary" @click="handleFetchSubject">{{ globalStore.translations.FETCH_SUBJECT }}</n-button>
         </n-form-item>
         <n-form-item label="Review">
           <n-space vertical style="width: 80%;">
-            <formatting-buttons/>
-            <div id="squire-editor"
-                 style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;"
-                 v-html="modelRef.content"
-            ></div>
+            <formatting-buttons :templateStore="templateStore" :modelRef="modelRef" />
+            <div id="squire-editor" style="height: 400px; overflow-y: auto; border: 1px solid #ffffff; min-height: 200px;" v-html="modelRef.content"></div>
           </n-space>
         </n-form-item>
       </n-form>
@@ -117,9 +64,9 @@
 </template>
 
 <script>
-import {computed, nextTick, onMounted, provide, ref, watch} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
-import {useGlobalStore} from "../../stores/globalStore";
+import { computed, nextTick, onMounted, provide, ref, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useGlobalStore } from "../../stores/globalStore";
 import {
   NButton,
   NButtonGroup,
@@ -146,17 +93,18 @@ import {
   useLoadingBar,
   useMessage
 } from "naive-ui";
-import {useTemplateStore} from "../../stores/template/templateStore";
-import {useComposerStore} from "../../stores/composer/composerStore";
+import { useTemplateStore } from "../../stores/template/templateStore";
+import { useComposerStore } from "../../stores/composer/composerStore";
 import Squire from 'squire-rte';
 import DOMPurify from 'dompurify';
-import {ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline} from '@vicons/tabler';
-import {useMailingListStore} from "../../stores/mailinglist/mailinglistStore";
+import { ArrowBigLeft, Bold, ClearFormatting, Code, Italic, Photo, Strikethrough, Underline } from '@vicons/tabler';
+import { useMailingListStore } from "../../stores/mailinglist/mailinglistStore";
 import DynamicFormField from "./DynamicFormField.vue";
 import FormattingButtons from "../../components/buttons/FormattingButtons.vue";
-import {MessagingHandler} from "../../utils/MessagingHandler";
+import { MessagingHandler } from "../../utils/MessagingHandler";
 import DynamicBuilder from "../../utils/DynamicBuilder"
-import {isEmail} from "validator";
+import { isEmail } from "validator";
+import {buildDynamicContent} from "../../utils/messageContentUtil";
 
 export default {
   name: 'Composer',
@@ -228,7 +176,6 @@ export default {
         ]);
       } catch (error) {
         loadingBar.error();
-        console.error("Error fetching initial data:", error);
         msgPopup.error("Failed to load initial data");
       } finally {
         loadingBar.finish();
@@ -247,7 +194,22 @@ export default {
     };
 
     const handleSendAndSave = async (save) => {
-      await messagingHandler.handleSendAndSave(squireEditor.value.getHTML(), modelRef, formRef, loadingBar, router, save, newsletterId);
+      if (squireEditor.value) {
+        try {
+          const wrappedContent = buildDynamicContent(modelRef.value.customFields, templateStore.appliedTemplateDoc);
+          await messagingHandler.handleSendAndSave(wrappedContent, modelRef, formRef, loadingBar, router, save, newsletterId);
+        } catch (e) {
+          msgPopup.error(e.message, {
+            closable: true,
+            duration: 10000
+          });
+        }
+      } else {
+        msgPopup.error("Editor is not initialized.", {
+          closable: true,
+          duration: 10000
+        });
+      }
     };
 
     const handleFetchSubject = async () => {
@@ -296,7 +258,6 @@ export default {
         if (field.type === 520 || field.type === 521) {
           fieldRules.push({
             validator(rule, value) {
-              console.log('def', field);
               if (Array.isArray(field.defaultValue) && field.defaultValue.length < 1) {
                 return new Error('Please select at least one article');
               }
@@ -316,34 +277,21 @@ export default {
       window.DOMPurify = DOMPurify;
       nextTick(() => {
         squireEditor.value = new Squire(document.getElementById('squire-editor'));
-        /*   squireEditor.value.addEventListener('input', () => {
-             modelRef.value.content = squireEditor.value.getHTML();
-           });*/
       });
     });
 
     watch(modelRef.value.customFields, () => {
       updateRules();
-    }, {deep: true, immediate: true});
+    }, { deep: true, immediate: true });
 
     watch(
-        [
-          () => modelRef.value.customFields,
-        ],
+        () => modelRef.value.customFields,
         () => {
           if (templateStore.appliedTemplateDoc.id > 0) {
-            const dynamicBuilder = new DynamicBuilder(templateStore.appliedTemplateDoc);
-
-            Object.keys(modelRef.value.customFields).forEach((key) => {
-              const field = modelRef.value.customFields[key];
-              dynamicBuilder.addVariable(field.name, field.defaultValue);
-            });
-
-
             try {
-              squireEditor.value.setHTML(dynamicBuilder.buildContent());
+              const content = buildDynamicContent(modelRef.value.customFields, templateStore.appliedTemplateDoc);
+              squireEditor.value.setHTML(content);
             } catch (e) {
-              console.log(e);
               msgPopup.error(e.message, {
                 closable: true,
                 duration: 10000
@@ -351,7 +299,7 @@ export default {
             }
           }
         },
-        {deep: true}
+        { deep: true }
     );
 
     return {

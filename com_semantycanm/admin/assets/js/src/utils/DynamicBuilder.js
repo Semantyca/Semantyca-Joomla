@@ -37,17 +37,16 @@ export default class DynamicBuilder {
             this.variables['articles'] = [];
         }
 
-        const outcome = ejs.render(this.template.content, this.variables);
-        return outcome;
+        return ejs.render(this.template.content, this.variables);
     }
 
-    getWrappedContent = (content) => {
-        let msgBody = { content: content };
+    getWrappedContent = () => {
+        let msgBody =  this.buildContent();
 
-        if (this.template.wrapper && this.template.wrapper.trim() !== '') {
+        if (this.template.wrapper.trim() !== '') {
             return ejs.render(this.template.wrapper, msgBody);
         } else {
-            return content;
+            return msgBody;
         }
     };
 
